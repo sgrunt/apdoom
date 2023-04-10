@@ -61,3 +61,5 @@ GTAGS
 # VSCode settings
 
 /.vscode/
+
+RunDir/
