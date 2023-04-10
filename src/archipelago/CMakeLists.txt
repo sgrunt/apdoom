@@ -1,2 +1,5 @@
 project(archipelago)
-add_library(${PROJECT_NAME} archipelago.h archipelago.cpp)
+add_subdirectory(../../APCpp APCpp)
+add_library(${PROJECT_NAME} apdoom.h apdoom.cpp)
+target_include_directories(${PROJECT_NAME} PRIVATE ../../APCpp)
+target_link_libraries(${PROJECT_NAME} APCpp)
