@@ -184,6 +184,8 @@ typedef enum
     SPR_SP70, SPR_SP71, SPR_SP72, SPR_SP73, SPR_SP74, SPR_SP75, SPR_SP76, SPR_SP77, SPR_SP78, SPR_SP79,
     SPR_SP80, SPR_SP81, SPR_SP82, SPR_SP83, SPR_SP84, SPR_SP85, SPR_SP86, SPR_SP87, SPR_SP88, SPR_SP89,
     SPR_SP90, SPR_SP91, SPR_SP92, SPR_SP93, SPR_SP94, SPR_SP95, SPR_SP96, SPR_SP97, SPR_SP98, SPR_SP99,
+	// [AP] Archipelago junk item (APJI) and progression (APPI)
+    SPR_APJI, SPR_APPI,
     NUMSPRITES
 
 } spritenum_t;
@@ -1227,8 +1229,23 @@ typedef enum
     S_BSKUL_DIE7,
     S_BSKUL_DIE8,
     S_MUSHROOM,
+    // [AP]
+    S_APJIA,
+    S_APJIB,
+    S_APJIC,
+    S_APJID,
+    S_APJIE,
+    S_APJIF,
+    S_APJIG,
+    S_APPIA,
+    S_APPIB,
+    S_APPIC,
+    S_APPID,
+    S_APPIE,
+    S_APPIF,
+    S_APPIG,
     // [BH] extra dehacked states
-    EXTRASTATES = 1089,
+    EXTRASTATES,
     NUMSTATES = 4000
 } statenum_t;
 

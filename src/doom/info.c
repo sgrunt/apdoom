@@ -59,6 +59,8 @@ const char *sprnames[] = {
     "SP70", "SP71", "SP72", "SP73", "SP74", "SP75", "SP76", "SP77", "SP78", "SP79",
     "SP80", "SP81", "SP82", "SP83", "SP84", "SP85", "SP86", "SP87", "SP88", "SP89",
     "SP90", "SP91", "SP92", "SP93", "SP94", "SP95", "SP96", "SP97", "SP98", "SP99",
+	// [AP] Archipelago junk item (APJI) and progression (APPI)
+	"APJI", "APPI",
     NULL
 };
 
@@ -1201,6 +1203,22 @@ state_t	states[NUMSTATES] = {
     {SPR_SKUL,15,5,{A_Fall},S_BSKUL_DIE8,0,0},	// S_BSKUL_DIE7
     {SPR_SKUL,16,5,{A_Stop},S_BSKUL_DIE8,0,0},	// S_BSKUL_DIE8
     {SPR_MISL,32769,8,{A_Mushroom},S_EXPLODE2,0,0},	// S_MUSHROOM
+
+	// [AP]
+	{SPR_APJI,0,6,{NULL},S_APJIA,0,0}, // S_APJIA
+	{SPR_APJI,1,6,{NULL},S_APJIB,0,0}, // S_APJIB
+	{SPR_APJI,2,6,{NULL},S_APJIC,0,0}, // S_APJIC
+	{SPR_APJI,3,6,{NULL},S_APJID,0,0}, // S_APJID
+	{SPR_APJI,4,6,{NULL},S_APJIE,0,0}, // S_APJIE
+	{SPR_APJI,5,6,{NULL},S_APJIF,0,0}, // S_APJIF
+	{SPR_APJI,6,6,{NULL},S_APJIG,0,0}, // S_APJIG
+	{SPR_APPI,0,6,{NULL},S_APPIA,0,0}, // S_APJPA
+	{SPR_APPI,1,6,{NULL},S_APPIB,0,0}, // S_APJPB
+	{SPR_APPI,2,6,{NULL},S_APPIC,0,0}, // S_APJPC
+	{SPR_APPI,3,6,{NULL},S_APPID,0,0}, // S_APJPD
+	{SPR_APPI,4,6,{NULL},S_APPIE,0,0}, // S_APJPE
+	{SPR_APPI,5,6,{NULL},S_APPIF,0,0}, // S_APJPF
+	{SPR_APPI,6,6,{NULL},S_APPIG,0,0} // S_APJPG
 };
 
 

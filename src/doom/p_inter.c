@@ -708,6 +708,12 @@ P_TouchSpecialThing
 	player->message = DEH_String(BETA_BONUS4);
 	break;
 
+	case SPR_APJI:
+		break;
+
+	case SPR_APPI:
+		break;
+
       default:
 	I_Error ("P_SpecialThing: Unknown gettable thing");
     }
