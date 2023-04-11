@@ -709,9 +709,11 @@ P_TouchSpecialThing
 	break;
 
 	case SPR_APJI:
+		player->message = "Picked up Archipelago Junk Item...";
 		break;
 
 	case SPR_APPI:
+		player->message = "Picked up Archipelago Progression Item!";
 		break;
 
       default:

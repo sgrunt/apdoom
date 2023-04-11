@@ -1205,20 +1205,21 @@ state_t	states[NUMSTATES] = {
     {SPR_MISL,32769,8,{A_Mushroom},S_EXPLODE2,0,0},	// S_MUSHROOM
 
 	// [AP]
-	{SPR_APJI,0,6,{NULL},S_APJIA,0,0}, // S_APJIA
-	{SPR_APJI,1,6,{NULL},S_APJIB,0,0}, // S_APJIB
-	{SPR_APJI,2,6,{NULL},S_APJIC,0,0}, // S_APJIC
-	{SPR_APJI,3,6,{NULL},S_APJID,0,0}, // S_APJID
-	{SPR_APJI,4,6,{NULL},S_APJIE,0,0}, // S_APJIE
-	{SPR_APJI,5,6,{NULL},S_APJIF,0,0}, // S_APJIF
-	{SPR_APJI,6,6,{NULL},S_APJIG,0,0}, // S_APJIG
-	{SPR_APPI,0,6,{NULL},S_APPIA,0,0}, // S_APJPA
-	{SPR_APPI,1,6,{NULL},S_APPIB,0,0}, // S_APJPB
-	{SPR_APPI,2,6,{NULL},S_APPIC,0,0}, // S_APJPC
-	{SPR_APPI,3,6,{NULL},S_APPID,0,0}, // S_APJPD
-	{SPR_APPI,4,6,{NULL},S_APPIE,0,0}, // S_APJPE
-	{SPR_APPI,5,6,{NULL},S_APPIF,0,0}, // S_APJPF
-	{SPR_APPI,6,6,{NULL},S_APPIG,0,0} // S_APJPG
+	{SPR_APJI,32768,3,{NULL},S_APJIB,0,0}, // S_APJI
+	{SPR_APJI,32769,3,{NULL},S_APJIC,0,0}, // S_APJIB
+	{SPR_APJI,32770,3,{NULL},S_APJID,0,0}, // S_APJIC
+	{SPR_APJI,32771,3,{NULL},S_APJIE,0,0}, // S_APJID
+	{SPR_APJI,32772,3,{NULL},S_APJIF,0,0}, // S_APJIE
+	{SPR_APJI,32773,3,{NULL},S_APJIG,0,0}, // S_APJIF
+	{SPR_APJI,32774,3,{NULL},S_APJI,0,0}, // S_APJIG
+
+	{SPR_APPI,32768,3,{NULL},S_APPIB,0,0}, // S_APJP
+	{SPR_APPI,32769,3,{NULL},S_APPIC,0,0}, // S_APJPB
+	{SPR_APPI,32770,3,{NULL},S_APPID,0,0}, // S_APJPC
+	{SPR_APPI,32771,3,{NULL},S_APPIE,0,0}, // S_APJPD
+	{SPR_APPI,32772,3,{NULL},S_APPIF,0,0}, // S_APJPE
+	{SPR_APPI,32773,3,{NULL},S_APPIG,0,0}, // S_APJPF
+	{SPR_APPI,32774,3,{NULL},S_APPI,0,0}, // S_APJPG
 };
 
 
@@ -4997,5 +4998,56 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
 	MF_NOBLOCKMAP,		// flags
 	S_NULL		// raisestate
     },
-};
 
+    {		// MT_APJI
+	20000,		// doomednum
+	S_APJI,		// spawnstate
+	1000,		// spawnhealth
+	S_NULL,		// seestate
+	sfx_None,		// seesound
+	8,		// reactiontime
+	sfx_None,		// attacksound
+	S_NULL,		// painstate
+	0,		// painchance
+	sfx_None,		// painsound
+	S_NULL,		// meleestate
+	S_NULL,		// missilestate
+	S_NULL,		// deathstate
+	S_NULL,		// xdeathstate
+	sfx_None,		// deathsound
+	0,		// speed
+	20*FRACUNIT,		// radius
+	16*FRACUNIT,		// height
+	100,		// mass
+	0,		// damage
+	sfx_None,		// activesound
+	MF_SPECIAL|MF_NOTDMATCH,		// flags
+	S_NULL		// raisestate
+    },
+
+    {		// MT_APPI
+	20001,		// doomednum
+	S_APPI,		// spawnstate
+	1000,		// spawnhealth
+	S_NULL,		// seestate
+	sfx_None,		// seesound
+	8,		// reactiontime
+	sfx_None,		// attacksound
+	S_NULL,		// painstate
+	0,		// painchance
+	sfx_None,		// painsound
+	S_NULL,		// meleestate
+	S_NULL,		// missilestate
+	S_NULL,		// deathstate
+	S_NULL,		// xdeathstate
+	sfx_None,		// deathsound
+	0,		// speed
+	20*FRACUNIT,		// radius
+	16*FRACUNIT,		// height
+	100,		// mass
+	0,		// damage
+	sfx_None,		// activesound
+	MF_SPECIAL|MF_NOTDMATCH,		// flags
+	S_NULL		// raisestate
+    },
+};

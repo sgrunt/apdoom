@@ -1229,21 +1229,24 @@ typedef enum
     S_BSKUL_DIE7,
     S_BSKUL_DIE8,
     S_MUSHROOM,
-    // [AP]
-    S_APJIA,
+
+    // [AP] Archipelago junk item (APJI) and progression (APPI)
+    S_APJI,
     S_APJIB,
     S_APJIC,
     S_APJID,
     S_APJIE,
     S_APJIF,
     S_APJIG,
-    S_APPIA,
+
+    S_APPI,
     S_APPIB,
     S_APPIC,
     S_APPID,
     S_APPIE,
     S_APPIF,
     S_APPIG,
+
     // [BH] extra dehacked states
     EXTRASTATES,
     NUMSTATES = 4000
@@ -1414,6 +1417,8 @@ typedef enum {
     MT_BIBLE,
     // [crispy] support MUSINFO lump (dynamic music changing)
     MT_MUSICSOURCE,
+    // [AP] Archipelago junk item (APJI) and progression (APPI)
+    MT_APJI, MT_APPI,
     // [BH] 100 extra mobjs to use in dehacked patches
     MT_EXTRA00 = 150, MT_EXTRA01, MT_EXTRA02, MT_EXTRA03, MT_EXTRA04,
     MT_EXTRA05, MT_EXTRA06, MT_EXTRA07, MT_EXTRA08, MT_EXTRA09,

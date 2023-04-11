@@ -532,6 +532,19 @@ void P_LoadThings (int lump)
 	spawnthing.angle = SHORT(mt->angle);
 	spawnthing.type = SHORT(mt->type);
 	spawnthing.options = SHORT(mt->options);
+
+    // Replace keycards with AP
+    switch (spawnthing.type)
+    {
+		case 38:
+		case 13:
+		case 39:
+		case 6:
+		case 40:
+		case 5:
+            spawnthing.type = 20000;
+            break;
+    }
 	
 	P_SpawnMapThing(&spawnthing);
     }
