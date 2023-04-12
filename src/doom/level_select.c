@@ -6,6 +6,9 @@
 #include "z_zone.h"
 #include "v_video.h"
 #include "d_player.h"
+#include "doomkeys.h"
+#include "apdoom.h"
+#include "i_video.h"
 
 
 void WI_initAnimatedBack(void);
@@ -13,16 +16,168 @@ void WI_updateAnimatedBack(void);
 void WI_drawAnimatedBack(void);
 void WI_initVariables(wbstartstruct_t* wbstartstruct);
 void WI_loadData(void);
-void WI_getMapLocation(int ep, int map, int* x, int* y);
+
+
+typedef struct
+{
+    int x;
+    int y;
+    int keys_offset;
+    char* urhere_lump_name;
+    int urhere_x_offset;
+    int urhere_y_offset;
+
+} level_pos_t;
+
+
+static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
+{
+    // Episode 0 World Map
+    {
+        { 185, 164 + 10, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
+	    { 148, 143, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
+	    { 69, 122, 18, "WIURH1", 0, 0 },	// location of level 2 (CJ)
+	    { 209 + 20, 102, 22, "WIURH0", 0, 0 },	// location of level 3 (CJ)
+	    { 116, 89, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
+	    { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0 },	// location of level 5 (CJ)
+	    { 71, 56, 18, "WIURH1", 0, 0 },	// location of level 6 (CJ)
+	    { 135, 29, 18, "WIURH0", -2, 4 },	// location of level 7 (CJ)
+	    { 71, 24, 22, "WIURH1", 0, 0 }	// location of level 8 (CJ)
+    },
+
+    // Episode 1 World Map should go here
+    {
+	    { 254, 25, 18, "WIURH2", 0, 0 },	// location of level 0 (CJ)
+	    { 97, 50, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
+	    { 188, 64, 18, "WIURH0", 0, 0 },	// location of level 2 (CJ)
+	    { 128, 78 + 5, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
+	    { 214, 92, 22, "WIURH0", 0, 0 },	// location of level 4 (CJ)
+	    { 133, 130, 20, "WIURH0", 0, 0 },	// location of level 5 (CJ)
+	    { 208, 136 - 1, 18, "WIURH0", 0, 0 },	// location of level 6 (CJ)
+	    { 148, 140 + 20, 22, "WIURH2", 0, 0 },	// location of level 7 (CJ)
+	    { 235, 158, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
+    },
+
+    // Episode 2 World Map should go here
+    {
+	    { 156, 168, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
+	    { 48, 154, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
+	    { 174, 95, -26, "WIURH0", 0, 0 },	// location of level 2 (CJ)
+	    { 265, 75, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
+	    { 130, 48 + 4, -24, "WIURH3", 0, 0 },	// location of level 4 (CJ)
+	    { 279, 23, -26, "WIURH1", 8, 0 },	// location of level 5 (CJ)
+	    { 198, 48, 18, "WIURH3", 0, 0 },	// location of level 6 (CJ)
+	    { 140, 25, 22, "WIURH1", 0, 0 },	// location of level 7 (CJ)
+	    { 281, 136, -26, "WIURH3", 0, 0 }	// location of level 8 (CJ)
+    }
+};
 
 
 static wbstartstruct_t wiinfo;
 
 extern int bcnt;
 
+int selected_level[AP_EPISODE_COUNT] = {0};
+int selected_ep = 0;
+int urh_anim = 0;
+
+static const char* YELLOW_DIGIT_LUMP_NAMES[] = {
+    "STYSNUM0", "STYSNUM1", "STYSNUM2", "STYSNUM3", "STYSNUM4", 
+    "STYSNUM5", "STYSNUM6", "STYSNUM7", "STYSNUM8", "STYSNUM9"
+};
+
+
+void print_right_aligned_yellow_digit(int x, int y, int digit)
+{
+    x -= 4;
+
+    if (!digit)
+    {
+        V_DrawPatch(x, y, W_CacheLumpName(YELLOW_DIGIT_LUMP_NAMES[0], PU_CACHE));
+        return;
+    }
+
+    while (digit)
+    {
+        int i = digit % 10;
+        V_DrawPatch(x, y, W_CacheLumpName(YELLOW_DIGIT_LUMP_NAMES[i], PU_CACHE));
+        x -= 4;
+        digit /= 10;
+    }
+}
+
+
+void print_left_aligned_yellow_digit(int x, int y, int digit)
+{
+    if (!digit)
+    {
+        x += 4;
+    }
+
+    int len = 0;
+    int d = digit;
+    while (d)
+    {
+        len++;
+        d /= 10;
+    }
+    print_right_aligned_yellow_digit(x + len * 4, y, digit);
+}
+
+
+void restart_wi_anims()
+{
+    wiinfo.epsd = selected_ep;
+    WI_initVariables(&wiinfo);
+    WI_loadData();
+    WI_initAnimatedBack();
+}
+
 
 boolean LevelSelectResponder(event_t* ev)
 {
+    switch (ev->type)
+    {
+        case ev_keydown:
+        {
+            switch (ev->data1)
+            {
+                case KEY_LEFTARROW:
+                    selected_ep--;
+                    if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
+                    restart_wi_anims();
+                    urh_anim = 0;
+                    break;
+                case KEY_RIGHTARROW:
+                    selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+                    restart_wi_anims();
+                    urh_anim = 0;
+                    break;
+                case KEY_UPARROW:
+                    if (selected_ep == 1)
+                    {
+                        selected_level[selected_ep]--;
+                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
+                    }
+                    else
+                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;
+                    urh_anim = 0;
+                    break;
+                case KEY_DOWNARROW:
+                    if (selected_ep == 1)
+                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;
+                    else
+                    {
+                        selected_level[selected_ep]--;
+                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
+                    }
+                    urh_anim = 0;
+                    break;
+            }
+            break;
+        }
+    }
+
     return true;
 }
 
@@ -36,7 +191,7 @@ void ShowLevelSelect()
     viewactive = false;
     automapactive = false;
 
-    wiinfo.epsd = 0;
+    wiinfo.epsd = selected_ep;
     wiinfo.didsecret = false;
     wiinfo.last = -1;
     wiinfo.next = -1;
@@ -46,10 +201,8 @@ void ShowLevelSelect()
     wiinfo.maxfrags = 0;
     wiinfo.partime = 0;
     wiinfo.pnum = 0;
-
-    WI_initVariables(&wiinfo);
-    WI_loadData();
-    WI_initAnimatedBack();
+    
+    restart_wi_anims();
     bcnt = 0;
 }
 
@@ -57,6 +210,7 @@ void ShowLevelSelect()
 void TickLevelSelect()
 {
     bcnt++;
+    urh_anim = (urh_anim + 1) % 35;
     WI_updateAnimatedBack();
 }
 
@@ -65,41 +219,98 @@ void DrawLevelSelectStats()
 {
     int x, y;
     const int key_spacing = 8;
-    const int key_start_offset = -key_spacing * 3 / 2;
     const int start_y_offset = 10;
 
-    for (int i = 0; i < 9; ++i)
+    for (int i = 0; i < AP_LEVEL_COUNT; ++i)
     {
-        WI_getMapLocation(wiinfo.epsd, i, &x, &y);
-        //V_DrawPatch(x, y, W_CacheLumpName("WISPLAT", PU_CACHE));
+        level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
+        ap_level_info_t* ap_level_info = &ap_level_infos[selected_ep][i];
+        ap_level_state_t* ap_level_state = &ap_state.level_states[selected_ep][i];
+
+        x = level_pos->x;
+        y = level_pos->y;
+
+        int key_count = 0;
+        for (int i = 0; i < 3; ++i)
+            if (ap_level_info->keys[i])
+                key_count++;
+
+        const int key_start_offset = -key_spacing * key_count / 2;
+        
+        // Level complete splash
+        if (ap_level_state->completed)
+            V_DrawPatch(x, y, W_CacheLumpName("WISPLAT", PU_CACHE));
+
+        // Keys
+        const char* key_lump_names[] = {"STKEYS0", "STKEYS1", "STKEYS2"};
+        int key_y = y + key_start_offset;
+        int key_x = x + level_pos->keys_offset;
+        for (int k = 0; k < 3; ++k)
+        {
+            if (ap_level_info->keys[k])
+            {
+                V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
+                V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_names[k], PU_CACHE));
+                if (ap_level_state->keys[k])
+                {
+                    if (level_pos->keys_offset < 0)
+                    {
+                        V_DrawPatch(key_x - 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
+                    }
+                    else
+                    {
+                        V_DrawPatch(key_x + 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
+                    }
+                }
+                key_y += key_spacing;
+            }
+        }
 
         // Progress
-        V_DrawPatch(x - 8, y + start_y_offset, W_CacheLumpName("STYSNUM3", PU_CACHE));
+        print_right_aligned_yellow_digit(x - 4, y + start_y_offset, ap_level_state->check_count);
         V_DrawPatch(x - 3, y + start_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        V_DrawPatch(x + 4, y + start_y_offset, W_CacheLumpName("STYSNUM5", PU_CACHE));
+        print_left_aligned_yellow_digit(x + 4, y + start_y_offset, ap_level_info->check_count);
 
-        // Key BG
-        // Key
-        // Check mark
-        V_DrawPatch(x + 22, y + key_start_offset, W_CacheLumpName("KEYBG", PU_CACHE));
-        V_DrawPatch(x + 22 + 2, y + key_start_offset + 1, W_CacheLumpName("STKEYS0", PU_CACHE));
-        V_DrawPatch(x + 22 + 12, y + key_start_offset - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
+        // "You are here"
+        if (i == selected_level[selected_ep] && urh_anim < 25)
+        {
+            int x_offset = 2;
+            int y_offset = -2;
+            if (level_pos->urhere_lump_name[5] == '1')
+            {
+                x_offset = -2;
+            }
+            if ((level_pos->urhere_lump_name[5] == '0' && level_pos->keys_offset > 0) ||
+                (level_pos->urhere_lump_name[5] == '1' && level_pos->keys_offset < 0))
+            {
+                y_offset += key_start_offset;
+            }
+            if (level_pos->urhere_lump_name[5] == '2' ||
+                level_pos->urhere_lump_name[5] == '3')
+            {
+                y_offset = 16;
+            }
+            V_DrawPatch(x + x_offset + level_pos->urhere_x_offset, 
+                        y + y_offset + level_pos->urhere_y_offset, 
+                        W_CacheLumpName(level_pos->urhere_lump_name, PU_CACHE));
+        }
+    }
 
-        V_DrawPatch(x + 22, y + key_start_offset + key_spacing, W_CacheLumpName("KEYBG", PU_CACHE));
-        V_DrawPatch(x + 22 + 2, y + key_start_offset + key_spacing + 1, W_CacheLumpName("STKEYS1", PU_CACHE));
-        V_DrawPatch(x + 22 + 12, y + key_start_offset + key_spacing - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
-
-        V_DrawPatch(x + 22, y + key_start_offset + key_spacing * 2, W_CacheLumpName("KEYBG", PU_CACHE));
-        V_DrawPatch(x + 22 + 2, y + key_start_offset + key_spacing * 2 + 1, W_CacheLumpName("STKEYS2", PU_CACHE));
-        V_DrawPatch(x + 22 + 12, y + key_start_offset + key_spacing * 2 - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
+    // Level name
+    char name[9];
+    snprintf(name, 9, "WILV%d%d", selected_ep, selected_level[selected_ep]);
+    if (W_CheckNumForName(name) != -1)
+    {
+        patch_t* finished = W_CacheLumpName(name, PU_STATIC);
+        V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
     }
 }
 
 
 void DrawLevelSelect()
 {
-    char* lump_name = "WIMAP0";
-    lump_name[5] = '0' + wiinfo.epsd;
+    char lump_name[9];
+    snprintf(lump_name, 9, "WIMAP%d", selected_ep);
     V_DrawPatchFullScreen(W_CacheLumpName(lump_name, PU_CACHE), false);
     WI_drawAnimatedBack();
 

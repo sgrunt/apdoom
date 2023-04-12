@@ -215,13 +215,6 @@ point_t lnodes[NUMEPISODES][NUMMAPS] =
 };
 
 
-void WI_getMapLocation(int ep, int map, int* x, int* y)
-{
-	*x = lnodes[ep][map].x;
-	*y = lnodes[ep][map].y;
-}
-
-
 //
 // Animation locations for episode 0 (1).
 // Using patches saves a lot of space,
