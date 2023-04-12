@@ -171,7 +171,7 @@ typedef struct
 } anim_t;
 
 
-static point_t lnodes[NUMEPISODES][NUMMAPS] =
+point_t lnodes[NUMEPISODES][NUMMAPS] =
 {
     // Episode 0 World Map
     {
@@ -213,6 +213,13 @@ static point_t lnodes[NUMEPISODES][NUMMAPS] =
     }
 
 };
+
+
+void WI_getMapLocation(int ep, int map, int* x, int* y)
+{
+	*x = lnodes[ep][map].x;
+	*y = lnodes[ep][map].y;
+}
 
 
 //
@@ -319,7 +326,7 @@ static wbplayerstruct_t* plrs;  // wbs->plyr[]
 static int 		cnt;  
 
 // used for timing of background animation
-static int 		bcnt;
+int 		bcnt;
 
 // signals to refresh everything for one frame
 static int 		firstrefresh; 
@@ -826,6 +833,7 @@ void WI_updateShowNextLoc(void)
     else
 	snl_pointeron = (cnt & 31) < 20;
 }
+
 
 void WI_drawShowNextLoc(void)
 {

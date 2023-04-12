@@ -158,7 +158,7 @@ else()
     add_executable("${PROGRAM_PREFIX}doom" ${SOURCE_FILES_WITH_DEH})
 endif()
 
-target_include_directories("${PROGRAM_PREFIX}doom" PRIVATE ${GAME_INCLUDE_DIRS})
+target_include_directories("${PROGRAM_PREFIX}doom" PRIVATE ${GAME_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/src/archipelago)
 target_link_libraries("${PROGRAM_PREFIX}doom" doom ${EXTRA_LIBS})
 
 if(MSVC)

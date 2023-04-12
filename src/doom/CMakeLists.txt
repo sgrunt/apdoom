@@ -1,4 +1,5 @@
 add_library(doom STATIC
+            level_select.c  level_select.h
             am_map.c        am_map.h
             deh_ammo.c
             deh_bexincl.c
@@ -81,7 +82,7 @@ add_library(doom STATIC
             v_snow.c        v_snow.h
             wi_stuff.c      wi_stuff.h)
 
-target_include_directories(doom PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+target_include_directories(doom PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../" "../archipelago/")
 target_link_libraries(doom SDL2::SDL2)
 if(ENABLE_SDL2_MIXER)
     target_link_libraries(doom SDL2_mixer::SDL2_mixer)

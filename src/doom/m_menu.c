@@ -64,6 +64,9 @@
 
 #include "v_trans.h" // [crispy] colored "invert mouse" message
 
+#include "level_select.h" // [ap]
+
+
 //
 // defaulted values
 //
@@ -200,6 +203,7 @@ menu_t*	currentMenu;
 //
 // PROTOTYPES
 //
+static void M_APLevelSelect(int choice);
 static void M_NewGame(int choice);
 static void M_Episode(int choice);
 static void M_ChooseSkill(int choice);
@@ -266,10 +270,8 @@ static void M_DrawCrispness4(void);
 //
 enum
 {
-    newgame = 0,
+    levelselect = 0,
     options,
-    loadgame,
-    savegame,
     readthis,
     quitdoom,
     main_end
@@ -277,10 +279,8 @@ enum
 
 menuitem_t MainMenu[]=
 {
-    {1,"M_NGAME",M_NewGame,'n'},
+    {1,"M_LVLSEL",M_APLevelSelect,'l'},
     {1,"M_OPTION",M_Options,'o'},
-    {1,"M_LOADG",M_LoadGame,'l'},
-    {1,"M_SAVEG",M_SaveGame,'s'},
     // Another hickup with Special edition.
     {1,"M_RDTHIS",M_ReadThis,'r'},
     {1,"M_QUITG",M_QuitDOOM,'q'}
@@ -1254,6 +1254,16 @@ void M_DrawMainMenu(void)
                       W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 }
 
+
+
+//
+// M_LevelSelect
+//
+void M_APLevelSelect(int choice)
+{
+    M_ClearMenus();
+    ShowLevelSelect();
+}
 
 
 

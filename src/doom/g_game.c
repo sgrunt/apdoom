@@ -80,6 +80,8 @@
 #include "deh_main.h" // [crispy] for demo footer
 #include "memio.h"
 
+#include "level_select.h" // [ap]
+
 #define SAVEGAMESIZE	0x2c000
 
 void	G_ReadDemoTiccmd (ticcmd_t* cmd); 
@@ -1074,7 +1076,13 @@ boolean G_Responder (event_t* ev)
     { 
 	if (F_Responder (ev)) 
 	    return true;	// finale ate the event 
-    } 
+    }
+    
+    if (gamestate == GS_LEVEL_SELECT)
+    {
+        if (LevelSelectResponder(ev))
+            return true; // ate the event
+    }
 
     if (testcontrols && ev->type == ev_mouse)
     {
@@ -1386,6 +1394,10 @@ void G_Ticker (void)
       case GS_DEMOSCREEN: 
 	D_PageTicker (); 
 	break;
+
+        case GS_LEVEL_SELECT:
+            TickLevelSelect();
+            break;
     }        
 } 
  

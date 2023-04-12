@@ -81,6 +81,8 @@
 
 #include "doom_icon.c"
 
+#include "level_select.h" // [ap]
+
 //
 // D-DoomLoop()
 // Not a globally visible function,
@@ -231,6 +233,10 @@ boolean D_Display (void)
       case GS_DEMOSCREEN:
 	D_PageDrawer ();
 	break;
+
+        case GS_LEVEL_SELECT:
+            DrawLevelSelect();
+            break;
     }
     
     // draw buffered stuff to screen

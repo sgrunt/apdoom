@@ -1,9 +1,11 @@
-#include <vector>
+#include "apdoom.h"
+#include <memory.h>
 
-static std::vector<int> bar;
 
-size_t foo()
+ap_state_t ap_state;
+
+
+void apdoom_init(void)
 {
-    bar.push_back(42);
-    return bar.size();
+    memset(&ap_state, 0, sizeof(ap_state));
 }
