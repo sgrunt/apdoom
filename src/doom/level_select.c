@@ -9,6 +9,7 @@
 #include "doomkeys.h"
 #include "apdoom.h"
 #include "i_video.h"
+#include "g_game.h"
 
 
 void WI_initAnimatedBack(void);
@@ -134,6 +135,15 @@ void restart_wi_anims()
 }
 
 
+void play_level(int ep, int lvl)
+{
+    // Check if level has a save file first
+
+    // If none, load it fresh
+    G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
+}
+
+
 boolean LevelSelectResponder(event_t* ev)
 {
     switch (ev->type)
@@ -143,15 +153,21 @@ boolean LevelSelectResponder(event_t* ev)
             switch (ev->data1)
             {
                 case KEY_LEFTARROW:
-                    selected_ep--;
-                    if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
-                    restart_wi_anims();
-                    urh_anim = 0;
+                    if (gamemode != shareware)
+                    {
+                        selected_ep--;
+                        if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
+                        restart_wi_anims();
+                        urh_anim = 0;
+                    }
                     break;
                 case KEY_RIGHTARROW:
-                    selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
-                    restart_wi_anims();
-                    urh_anim = 0;
+                    if (gamemode != shareware)
+                    {
+                        selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+                        restart_wi_anims();
+                        urh_anim = 0;
+                    }
                     break;
                 case KEY_UPARROW:
                     if (selected_ep == 1)
@@ -172,6 +188,9 @@ boolean LevelSelectResponder(event_t* ev)
                         if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
                     }
                     urh_anim = 0;
+                    break;
+                case KEY_ENTER:
+                    play_level(selected_ep, selected_level[selected_ep]);
                     break;
             }
             break;
