@@ -96,3 +96,8 @@ configure_file(src/strife-res.rc.in src/strife-res.rc)
 foreach(SUBDIR textscreen opl pcsound src)
     add_subdirectory("${SUBDIR}")
 endforeach()
+
+option(ENABLE_AP_GEN_TOOL "Enable AP Gen Tool" On)
+if (ENABLE_AP_GEN_TOOL)
+    add_subdirectory(ap_gen_tool)
+endif()
