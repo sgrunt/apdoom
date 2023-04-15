@@ -169,19 +169,28 @@ const char* level_names[3][9] = {
     }
 };
 
+bool loc_name_taken(const std::string& name)
+{
+    for (const auto& loc : ap_locations)
+    {
+        if (loc.name == name) return true;
+    }
+    return false;
+}
+
 void add_loc(const std::string& name, const map_thing_t& thing, const level_t* level, int index)
 {
     int count = 0;
-    for (const auto& loc : ap_locations)
+    std::string loc_name = name;
+    while (loc_name_taken(loc_name))
     {
-        if (loc.name == name) count++;
+        ++count;
+        loc_name = name + " " + std::to_string(count + 1);
     }
 
     ap_location_t loc;
     loc.id = location_next_id++;
-    loc.name = name;
-    if (count > 0)
-        loc.name += " " + std::to_string(count + 1);
+    loc.name = loc_name;
     loc.ep = level->ep;
     loc.lvl = level->lvl;
     loc.doom_thing_index = index;
@@ -338,7 +347,11 @@ int main(int argc, char** argv)
 
         for (const auto& thing : level->things)
         {
-            if (thing.flags & 0x0010) continue; // Thing is not in single player
+            if (thing.flags & 0x0010)
+            {
+                ++i;
+                continue; // Thing is not in single player
+            }
             switch (thing.type)
             {
                 // Uniques
@@ -536,7 +549,8 @@ class LocationDict(TypedDict, total=False): \n\
     // Now generate apdoom_def.h so the game can map the IDs
     {
         FILE* fout = fopen((cpp_out_dir + "apdoom_def.h").c_str(), "w");
-
+        
+        fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
         fprintf(fout, "#pragma once\n\n");
         fprintf(fout, "#include <map>\n\n");
 
@@ -563,6 +577,37 @@ class LocationDict(TypedDict, total=False): \n\
         }
         fprintf(fout, "};\n");
 
+        fclose(fout);
+    }
+
+    // We generate some stuff for doom also, C header.
+    {
+        FILE* fout = fopen((cpp_out_dir + "apdoom_c_def.h").c_str(), "w");
+        
+        fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
+        fprintf(fout, "#ifndef _AP_DOOM_C_DEF_\n");
+        fprintf(fout, "#define _AP_DOOM_C_DEF_\n\n");
+
+        fprintf(fout, "static int is_doom_type_ap_location(int doom_type)\n");
+        fprintf(fout, "{\n");
+        fprintf(fout, "    switch (doom_type)\n");
+        fprintf(fout, "    {\n");
+
+        std::set<int> doom_types;
+        for (const auto& loc : ap_locations)
+        {
+            doom_types.insert(loc.doom_type);
+        }
+        for (auto doom_type : doom_types)
+        {
+            fprintf(fout, "        case %i:\n", doom_type);
+        }
+        
+        fprintf(fout, "            return 1;\n");
+        fprintf(fout, "    }\n\n");
+        fprintf(fout, "    return 0;\n");
+        fprintf(fout, "}\n\n");
+        fprintf(fout, "#endif\n");
         fclose(fout);
     }
 

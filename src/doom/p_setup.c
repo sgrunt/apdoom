@@ -45,6 +45,8 @@
 
 #include "p_extnodes.h" // [crispy] support extended node formats
 
+#include "apdoom_c_def.h"
+
 void	P_SpawnMapThing (mapthing_t*	mthing);
 
 
@@ -533,18 +535,9 @@ void P_LoadThings (int lump)
 	spawnthing.type = SHORT(mt->type);
 	spawnthing.options = SHORT(mt->options);
 
-    // Replace keycards with AP
-    switch (spawnthing.type)
-    {
-		case 38:
-		case 13:
-		case 39:
-		case 6:
-		case 40:
-		case 5:
+        // Replace keycards with AP
+        if (is_doom_type_ap_location(spawnthing.type))
             spawnthing.type = 20000;
-            break;
-    }
 	
 	P_SpawnMapThing(&spawnthing, i);
     }
