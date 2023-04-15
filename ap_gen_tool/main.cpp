@@ -3,6 +3,8 @@
 #include <string.h>
 #include <vector>
 #include <string>
+#include <map>
+#include <set>
 
 
 struct map_header_t
@@ -128,9 +130,10 @@ uint64_t location_next_id = 351000;
 int total_item_count = 0;
 std::vector<ap_item_t> ap_items;
 std::vector<ap_location_t> ap_locations;
+std::map<std::string, std::set<std::string>> item_name_groups;
 
 
-std::string level_names[3][9] = {
+const char* level_names[3][9] = {
     {
         "Hangar",
         "Nuclear Plant",
@@ -166,8 +169,27 @@ std::string level_names[3][9] = {
     }
 };
 
+void add_loc(const std::string& name, const map_thing_t& thing, const level_t* level, int index)
+{
+    int count = 0;
+    for (const auto& loc : ap_locations)
+    {
+        if (loc.name == name) count++;
+    }
 
-void add_unique(const std::string& name, const map_thing_t& thing, const level_t* level, int index, bool is_key, item_classification_t classification)
+    ap_location_t loc;
+    loc.id = location_next_id++;
+    loc.name = name;
+    if (count > 0)
+        loc.name += " " + std::to_string(count + 1);
+    loc.ep = level->ep;
+    loc.lvl = level->lvl;
+    loc.doom_thing_index = index;
+    loc.doom_type = thing.type; // Index can be a risky one. We could replace the item by it's type if it's unique enough
+    ap_locations.push_back(loc);
+}
+
+void add_unique(const std::string& name, const map_thing_t& thing, const level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name)
 {
     ap_item_t item;
     item.id = item_next_id++;
@@ -180,30 +202,14 @@ void add_unique(const std::string& name, const map_thing_t& thing, const level_t
     item.is_key = is_key;
     item.classification = classification;
     ap_items.push_back(item);
-
-    ap_location_t loc;
-    loc.id = location_next_id++;
-    loc.name = name;
-    loc.ep = level->ep;
-    loc.lvl = level->lvl;
-    loc.doom_thing_index = index;
-    loc.doom_type = thing.type; // Index can be a risky one. We could replace the item by it's type if it's unique enough
-    ap_locations.push_back(loc);
+    if (!group_name.empty())
+    {
+        item_name_groups[group_name].insert(name);
+    }
+    add_loc(name, thing, level, index);
 }
 
-void add_loc(const std::string& name, const map_thing_t& thing, const level_t* level, int index)
-{
-    ap_location_t loc;
-    loc.id = location_next_id++;
-    loc.name = name;
-    loc.ep = level->ep;
-    loc.lvl = level->lvl;
-    loc.doom_thing_index = index;
-    loc.doom_type = thing.type; // Index can be a risky one. We could replace the item by it's type if it's unique enough
-    ap_locations.push_back(loc);
-}
-
-void add_item(const std::string& name, int doom_type, int count, item_classification_t classification)
+void add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name)
 {
     ap_item_t item;
     item.id = item_next_id++;
@@ -215,6 +221,10 @@ void add_item(const std::string& name, int doom_type, int count, item_classifica
     total_item_count += count;
     item.is_key = false;
     item.classification = classification;
+    if (!group_name.empty())
+    {
+        item_name_groups[group_name].insert(name);
+    }
     ap_items.push_back(item);
 }
 
@@ -241,11 +251,13 @@ int main(int argc, char** argv)
 {
     printf("AP Gen Tool\n");
 
-    if (argc != 2)
+    if (argc != 3) // Minimum effort validation
     {
-        printf("Usage: ap_gen_tool.exe DOOM.WAD\n");
+        printf("Usage: ap_gen_tool.exe DOOM.WAD output_dir (i.e.: C:\\Archipelago\\worlds\\ultimate_doom)\n");
         return 1;
     }
+
+    std::string out_dir = argv[2] + std::string("\\");
 
     FILE* f = fopen(argv[1], "rb");
     if (!f)
@@ -320,7 +332,7 @@ int main(int argc, char** argv)
 
     for (auto level : levels)
     {
-        std::string lvl_prefix = level_names[level->ep - 1][level->lvl - 1] + " "; //"E" + std::to_string(level->ep) + "M" + std::to_string(level->lvl) + " ";
+        std::string lvl_prefix = level_names[level->ep - 1][level->lvl - 1] + std::string(" - "); //"E" + std::to_string(level->ep) + "M" + std::to_string(level->lvl) + " ";
         int i = 0;
 
         for (const auto& thing : level->things)
@@ -329,13 +341,13 @@ int main(int argc, char** argv)
             switch (thing.type)
             {
                 // Uniques
-                case 5: add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION); break;
-                case 40: add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION); break;
-                case 13: add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION); break;
-                case 38: add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION); break;
-                case 6: add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION); break;
-                case 39: add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION); break;
-                case 2026: add_unique(lvl_prefix + "Map", thing, level, i, false, USEFUL); break;
+                case 5: add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 40: add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 13: add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 38: add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 6: add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 39: add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 2026: add_unique(lvl_prefix + "Map", thing, level, i, false, USEFUL, ""); break;
 
                 // Locations
                 case 2018: add_loc(lvl_prefix + "Armor", thing, level, i); ++armor_count; break;
@@ -356,41 +368,57 @@ int main(int argc, char** argv)
         }
     }
 
-    add_item("Armor", 2018, armor_count, FILLER);
-    add_item("Mega Armor", 2019, megaarmor_count, FILLER);
-    add_item("Berserk", 2023, berserk_count, FILLER);
-    add_item("Invulnerability", 2022, invulnerability_count, FILLER);
-    add_item("Partial invisibility", 2024, partial_invisibility_count, FILLER);
-    add_item("Supercharge", 2013, supercharge_count, FILLER);
+    add_item("Armor", 2018, armor_count, FILLER, "Powerups");
+    add_item("Mega Armor", 2019, megaarmor_count, FILLER, "Powerups");
+    add_item("Berserk", 2023, berserk_count, FILLER, "Powerups");
+    add_item("Invulnerability", 2022, invulnerability_count, FILLER, "Powerups");
+    add_item("Partial invisibility", 2024, partial_invisibility_count, FILLER, "Powerups");
+    add_item("Supercharge", 2013, supercharge_count, FILLER, "Powerups");
 
     // Make backpack progression item (Idea, gives more than one, with less increase each time)
-    add_item("Backpack", 8, 1, PROGRESSION);
+    add_item("Backpack", 8, 1, PROGRESSION, "");
 
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    add_item("Shotgun", 2001, 3, PROGRESSION);
-    add_item("Shotgun", 2001, 7, USEFUL);
-    add_item("Rocket launcher", 2003, 1, PROGRESSION);
-    add_item("Rocket launcher", 2003, 2, USEFUL);
-    add_item("Plasma gun", 2004, 2, USEFUL);
-    add_item("Chainsaw", 2005, 5, USEFUL);
-    add_item("Chaingun", 2002, 2, PROGRESSION);
-    add_item("Chaingun", 2002, 2, USEFUL);
-    add_item("BFG9000", 2006, 1, USEFUL);
+    add_item("Shotgun", 2001, 3, PROGRESSION, "Weapons");
+    add_item("Shotgun", 2001, 7, USEFUL, "Weapons");
+    add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
+    add_item("Rocket launcher", 2003, 2, USEFUL, "Weapons");
+    add_item("Plasma gun", 2004, 2, USEFUL, "Weapons");
+    add_item("Chainsaw", 2005, 5, USEFUL, "Weapons");
+    add_item("Chaingun", 2002, 2, PROGRESSION, "Weapons");
+    add_item("Chaingun", 2002, 2, USEFUL, "Weapons");
+    add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
 
     // Junk items
-    add_item("Medikit", 2012, 30, FILLER);
-    add_item("Box of bullets", 2048, 20, FILLER);
-    add_item("Box of rockets", 2046, 20, FILLER);
-    add_item("Box of shotgun shells", 2049, 20, FILLER);
-    add_item("Energy cell pack", 17, 10, FILLER);
+    add_item("Medikit", 2012, 30, FILLER, "");
+    add_item("Box of bullets", 2048, 20, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 20, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 20, FILLER, "Ammos");
+    add_item("Energy cell pack", 17, 10, FILLER, "Ammos");
 
     printf("%i locations\n%i items\n", (int)ap_locations.size(), total_item_count);
 
-    //--- Generate the python dictionnaries
+    //--- Generate the python files
 
     // Items
     {
-        FILE* fout = fopen((std::string(argv[1]) + ".items.py").c_str(), "w");
+        FILE* fout = fopen((out_dir + "Items.py").c_str(), "w");
+        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
+        fprintf(fout, "from BaseClasses import ItemClassification\n\
+from typing import TypedDict, Dict, Set \n\
+\n\
+\n\
+class ItemDict(TypedDict, total=False): \n\
+    classification: ItemClassification \n\
+    count: int \n\
+    name: str \n\
+    doom_type: int # Unique numerical id used to spawn the item. \n\
+    episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n\
+    map: int \n\
+\n\
+\n\
+");
+
         fprintf(fout, "item_table: Dict[int, ItemDict] = {\n");
         for (const auto& item : ap_items)
         {
@@ -411,13 +439,43 @@ int main(int argc, char** argv)
             fprintf(fout, ",\n             'map': %i", item.lvl);
             fprintf(fout, "},\n");
         }
+        fprintf(fout, "}\n\n\n");
+
+        // item_name_groups
+        fprintf(fout, "item_name_groups: Dict[str, Set[str]] = {\n");
+        for (const auto& kv : item_name_groups)
+        {
+            fprintf(fout, "    '%s': {", kv.first.c_str());
+            for (const auto& item_name : kv.second)
+            {
+                fprintf(fout, "'%s', ", item_name.c_str());
+            }
+            fprintf(fout, "},\n");
+        }
         fprintf(fout, "}\n");
+
         fclose(fout);
     }
     
     // Locations
     {
-        FILE* fout = fopen((std::string(argv[1]) + ".locations.py").c_str(), "w");
+        FILE* fout = fopen((out_dir + "Locations.py").c_str(), "w");
+
+        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
+        fprintf(fout, "from typing import Dict, TypedDict, List, Set \n\
+\n\
+\n\
+class LocationDict(TypedDict, total=False): \n\
+    name: str \n\
+    episode: int \n\
+    map: int \n\
+    index: int # Thing index as it is stored in the wad file. \n\
+    doom_type: int # In case index end up unreliable, we can use doom type. Maps have often only one of each important things. \n\
+    required_items: list \n\
+\n\
+\n\
+");
+
         fprintf(fout, "location_table: Dict[int, LocationDict] = {\n");
         for (const auto& loc : ap_locations)
         {
@@ -435,7 +493,42 @@ int main(int argc, char** argv)
             fprintf(fout, "]");
             fprintf(fout, "},\n");
         }
+        fprintf(fout, "}\n\n\n");
+
+        fprintf(fout, "location_name_groups: Dict[str, Set[str]] = {\n");
+        std::map<std::string, std::set<std::string>> location_name_groups;
+        for (const auto& loc : ap_locations)
+        {
+            location_name_groups[level_names[loc.ep - 1][loc.lvl - 1]].insert(loc.name);
+        }
+        for (const auto& kv : location_name_groups)
+        {
+            fprintf(fout, "    '%s': {", kv.first.c_str());
+            for (const auto& v : kv.second)
+            {
+                fprintf(fout, "\n        '%s',", v.c_str());
+            }
+            fprintf(fout, "\n    },\n");
+        }
         fprintf(fout, "}\n");
+
+        fclose(fout);
+    }
+
+    // Events
+    {
+        FILE* fout = fopen((out_dir + "Events.py").c_str(), "w");
+
+        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
+        fprintf(fout, "from typing import List\n\n\n");
+
+        fprintf(fout, "events: List[str] = [");
+        for (auto level : levels)
+        {
+            fprintf(fout, "\n    '%s Complete',", level_names[level->ep - 1][level->lvl - 1]);
+        }
+        fprintf(fout, "\n]\n");
+
         fclose(fout);
     }
 
