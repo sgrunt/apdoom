@@ -49,6 +49,7 @@ typedef struct
 
 extern ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
 extern ap_state_t ap_state;
+extern int ap_is_in_game; // Don't give items when in menu (Or when dead on the ground).
 
 
 int apdoom_init(ap_settings_t* settings);

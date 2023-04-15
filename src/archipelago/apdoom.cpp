@@ -4,6 +4,7 @@
 #include <memory.h>
 #include <chrono>
 #include <thread>
+#include <queue>
 
 
 ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
@@ -50,8 +51,11 @@ ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 
 
 ap_state_t ap_state;
+int ap_is_in_game = 0;
+
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
+static std::queue<int64_t> ap_item_queue; // We queue when we're in the menu.
 
 
 void f_itemclr();
@@ -104,14 +108,22 @@ void f_itemclr()
 }
 
 
-void f_itemrecv(int64_t item_id, bool notify_player)
+void f_itemrecv(int64_t item_id, bool notify_player /* Unused */)
 {
+	if (!ap_is_in_game)
+	{
+		ap_item_queue.push(item_id);
+		return;
+	}
+
 	auto it = item_doom_type_table.find(item_id);
 	if (it == item_doom_type_table.end())
 		return; // Skip
 
+	int doom_type = it->second;
+
 	// Give item to player
-	ap_settings.give_item_callback(it->second);
+	ap_settings.give_item_callback(doom_type);
 }
 
 
@@ -183,5 +195,16 @@ void apdoom_update()
 		}
 
 		AP_ClearLatestMessage();
+	}
+
+	// Check if we're in game, then dequeue the items
+	if (ap_is_in_game)
+	{
+		while (!ap_item_queue.empty())
+		{
+			auto item_id = ap_item_queue.front();
+			ap_item_queue.pop();
+			f_itemrecv(item_id, true);
+		}
 	}
 }

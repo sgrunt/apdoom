@@ -81,6 +81,7 @@
 #include "memio.h"
 
 #include "level_select.h" // [ap]
+#include "apdoom.h"
 
 #define SAVEGAMESIZE	0x2c000
 
@@ -1374,13 +1375,15 @@ void G_Ticker (void)
     }
     
     // do main actions
+    ap_is_in_game = 0;
     switch (gamestate) 
     { 
       case GS_LEVEL: 
 	P_Ticker (); 
 	ST_Ticker (); 
 	AM_Ticker (); 
-	HU_Ticker ();            
+	HU_Ticker ();
+        ap_is_in_game = (players[consoleplayer].playerstate == PST_LIVE && !paused) ? 1 : 0;
 	break; 
 	 
       case GS_INTERMISSION: 
@@ -2918,6 +2921,8 @@ void G_BeginRecording (void)
  
 void G_DeferedPlayDemo(const char *name)
 { 
+    return; // [AP] Don't play demo. Picking up items in the demo will break our state!
+
     defdemoname = name; 
     gameaction = ga_playdemo; 
 
@@ -3126,6 +3131,8 @@ void G_DoPlayDemo (void)
 //
 void G_TimeDemo (char* name) 
 {
+    return; // [AP] Don't play demo. Picking up items in the demo will break our state!
+
     //!
     // @category video
     // @vanilla
