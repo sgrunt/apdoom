@@ -546,7 +546,7 @@ void P_LoadThings (int lump)
             break;
     }
 	
-	P_SpawnMapThing(&spawnthing);
+	P_SpawnMapThing(&spawnthing, i);
     }
 
     if (!deathmatch)

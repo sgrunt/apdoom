@@ -167,6 +167,7 @@ void print_sticky_msg(const char* text)
 }
 
 
+//TODO: Use HUlib_drawTextLine. It also supports colored text. But this here is good enough for now for debugging
 int draw_text(const char* text, int x, int y) // There's already a way to do this in the Hud code, but we want this to appear anywhere in the game
 {
     char* lump_name[9];

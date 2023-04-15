@@ -251,13 +251,14 @@ int main(int argc, char** argv)
 {
     printf("AP Gen Tool\n");
 
-    if (argc != 3) // Minimum effort validation
+    if (argc != 4) // Minimum effort validation
     {
-        printf("Usage: ap_gen_tool.exe DOOM.WAD output_dir (i.e.: C:\\Archipelago\\worlds\\ultimate_doom)\n");
+        printf("Usage: ap_gen_tool.exe DOOM.WAD python_py_out_dir cpp_py_out_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\ultimate_doom C:\\github\\apdoom\\src\\archipelago");
         return 1;
     }
 
-    std::string out_dir = argv[2] + std::string("\\");
+    std::string py_out_dir = argv[2] + std::string("\\");
+    std::string cpp_out_dir = argv[3] + std::string("\\");
 
     FILE* f = fopen(argv[1], "rb");
     if (!f)
@@ -402,7 +403,7 @@ int main(int argc, char** argv)
 
     // Items
     {
-        FILE* fout = fopen((out_dir + "Items.py").c_str(), "w");
+        FILE* fout = fopen((py_out_dir + "Items.py").c_str(), "w");
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from BaseClasses import ItemClassification\n\
 from typing import TypedDict, Dict, Set \n\
@@ -459,7 +460,7 @@ class ItemDict(TypedDict, total=False): \n\
     
     // Locations
     {
-        FILE* fout = fopen((out_dir + "Locations.py").c_str(), "w");
+        FILE* fout = fopen((py_out_dir + "Locations.py").c_str(), "w");
 
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import Dict, TypedDict, List, Set \n\
@@ -517,7 +518,7 @@ class LocationDict(TypedDict, total=False): \n\
 
     // Events
     {
-        FILE* fout = fopen((out_dir + "Events.py").c_str(), "w");
+        FILE* fout = fopen((py_out_dir + "Events.py").c_str(), "w");
 
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import List\n\n\n");
@@ -528,6 +529,39 @@ class LocationDict(TypedDict, total=False): \n\
             fprintf(fout, "\n    '%s Complete',", level_names[level->ep - 1][level->lvl - 1]);
         }
         fprintf(fout, "\n]\n");
+
+        fclose(fout);
+    }
+
+    // Now generate apdoom_def.h so the game can map the IDs
+    {
+        FILE* fout = fopen((cpp_out_dir + "apdoom_def.h").c_str(), "w");
+
+        fprintf(fout, "#pragma once\n\n");
+        fprintf(fout, "#include <map>\n\n");
+
+        std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int /* loc id */>>> location_table;
+        for (const auto& loc : ap_locations)
+        {
+            location_table[loc.ep][loc.lvl][loc.doom_thing_index] = loc.id;
+        }
+
+        fprintf(fout, "const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {\n");
+        for (const auto& kv1 : location_table)
+        {
+            fprintf(fout, "    {%i, {\n", kv1.first);
+            for (const auto& kv2 : kv1.second)
+            {
+                fprintf(fout, "        {%i, {\n", kv2.first);
+                for (const auto& kv3 : kv2.second)
+                {
+                    fprintf(fout, "            {%i, %i},\n", kv3.first, kv3.second);
+                }
+                fprintf(fout, "        }},\n");
+            }
+            fprintf(fout, "    }},\n");
+        }
+        fprintf(fout, "};\n");
 
         fclose(fout);
     }

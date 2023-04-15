@@ -1,6 +1,7 @@
 #include "apdoom.h"
-#include <memory.h>
 #include "Archipelago.h"
+#include "apdoom_def.h"
+#include <memory.h>
 #include <chrono>
 #include <thread>
 
@@ -112,8 +113,20 @@ void f_locrecv(int64_t loc_id)
 }
 
 
-void apdoom_pickup_item(int ep, int map, int loc_index)
+void apdoom_check_location(int ep, int map, int index)
 {
+	auto it1 = location_table.find(ep);
+	if (it1 == location_table.end()) return;
+
+	auto it2 = it1->second.find(map);
+	if (it2 == it1->second.end()) return;
+
+	auto it3 = it2->second.find(index);
+	if (it3 == it2->second.end()) return;
+
+	int64_t id = it3->second;
+
+	AP_SendItem(id);
 }
 
 

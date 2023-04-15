@@ -296,6 +296,9 @@ typedef struct mobj_s
     fixed_t		oldz;
     angle_t		oldangle;
 
+    // [AP] index of the obj in the file. This is how we uniquely refer
+    int index;
+
 } mobj_t;
 
 

@@ -51,7 +51,7 @@ extern ap_state_t ap_state;
 
 
 int apdoom_init(ap_settings_t* settings);
-void apdoom_pickup_item(int ep, int map, int loc_index);
+void apdoom_check_location(int ep, int map, int index);
 void apdoom_victory();
 void apdoom_update();
 

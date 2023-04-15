@@ -950,7 +950,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
 // The fields of the mapthing should
 // already be in host byte order.
 //
-void P_SpawnMapThing (mapthing_t* mthing)
+void P_SpawnMapThing (mapthing_t* mthing, int index)
 {
     int			i;
     int			bit;
@@ -1055,6 +1055,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 	z = ONFLOORZ;
     
     mobj = P_SpawnMobj (x,y,z, i);
+    mobj->index = index;
     mobj->spawnpoint = *mthing;
 
     if (mobj->tics > 0)

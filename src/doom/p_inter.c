@@ -39,6 +39,8 @@
 
 #include "p_inter.h"
 
+#include "apdoom.h"
+
 
 #define BONUSADD	6
 
@@ -709,11 +711,8 @@ P_TouchSpecialThing
 	break;
 
 	case SPR_APJI:
-		player->message = "Picked up Archipelago Junk Item...";
-		break;
-
 	case SPR_APPI:
-		player->message = "Picked up Archipelago Progression Item!";
+		apdoom_check_location(gameepisode, gamemap, special->index);
 		break;
 
       default:
