@@ -88,7 +88,7 @@ enum item_classification_t
 
 struct ap_item_t
 {
-    uint64_t id;
+    int64_t id;
     std::string name;
     int ep;
     int lvl;
@@ -101,13 +101,13 @@ struct ap_item_t
 
 struct ap_location_t
 {
-    uint64_t id;
+    int64_t id;
     std::string name;
     int ep;
     int lvl;
     int doom_thing_index;
     int doom_type;
-    std::vector<uint64_t> required_items;
+    std::vector<int64_t> required_items;
 };
 
 
@@ -124,8 +124,8 @@ struct level_t
 };
 
 
-uint64_t item_next_id = 350000;
-uint64_t location_next_id = 351000;
+int64_t item_next_id = 350000;
+int64_t location_next_id = 351000;
 
 int total_item_count = 0;
 std::vector<ap_item_t> ap_items;
@@ -574,6 +574,14 @@ class LocationDict(TypedDict, total=False): \n\
                 fprintf(fout, "        }},\n");
             }
             fprintf(fout, "    }},\n");
+        }
+        fprintf(fout, "};\n\n");
+        
+        fprintf(fout, "// Map item id to doom types\n");
+        fprintf(fout, "const std::map<int64_t, int> item_doom_type_table = {\n");
+        for (const auto& item : ap_items)
+        {
+            fprintf(fout, "    {%llu, %i},\n", item.id, item.doom_type);
         }
         fprintf(fout, "};\n");
 

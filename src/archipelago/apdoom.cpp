@@ -100,16 +100,24 @@ int apdoom_init(ap_settings_t* settings)
 
 void f_itemclr()
 {
+	// Not sure what use this would have here.
 }
 
 
 void f_itemrecv(int64_t item_id, bool notify_player)
 {
+	auto it = item_doom_type_table.find(item_id);
+	if (it == item_doom_type_table.end())
+		return; // Skip
+
+	// Give item to player
+	ap_settings.give_item_callback(it->second);
 }
 
 
 void f_locrecv(int64_t loc_id)
 {
+	// Not much to do here
 }
 
 
@@ -145,27 +153,31 @@ void apdoom_update()
 		{
 			case AP_MessageType::Plaintext:
 			{
-				ap_settings.message_fn(msg->text.c_str());
+				ap_settings.message_callback(msg->text.c_str());
 				break;
 			}
 			case AP_MessageType::ItemSend:
 			{
 				AP_ItemSendMessage* item_send_msg = (AP_ItemSendMessage*)msg;
+				ap_settings.message_callback(msg->text.c_str());
 				break;
 			}
 			case AP_MessageType::ItemRecv:
 			{
 				AP_ItemRecvMessage* item_recv_msg = (AP_ItemRecvMessage*)msg;
+				ap_settings.message_callback(msg->text.c_str());
 				break;
 			}
 			case AP_MessageType::Hint:
 			{
 				AP_HintMessage* hint_msg = (AP_HintMessage*)msg;
+				ap_settings.message_callback(msg->text.c_str());
 				break;
 			}
 			case AP_MessageType::Countdown:
 			{
 				AP_CountdownMessage* countdown_msg = (AP_CountdownMessage*)msg;
+				ap_settings.message_callback(msg->text.c_str());
 				break;
 			}
 		}

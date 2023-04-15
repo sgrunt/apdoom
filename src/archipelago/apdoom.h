@@ -42,7 +42,8 @@ typedef struct
     const char* game;
     const char* player_name;
     const char* passwd;
-    void (*message_fn)(const char*);
+    void (*message_callback)(const char*);
+    void (*give_item_callback)(int doom_type);
 } ap_settings_t;
 
 

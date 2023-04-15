@@ -83,6 +83,7 @@
 
 #include "level_select.h" // [ap]
 #include "apdoom.h"
+#include "deh_misc.h"
 
 //
 // D-DoomLoop()
@@ -221,6 +222,127 @@ void on_ap_message(const char* text) // This string is cached for several second
 {
     if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
     print_sticky_msg(text);
+}
+
+
+boolean P_GiveArmor(player_t* player, int armortype);
+boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
+
+
+// Kind of a copy of P_TouchSpecialThing
+void on_ap_give_item(int doom_type)
+{
+    player_t* player = &players[consoleplayer];
+    int sound = sfx_itemup;
+
+    switch (doom_type)
+    {
+        // Level specifics
+        //case 5: // Blue keycard
+        //case 6: // Yellow keycard
+        //case 13: // Red keycard
+        //case 38: // Red skull key
+        //case 39: // Yellow skull key
+        //case 40: // Blue skull key
+        //case 2026: // Map
+
+        case 8: // Backpack
+	        if (!player->backpack)
+	        {
+	            for (int i = 0; i < NUMAMMO; i++)
+		            player->maxammo[i] *= 2;
+	            player->backpack = true;
+	        }
+            break;
+
+        // Weapons
+        case 2001:
+            P_GiveWeapon(player, wp_shotgun, false);
+            break;
+        case 2002:
+            P_GiveWeapon(player, wp_chaingun, false);
+            break;
+        case 2003:
+            P_GiveWeapon(player, wp_missile, false);
+            break;
+        case 2004:
+            P_GiveWeapon(player, wp_plasma, false);
+            break;
+        case 2005:
+            P_GiveWeapon(player, wp_chainsaw, false);
+            break;
+        case 2006:
+            P_GiveWeapon(player, wp_bfg, false);
+            break;
+
+        // Powerups
+        case 2018:
+	        P_GiveArmor (player, deh_green_armor_class);
+            player->message = DEH_String(GOTARMOR);
+            break;
+        case 2019:
+	        P_GiveArmor (player, deh_blue_armor_class);
+            player->message = DEH_String(GOTMEGA);
+            break;
+        case 2023: // Berserk
+            if (!P_GivePower(player, pw_strength))
+                return;
+            player->message = DEH_String(GOTBERSERK);
+            if (player->readyweapon != wp_fist)
+                player->pendingweapon = wp_fist;
+            if (gameversion > exe_doom_1_2)
+                sound = sfx_getpow;
+            break;
+        case 2013: // Supercharge
+	        player->health += deh_soulsphere_health;
+	        if (player->health > deh_max_soulsphere)
+	            player->health = deh_max_soulsphere;
+	        player->mo->health = player->health;
+	        player->message = DEH_String(GOTSUPER);
+	        if (gameversion > exe_doom_1_2)
+	            sound = sfx_getpow;
+            break;
+        case 2022: // Invulnerability
+            if (!P_GivePower (player, pw_invulnerability))
+                return;
+            player->message = DEH_String(GOTINVUL);
+            if (gameversion > exe_doom_1_2)
+                sound = sfx_getpow;
+            break;
+        case 2024: // Partial invisibility
+            if (!P_GivePower (player, pw_invisibility))
+                return;
+            player->message = DEH_String(GOTINVIS);
+            if (gameversion > exe_doom_1_2)
+                sound = sfx_getpow;
+            break;
+
+        // Junk
+        case 2012: // Medikit
+            break;
+        case 2048: // Box of bullets
+            if (!P_GiveAmmo(player, am_clip, 5, false))
+                return;
+            player->message = DEH_String(GOTCLIPBOX);
+            break;
+        case 2046: // Box of rockets
+            if (!P_GiveAmmo(player, am_misl, 5, false))
+                return;
+            player->message = DEH_String(GOTROCKBOX);
+            break;
+        case 2049: // Box of shotgun shells
+            if (!P_GiveAmmo (player, am_shell,5,false))
+                return;
+            player->message = DEH_String(GOTSHELLBOX);
+            break;
+        case 17: // Energy cell pack
+            if (!P_GiveAmmo (player, am_cell,5,false))
+                return;
+            player->message = DEH_String(GOTCELLBOX);
+            break;
+    }
+
+	S_StartSoundOptional (NULL, sound, sfx_itemup); // [NS] Fallback to itemup.
 }
 
 
@@ -1584,7 +1706,8 @@ void D_DoomMain (void)
     settings.game = "Ultimate DOOM";
     settings.player_name = myargv[applayer_arg_id + 1];
     settings.passwd = password;
-    settings.message_fn = on_ap_message;
+    settings.message_callback = on_ap_message;
+    settings.give_item_callback = on_ap_give_item;
     if (!apdoom_init(&settings))
     {
 	    I_Error("Failed to initialize Archipelago.");

@@ -188,6 +188,9 @@ P_GiveWeapon
   weapontype_t	weapon,
   boolean	dropped )
 {
+	if (dropped)
+		return false; // [AP] We don't give dropped weapons
+
     boolean	gaveammo;
     boolean	gaveweapon;
 	
