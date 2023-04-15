@@ -495,6 +495,7 @@ void P_LoadThings (int lump)
     int			i;
     mapthing_t         *mt;
     mapthing_t          spawnthing;
+    mapthing_t  spawnthing_player1_start;
     int			numthings;
     boolean		spawn;
 
@@ -535,12 +536,21 @@ void P_LoadThings (int lump)
 	spawnthing.type = SHORT(mt->type);
 	spawnthing.options = SHORT(mt->options);
 
-        // Replace keycards with AP
+        // Replace AP locations with AP item
         if (is_doom_type_ap_location(spawnthing.type))
             spawnthing.type = 20000;
+
+        // [AP] On player start 1, put level select teleport "HUB"
+        if (spawnthing.type == 1)
+            spawnthing_player1_start = spawnthing;
 	
 	P_SpawnMapThing(&spawnthing, i);
+
     }
+
+    // [AP] Spawn level select teleport "HUB"
+    spawnthing_player1_start.type = 20002;
+    P_SpawnMapThing(&spawnthing_player1_start, i);
 
     if (!deathmatch)
     {

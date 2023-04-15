@@ -61,6 +61,9 @@ const char *sprnames[] = {
     "SP90", "SP91", "SP92", "SP93", "SP94", "SP95", "SP96", "SP97", "SP98", "SP99",
 	// [AP] Archipelago junk item (APJI) and progression (APPI)
 	"APJI", "APPI",
+	// [AP] Level select teleport "HUB".
+	"LVST",
+
     NULL
 };
 
@@ -1220,6 +1223,12 @@ state_t	states[NUMSTATES] = {
 	{SPR_APPI,32772,3,{NULL},S_APPIF,0,0}, // S_APJPE
 	{SPR_APPI,32773,3,{NULL},S_APPIG,0,0}, // S_APJPF
 	{SPR_APPI,32774,3,{NULL},S_APPI,0,0}, // S_APJPG
+	
+	// [AP] Level select teleport "HUB"
+	{SPR_LVST,32768,350,{NULL},S_LVSTB,0,0}, // S_LVST
+	{SPR_LVST,32769,6,{NULL},S_LVSTC,0,0}, // S_LVSTB
+	{SPR_LVST,32770,6,{NULL},S_LVSTD,0,0}, // S_LVSTC
+	{SPR_LVST,32771,6,{NULL},S_LVSTB,0,0}, // S_LVSTD
 };
 
 
@@ -5028,6 +5037,32 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
     {		// MT_APPI
 	20001,		// doomednum
 	S_APPI,		// spawnstate
+	1000,		// spawnhealth
+	S_NULL,		// seestate
+	sfx_None,		// seesound
+	8,		// reactiontime
+	sfx_None,		// attacksound
+	S_NULL,		// painstate
+	0,		// painchance
+	sfx_None,		// painsound
+	S_NULL,		// meleestate
+	S_NULL,		// missilestate
+	S_NULL,		// deathstate
+	S_NULL,		// xdeathstate
+	sfx_None,		// deathsound
+	0,		// speed
+	20*FRACUNIT,		// radius
+	16*FRACUNIT,		// height
+	100,		// mass
+	0,		// damage
+	sfx_None,		// activesound
+	MF_SPECIAL|MF_NOTDMATCH,		// flags
+	S_NULL		// raisestate
+    },
+
+    {		// MT_LVSTEL
+	20002,		// doomednum
+	S_LVST,		// spawnstate
 	1000,		// spawnhealth
 	S_NULL,		// seestate
 	sfx_None,		// seesound

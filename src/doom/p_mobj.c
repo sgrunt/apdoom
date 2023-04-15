@@ -672,6 +672,12 @@ P_SpawnMobjSafe
     // because action routines can not be called yet
     st = &states[safe ? P_LatestSafeState(info->spawnstate) : info->spawnstate];
 
+    if (type == MT_LVSTEL)
+    {
+        int tmp;
+        tmp = 5;
+    }
+
     mobj->state = st;
     mobj->tics = st->tics;
     mobj->sprite = st->sprite;
@@ -1058,7 +1064,7 @@ void P_SpawnMapThing (mapthing_t* mthing, int index)
     mobj->index = index;
     mobj->spawnpoint = *mthing;
 
-    if (mobj->tics > 0)
+    if (mobj->tics > 0 && mobj->type != MT_LVSTEL) // [AP] We want the HUB to stay put 10 sec, no random
 	mobj->tics = 1 + (P_Random () % mobj->tics);
     if (mobj->flags & MF_COUNTKILL)
 	totalkills++;

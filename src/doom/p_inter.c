@@ -718,6 +718,12 @@ P_TouchSpecialThing
 		apdoom_check_location(gameepisode, gamemap, special->index);
 		break;
 
+	case SPR_LVST:
+		// Teleport back to level select!
+		if (leveltime > 350)
+			ShowLevelSelect();
+		return; // Don't pick up this
+
       default:
 	I_Error ("P_SpecialThing: Unknown gettable thing");
     }

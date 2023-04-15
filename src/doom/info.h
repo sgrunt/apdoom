@@ -186,6 +186,9 @@ typedef enum
     SPR_SP90, SPR_SP91, SPR_SP92, SPR_SP93, SPR_SP94, SPR_SP95, SPR_SP96, SPR_SP97, SPR_SP98, SPR_SP99,
 	// [AP] Archipelago junk item (APJI) and progression (APPI)
     SPR_APJI, SPR_APPI,
+    // [AP] Select select teleport "HUB"
+    SPR_LVST,
+
     NUMSPRITES
 
 } spritenum_t;
@@ -1247,6 +1250,12 @@ typedef enum
     S_APPIF,
     S_APPIG,
 
+    // [AP] Level select teleport "HUB"
+    S_LVST,
+    S_LVSTB,
+    S_LVSTC,
+    S_LVSTD,
+
     // [BH] extra dehacked states
     EXTRASTATES,
     NUMSTATES = 4000
@@ -1419,6 +1428,8 @@ typedef enum {
     MT_MUSICSOURCE,
     // [AP] Archipelago junk item (APJI) and progression (APPI)
     MT_APJI, MT_APPI,
+    // [AP] Level select teleport "HUB"
+    MT_LVSTEL,
     // [BH] 100 extra mobjs to use in dehacked patches
     MT_EXTRA00 = 150, MT_EXTRA01, MT_EXTRA02, MT_EXTRA03, MT_EXTRA04,
     MT_EXTRA05, MT_EXTRA06, MT_EXTRA07, MT_EXTRA08, MT_EXTRA09,

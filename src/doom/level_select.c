@@ -203,6 +203,8 @@ boolean LevelSelectResponder(event_t* ev)
 
 void ShowLevelSelect()
 {
+    // If in a level, save current level
+
     S_ChangeMusic(mus_read_m, true);
 
     gameaction = ga_nothing;
