@@ -1,5 +1,8 @@
 #include "apdoom.h"
 #include <memory.h>
+#include "Archipelago.h"
+#include <chrono>
+#include <thread>
 
 
 ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
@@ -44,10 +47,116 @@ ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
     }
 };
 
+
 ap_state_t ap_state;
+static ap_settings_t ap_settings;
+static AP_RoomInfo ap_room_info;
 
 
-void apdoom_init(void)
+void f_itemclr();
+void f_itemrecv(int64_t item_id, bool notify_player);
+void f_locrecv(int64_t loc_id);
+
+
+int apdoom_init(ap_settings_t* settings)
 {
-    memset(&ap_state, 0, sizeof(ap_state));
+	ap_settings = *settings;
+
+	AP_NetworkVersion version = {0, 4, 0};
+	AP_SetClientVersion(&version);
+    AP_Init(ap_settings.ip, ap_settings.game, ap_settings.player_name, ap_settings.passwd);
+	AP_SetItemClearCallback(f_itemclr);
+	AP_SetItemRecvCallback(f_itemrecv);
+	AP_SetLocationCheckedCallback(f_locrecv);
+    AP_Start();
+
+	// Block DOOM until connection succeeded or failed
+	auto start_time = std::chrono::steady_clock::now();
+	while (true)
+	{
+		switch (AP_GetConnectionStatus())
+		{
+			case AP_ConnectionStatus::Authenticated:
+				printf("AP: Authenticated\n");
+				return 1;
+			case AP_ConnectionStatus::ConnectionRefused:
+				printf("AP: Failed to connect\n");
+				return 0;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
+		{
+			printf("AP: Failed to connect\n");
+			return 0;
+		}
+	}
+
+	AP_GetRoomInfo(&ap_room_info);
+
+	return 0;
+}
+
+
+void f_itemclr()
+{
+}
+
+
+void f_itemrecv(int64_t item_id, bool notify_player)
+{
+}
+
+
+void f_locrecv(int64_t loc_id)
+{
+}
+
+
+void apdoom_pickup_item(int ep, int map, int loc_index)
+{
+}
+
+
+void apdoom_victory()
+{
+	AP_StoryComplete(); // Isn't this already handled by the server rules?
+}
+
+void apdoom_update()
+{
+	while (AP_IsMessagePending())
+	{
+		auto msg = AP_GetLatestMessage();
+
+		switch (msg->type)
+		{
+			case AP_MessageType::Plaintext:
+			{
+				ap_settings.message_fn(msg->text.c_str());
+				break;
+			}
+			case AP_MessageType::ItemSend:
+			{
+				AP_ItemSendMessage* item_send_msg = (AP_ItemSendMessage*)msg;
+				break;
+			}
+			case AP_MessageType::ItemRecv:
+			{
+				AP_ItemRecvMessage* item_recv_msg = (AP_ItemRecvMessage*)msg;
+				break;
+			}
+			case AP_MessageType::Hint:
+			{
+				AP_HintMessage* hint_msg = (AP_HintMessage*)msg;
+				break;
+			}
+			case AP_MessageType::Countdown:
+			{
+				AP_CountdownMessage* countdown_msg = (AP_CountdownMessage*)msg;
+				break;
+			}
+		}
+
+		AP_ClearLatestMessage();
+	}
 }

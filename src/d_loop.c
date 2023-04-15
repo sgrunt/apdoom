@@ -672,6 +672,8 @@ static void SinglePlayerClear(ticcmd_set_t *set)
     }
 }
 
+void tick_sticky_msgs();
+
 
 //
 // TryRunTics
@@ -819,6 +821,8 @@ void TryRunTics (void)
 	    // modify command for duplicated tics
 
             TicdupSquash(set);
+
+            tick_sticky_msgs();
 	}
 
 	NetUpdate ();	// check for new console commands

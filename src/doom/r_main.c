@@ -952,13 +952,10 @@ void R_SetGoobers (boolean mode)
 //
 // R_Init
 //
-#include "apdoom.h"
 
 
 void R_Init (void)
 {
-    apdoom_init(); // Blocking, connect to AP, download state
-
     R_InitData ();
     printf (".");
     R_InitPointToAngle ();

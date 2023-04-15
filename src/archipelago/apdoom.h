@@ -36,11 +36,24 @@ typedef struct
 } ap_state_t;
 
 
+typedef struct
+{
+    const char* ip;
+    const char* game;
+    const char* player_name;
+    const char* passwd;
+    void (*message_fn)(const char*);
+} ap_settings_t;
+
+
 extern ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
 extern ap_state_t ap_state;
 
 
-void apdoom_init(void);
+int apdoom_init(ap_settings_t* settings);
+void apdoom_pickup_item(int ep, int map, int loc_index);
+void apdoom_victory();
+void apdoom_update();
 
 #ifdef __cplusplus
 }

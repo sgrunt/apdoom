@@ -82,6 +82,7 @@
 #include "doom_icon.c"
 
 #include "level_select.h" // [ap]
+#include "apdoom.h"
 
 //
 // D-DoomLoop()
@@ -135,6 +136,91 @@ int             show_diskicon = 1;
 
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
+
+
+#define STICKY_MESSAGE_MAX 4
+
+
+typedef struct
+{
+    int delay;
+    char text[256];
+} sticky_msg_t;
+
+
+static sticky_msg_t sticky_msgs[STICKY_MESSAGE_MAX] = {0};
+
+
+void print_sticky_msg(const char* text)
+{
+    // Shift current ones
+    for (int i = STICKY_MESSAGE_MAX - 1; i > 0; --i)
+    {
+        memcpy(&sticky_msgs[i], &sticky_msgs[i - 1], sizeof(sticky_msg_t));
+    }
+    sticky_msgs[0].delay = 35 * 10; // Keep them for at least 10sec
+    M_snprintf(sticky_msgs[0].text, 256, "%s", text);
+
+	// Play a sound
+	int sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret : I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
+	if (sfx_id != -1) S_StartSound(NULL, sfx_id);
+}
+
+
+int draw_text(const char* text, int x, int y) // There's already a way to do this in the Hud code, but we want this to appear anywhere in the game
+{
+    char* lump_name[9];
+    for (int i = 0, len = (int)strlen(text); i < len; ++i)
+    {
+        auto c = toupper(text[i]);
+        if (c < 0) continue;
+        snprintf(lump_name, 9, "STCFN%03i", (int)c);
+        if (W_CheckNumForName(lump_name) >= 0)
+        {
+            patch_t* patch = W_CacheLumpName(lump_name, PU_CACHE);
+            V_DrawPatch(x, y, patch);
+            x += patch->width;
+        }
+        else if (c == ' ') x += 6;
+        if (x > 320 - 8)
+        {
+            x = 0;
+            y += 8;
+        }
+    }
+    return y;
+}
+
+
+void draw_sticky_msgs()
+{
+    int y = 30;
+    for (int i = 0; i < STICKY_MESSAGE_MAX; ++i)
+    {
+        if (sticky_msgs[i].delay > 0)
+        {
+            y = draw_text(sticky_msgs[i].text, 0, y);
+            y += 8;
+        }
+    }
+}
+
+
+void tick_sticky_msgs()
+{
+    for (int i = 0; i < STICKY_MESSAGE_MAX; ++i)
+    {
+        if (sticky_msgs[i].delay > 0)
+            sticky_msgs[i].delay--;
+    }
+}
+
+
+void on_ap_message(const char* text) // This string is cached for several seconds
+{
+    if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
+    print_sticky_msg(text);
+}
 
 
 //
@@ -339,6 +425,7 @@ boolean D_Display (void)
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
+    draw_sticky_msgs();   // ^ no, Sticky messages on top of everything :)
     NetUpdate ();         // send out any new accumulation
 
     return wipe;
@@ -521,6 +608,8 @@ void D_RunFrame()
     int tics;
     static int wipestart;
     static boolean wipe;
+
+    apdoom_update();
 
     if (wipe)
     {
@@ -1448,6 +1537,7 @@ static void G_CheckDemoStatusAtExit (void)
 
 static const char *const loadparms[] = {"-file", "-merge", NULL};
 
+
 //
 // D_DoomMain
 //
@@ -1469,6 +1559,35 @@ void D_DoomMain (void)
 
     DEH_printf("Z_Init: Init zone memory allocation daemon. \n");
     Z_Init ();
+
+    
+    // Grab parameters for AP
+    int apserver_arg_id = M_CheckParmWithArgs("-apserver", 1);
+    if (!apserver_arg_id)
+	    I_Error("The '-apserver' parameter requires an argument.");
+    int applayer_arg_id = M_CheckParmWithArgs("-applayer", 1);
+    if (!applayer_arg_id)
+	    I_Error("The '-applayer' parameter requires an argument.");
+    const char* password = "";
+    if (M_CheckParm("-password"))
+    {
+        int password_arg_id = M_CheckParmWithArgs("-password", 1);
+        if (!password_arg_id)
+	        I_Error("The '-password' parameter requires an argument.");
+        password = myargv[password_arg_id + 1];
+    }
+
+    // Initialize AP
+    ap_settings_t settings;
+    settings.ip = myargv[apserver_arg_id + 1];
+    settings.game = "Ultimate DOOM";
+    settings.player_name = myargv[applayer_arg_id + 1];
+    settings.passwd = password;
+    settings.message_fn = on_ap_message;
+    if (!apdoom_init(&settings))
+    {
+	    I_Error("Failed to initialize Archipelago.");
+    }
 
     //!
     // @category net
