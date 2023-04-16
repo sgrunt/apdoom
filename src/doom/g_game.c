@@ -1278,9 +1278,7 @@ void G_Ticker (void)
 	    gameaction = ga_nothing; 
 	    break; 
         case ga_levelselect:
-            G_DoSaveGame(); 
             ShowLevelSelect();
-            gameaction = ga_nothing; 
             break;
 	  case ga_nothing: 
 	    break; 
@@ -1930,7 +1928,11 @@ void G_DoCompleted (void)
 { 
     int             i; 
 
+    // [AP]
     cache_ap_player_state();
+    ap_state.level_states[gameepisode - 1][gamemap - 1].completed = 1;
+    apdoom_save_state();
+    G_DoSaveGame();
 
     // [crispy] Write level statistics upon exit
     if (M_ParmExists("-levelstat"))
@@ -2391,7 +2393,7 @@ void G_DoSaveGame (void)
 
     char filename[260];
 
-    snprintf(filename, 260, "AP_%s_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);
+    snprintf(filename, 260, "AP_%s/AP_%s_E%iM%i.dsg", apdoom_get_seed(), apdoom_get_seed(), gameepisode, gamemap);
 
     char *savegame_file;
     char *temp_savegame_file;

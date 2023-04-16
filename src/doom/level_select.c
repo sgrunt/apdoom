@@ -140,7 +140,7 @@ void play_level(int ep, int lvl)
 {
     // Check if level has a save file first
     char filename[260];
-    snprintf(filename, 260, "AP_%s_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
+    snprintf(filename, 260, "AP_%s/AP_%s_E%iM%i.dsg", apdoom_get_seed(), apdoom_get_seed(), ep + 1, lvl + 1);
     if (M_FileExists(filename))
     {
         // We load
@@ -222,6 +222,8 @@ boolean LevelSelectResponder(event_t* ev)
 void ShowLevelSelect()
 {
     // If in a level, save current level
+    if (gamestate == GS_LEVEL)
+        G_DoSaveGame(); 
 
     S_ChangeMusic(mus_read_m, true);
 
