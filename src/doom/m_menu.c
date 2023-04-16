@@ -204,6 +204,8 @@ menu_t*	currentMenu;
 // PROTOTYPES
 //
 static void M_APLevelSelect(int choice);
+static void M_APPlay(int choice);
+
 static void M_NewGame(int choice);
 static void M_Episode(int choice);
 static void M_ChooseSkill(int choice);
@@ -235,6 +237,7 @@ static void M_QuickSave(void);
 static void M_QuickLoad(void);
 
 static void M_DrawMainMenu(void);
+static void M_InGameMenuDraw(void);
 static void M_DrawReadThis1(void);
 static void M_DrawReadThis2(void);
 static void M_DrawNewGame(void);
@@ -270,7 +273,7 @@ static void M_DrawCrispness4(void);
 //
 enum
 {
-    levelselect = 0,
+    mopt_play = 0,
     options,
     readthis,
     quitdoom,
@@ -279,7 +282,7 @@ enum
 
 menuitem_t MainMenu[]=
 {
-    {1,"M_LVLSEL",M_APLevelSelect,'l'},
+    {1,"M_PLAY",M_APPlay,'l'},
     {1,"M_OPTION",M_Options,'o'},
     // Another hickup with Special edition.
     {1,"M_RDTHIS",M_ReadThis,'r'},
@@ -292,6 +295,34 @@ menu_t  MainDef =
     NULL,
     MainMenu,
     M_DrawMainMenu,
+    97,64,
+    0
+};
+
+
+//
+// In game menu
+//
+enum
+{
+    ingamemenu_options,
+    ingamemenu_quitdoom,
+    ingamemenu_end
+} ingamemenu_e;
+
+menuitem_t InGameMenu[]=
+{
+    {1,"M_OPTION",M_Options,'o'},
+    // Another hickup with Special edition.
+    {1,"M_QUITG",M_QuitDOOM,'q'}
+};
+
+menu_t  InGameMenuDef =
+{
+    ingamemenu_end,
+    NULL,
+    InGameMenu,
+    M_InGameMenuDraw,
     97,64,
     0
 };
@@ -1255,13 +1286,34 @@ void M_DrawMainMenu(void)
 }
 
 
+//
+// M_InGameMenuDraw
+//
+void M_InGameMenuDraw(void)
+{
+    // [crispy] force status bar refresh
+    inhelpscreens = true;
+
+    V_DrawPatchDirect(94, 2,
+                      W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
+}
+
+
 
 //
 // M_LevelSelect
 //
 void M_APLevelSelect(int choice)
 {
+}
+
+
+
+void M_APPlay(int choice)
+{
     M_ClearMenus();
+
+    // Was the game quit during a level?
     ShowLevelSelect();
 }
 
@@ -3021,7 +3073,11 @@ void M_StartControlPanel (void)
         sendpause = true;
     
     menuactive = 1;
-    currentMenu = &MainDef;         // JDC
+
+    if (gamestate == 3)
+        currentMenu = &MainDef;
+    else     // JDC
+        currentMenu = &InGameMenuDef;
     itemOn = currentMenu->lastOn;   // JDC
 }
 
