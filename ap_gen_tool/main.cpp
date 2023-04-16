@@ -577,11 +577,17 @@ class LocationDict(TypedDict, total=False): \n\
         }
         fprintf(fout, "};\n\n");
         
-        fprintf(fout, "// Map item id to doom types\n");
-        fprintf(fout, "const std::map<int64_t, int> item_doom_type_table = {\n");
+        fprintf(fout, "// Map item id\n");
+        fprintf(fout, "struct ap_item_t\n");
+        fprintf(fout, "{\n");
+        fprintf(fout, "    int doom_type;\n");
+        fprintf(fout, "    int ep; // If doom_type is a keycard\n");
+        fprintf(fout, "    int map; // If doom_type is a keycard\n");
+        fprintf(fout, "};\n\n");
+        fprintf(fout, "const std::map<int64_t, ap_item_t> item_doom_type_table = {\n");
         for (const auto& item : ap_items)
         {
-            fprintf(fout, "    {%llu, %i},\n", item.id, item.doom_type);
+            fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, item.ep, item.lvl);
         }
         fprintf(fout, "};\n");
 

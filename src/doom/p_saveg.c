@@ -33,6 +33,8 @@
 #include "m_misc.h"
 #include "r_state.h"
 
+#include "apdoom.h"
+
 FILE *save_stream;
 int savegamelength;
 boolean savegame_error;

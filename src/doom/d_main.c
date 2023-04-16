@@ -238,13 +238,23 @@ void on_ap_give_item(int doom_type)
     switch (doom_type)
     {
         // Level specifics
-        //case 5: // Blue keycard
-        //case 6: // Yellow keycard
-        //case 13: // Red keycard
-        //case 38: // Red skull key
-        //case 39: // Yellow skull key
-        //case 40: // Blue skull key
-        //case 2026: // Map
+        case 5: // Blue keycard
+        case 40: // Blue skull key
+            player->cards[it_bluecard] = true;
+            player->cards[it_blueskull] = true;
+            break;
+        case 6: // Yellow keycard
+        case 39: // Yellow skull key
+            player->cards[it_yellowcard] = true;
+            player->cards[it_yellowskull] = true;
+            break;
+        case 13: // Red keycard
+        case 38: // Red skull key
+            player->cards[it_redcard] = true;
+            player->cards[it_redskull] = true;
+            break;
+        case 2026: // Map
+            break;
 
         case 8: // Backpack
 	        if (!player->backpack)

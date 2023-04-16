@@ -1176,6 +1176,43 @@ static void G_CrispyScreenShot()
 	crispy->screenshotmsg = 2;
 }
 
+
+void set_ap_player_states()
+{
+    //G_PlayerReborn(consoleplayer); // This will reset the player completely (Nah, this crashes)
+
+    player_t* p = &players[consoleplayer];
+
+    // [AP] If player is this player, then override with ap_state.
+    //      We don't support multiplayer anyway.
+    p->neghealth /* ? */ = p->health = ap_state.player_state.health;
+    p->armorpoints = ap_state.player_state.armor_points;
+    p->armortype = ap_state.player_state.armor_type;
+    p->backpack = ap_state.player_state.backpack ? true : false;
+    p->readyweapon = (weapontype_t)ap_state.player_state.ready_weapon;
+    p->killcount = ap_state.player_state.kill_count;
+    p->itemcount = ap_state.player_state.item_count;
+    p->secretcount = ap_state.player_state.secret_count;
+    for (int i = 0; i < AP_NUM_POWERS; ++i)
+        p->powers[i] = ap_state.player_state.powers[i];
+    for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+        p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+    for (int i = 0; i < AP_NUM_AMMO; ++i)
+        p->ammo[i] = ap_state.player_state.ammo[i];
+    for (int i = 0; i < AP_NUM_AMMO; ++i)
+        p->maxammo[i] = ap_state.player_state.max_ammo[i];
+
+    // Cards
+    p->cards[0] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] ? true : false;
+    p->cards[1] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] ? true : false;
+    p->cards[2] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] ? true : false;
+    // Skulls (redundant)
+    p->cards[3] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] ? true : false;
+    p->cards[4] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] ? true : false;
+    p->cards[5] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] ? true : false;
+}
+
+
 //
 // G_Ticker
 // Make ticcmd_ts for the players.
@@ -1198,16 +1235,19 @@ void G_Ticker (void)
 	{ 
 	  case ga_loadlevel: 
 	    G_DoLoadLevel (); 
+        set_ap_player_states();
 	    break; 
 	  case ga_newgame: 
 	    // [crispy] re-read game parameters from command line
 	    G_ReadGameParms();
 	    G_DoNewGame (); 
+        set_ap_player_states();
 	    break; 
 	  case ga_loadgame: 
 	    // [crispy] re-read game parameters from command line
 	    G_ReadGameParms();
 	    G_DoLoadGame (); 
+        set_ap_player_states();
 	    break; 
 	  case ga_savegame: 
 	    G_DoSaveGame (); 
@@ -1494,7 +1534,13 @@ void G_PlayerReborn (int player)
 	 
     for (i=0 ; i<NUMAMMO ; i++) 
 	p->maxammo[i] = maxammo[i]; 
-		 
+	
+    // Re-apply some AP states that we want to be persistent even after death
+    p->backpack = ap_state.player_state.backpack ? true : false;
+    for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+        p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+    for (int i = 0; i < AP_NUM_AMMO; ++i)
+        p->maxammo[i] = ap_state.player_state.max_ammo[i];
 }
 
 //
@@ -1857,10 +1903,34 @@ static void G_WriteLevelStat(void)
             levelTimeString, totalTimeString, playerKills, totalkills, 
             playerItems, totalitems, playerSecrets, totalsecret);
 }
+
+void cache_ap_player_state(void)
+{
+    player_t* p = &players[consoleplayer];
+
+    ap_state.player_state.health = p->health;
+    ap_state.player_state.armor_points = p->armorpoints;
+    ap_state.player_state.armor_type = p->armortype;
+    ap_state.player_state.backpack = p->backpack;
+    ap_state.player_state.ready_weapon = p->readyweapon;
+    ap_state.player_state.kill_count = p->killcount;
+    ap_state.player_state.item_count = p->itemcount;
+    ap_state.player_state.secret_count = p->secretcount;
+    for (int i = 0; i < AP_NUM_POWERS; ++i)
+        ap_state.player_state.powers[i] = p->powers[i];
+    for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+        ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
+    for (int i = 0; i < AP_NUM_AMMO; ++i)
+        ap_state.player_state.ammo[i] = p->ammo[i];
+    for (int i = 0; i < AP_NUM_AMMO; ++i)
+        ap_state.player_state.max_ammo[i] = p->maxammo[i];
+}
  
 void G_DoCompleted (void) 
 { 
     int             i; 
+
+    cache_ap_player_state();
 
     // [crispy] Write level statistics upon exit
     if (M_ParmExists("-levelstat"))
@@ -1931,6 +2001,7 @@ void G_DoCompleted (void)
 //#endif
 */
     
+#if 0 // [AP] No intermission for AP
 	 
     wminfo.didsecret = players[consoleplayer].didsecret; 
     wminfo.epsd = gameepisode -1; 
@@ -2106,8 +2177,12 @@ void G_DoCompleted (void)
     {
     StatCopy(&wminfo);
     }
- 
+
     WI_Start (&wminfo); 
+#endif
+
+    // [AP] Ignore most we did above.
+    ShowLevelSelect();
 } 
 
 
@@ -2308,8 +2383,12 @@ G_SaveGame
     sendsave = true;
 }
 
+void cache_ap_player_state(void);
+
 void G_DoSaveGame (void) 
 { 
+    cache_ap_player_state();
+
     char filename[260];
 
     snprintf(filename, 260, "AP_%s_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);

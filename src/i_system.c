@@ -49,6 +49,8 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+#include "apdoom.h"
+
 #define DEFAULT_RAM 16*2 /* MiB [crispy] */
 #define MIN_RAM     4*4  /* MiB [crispy] */
 
@@ -250,6 +252,7 @@ void I_Quit (void)
 
     // Run through all exit functions
  
+    apdoom_shutdown(); // [AP] Shutdown properly, this will save player state (Should we put that into exit_funcs?)
     entry = exit_funcs; 
 
     while (entry != NULL)
@@ -259,6 +262,7 @@ void I_Quit (void)
     }
 
     SDL_Quit();
+
 
     exit(0);
 }
