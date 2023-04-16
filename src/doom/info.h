@@ -1493,6 +1493,9 @@ typedef struct
     // [crispy] multiplier for likelihood of a missile attack (generaliz. for various)
     int missilechancemult;
 
+    // [AP] Allow a type to restart to it's original state when loaded from a save file
+    int restore_state_on_load;
+
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];

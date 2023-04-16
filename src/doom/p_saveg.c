@@ -375,7 +375,15 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->tics = saveg_read32();
 
     // state_t* state;
-    str->state = &states[saveg_read32()];
+    int statei = saveg_read32();
+    str->state = &states[statei];
+
+    if (mobjinfo[str->type].restore_state_on_load)
+    {
+        str->state = &states[mobjinfo[str->type].spawnstate];
+        str->tics = str->state->tics;
+        str->frame = 0;
+    }
 
     // int flags;
     str->flags = saveg_read32();

@@ -5083,6 +5083,13 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
 	0,		// damage
 	sfx_None,		// activesound
 	MF_SPECIAL|MF_NOTDMATCH,		// flags
-	S_NULL		// raisestate
+	S_NULL,		// raisestate
+	0, // actualheight
+	0, // droppeditem
+	0, // meleethreshold
+	0, // maxattackrange
+	0, // minmissilechance
+	0, // missilechancemult
+	1 // restore_state_on_load
     },
 };
