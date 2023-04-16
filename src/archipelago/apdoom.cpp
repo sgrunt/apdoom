@@ -83,6 +83,7 @@ int apdoom_init(ap_settings_t* settings)
 		{
 			case AP_ConnectionStatus::Authenticated:
 				printf("AP: Authenticated\n");
+				AP_GetRoomInfo(&ap_room_info);
 				return 1;
 			case AP_ConnectionStatus::ConnectionRefused:
 				printf("AP: Failed to connect\n");
@@ -95,8 +96,6 @@ int apdoom_init(ap_settings_t* settings)
 			return 0;
 		}
 	}
-
-	AP_GetRoomInfo(&ap_room_info);
 
 	return 0;
 }
@@ -130,6 +129,12 @@ void f_itemrecv(int64_t item_id, bool notify_player /* Unused */)
 void f_locrecv(int64_t loc_id)
 {
 	// Not much to do here
+}
+
+
+const char* apdoom_get_seed()
+{
+	return ap_room_info.seed_name.c_str();
 }
 
 

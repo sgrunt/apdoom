@@ -236,7 +236,7 @@ static int      joylook; // [crispy]
 static boolean  joyarray[MAX_JOY_BUTTONS + 1]; 
 static boolean *joybuttons = &joyarray[1];		// allow [-1] 
  
-static char     savename[256]; // [crispy] moved here, made static
+char     savename[256]; // [crispy] moved here, made static // [AP] Kept there, made non-static ><
 static int      savegameslot; 
 static char     savedescription[32]; 
  
@@ -1237,6 +1237,11 @@ void G_Ticker (void)
 	    }
 	    gameaction = ga_nothing; 
 	    break; 
+        case ga_levelselect:
+            G_DoSaveGame(); 
+            ShowLevelSelect();
+            gameaction = ga_nothing; 
+            break;
 	  case ga_nothing: 
 	    break; 
 	} 
@@ -1701,6 +1706,12 @@ void G_ScreenShot (void)
 { 
     gameaction = ga_screenshot; 
 } 
+
+
+void G_LevelSelect(void)
+{
+    gameaction = ga_levelselect; 
+}
  
 
 
@@ -2186,6 +2197,7 @@ void G_LoadGame (char* name)
 int savedleveltime = 0; // [crispy] moved here for level time logging
 void G_DoLoadGame (void) 
 { 
+    leveltimesinceload = 0;
 	 
     // [crispy] loaded game must always be single player.
     // Needed for ability to use a further game loading, as well as
@@ -2298,13 +2310,17 @@ G_SaveGame
 
 void G_DoSaveGame (void) 
 { 
+    char filename[260];
+
+    snprintf(filename, 260, "AP_%s_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);
+
     char *savegame_file;
     char *temp_savegame_file;
     char *recovery_savegame_file;
 
     recovery_savegame_file = NULL;
     temp_savegame_file = P_TempSaveGameFile();
-    savegame_file = P_SaveGameFile(savegameslot);
+    savegame_file = filename;//P_SaveGameFile(savegameslot);
 
     // Open the savegame file for writing.  We write to a temporary file
     // and then rename it at the end if it was successfully written.

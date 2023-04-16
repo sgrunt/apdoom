@@ -56,6 +56,7 @@ int apdoom_init(ap_settings_t* settings);
 void apdoom_check_location(int ep, int map, int index);
 void apdoom_victory();
 void apdoom_update();
+const char* apdoom_get_seed();
 
 #ifdef __cplusplus
 }

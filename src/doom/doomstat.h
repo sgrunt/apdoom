@@ -175,6 +175,7 @@ extern	int	extrakills; // [crispy] count spawned monsters
 // Timer, for scores.
 extern  int	levelstarttic;	// gametic at level start
 extern  int	leveltime;	// tics in game play for par
+extern int leveltimesinceload; // [AP] For HUB trigger we make sure we don't trigger when reloading level
 extern  int	totalleveltimes; // [crispy] CPhipps - total time for all completed levels
 
 

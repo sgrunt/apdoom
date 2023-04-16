@@ -41,6 +41,8 @@
 
 #include "apdoom.h"
 
+#include "g_game.h"
+
 
 #define BONUSADD	6
 
@@ -720,8 +722,8 @@ P_TouchSpecialThing
 
 	case SPR_LVST:
 		// Teleport back to level select!
-		if (leveltime > 350)
-			ShowLevelSelect();
+		if (leveltimesinceload > 350)
+			G_LevelSelect();
 		return; // Don't pick up this
 
       default:

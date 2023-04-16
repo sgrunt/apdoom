@@ -10,6 +10,7 @@
 #include "apdoom.h"
 #include "i_video.h"
 #include "g_game.h"
+#include "m_misc.h"
 
 
 void WI_initAnimatedBack(void);
@@ -138,9 +139,21 @@ void restart_wi_anims()
 void play_level(int ep, int lvl)
 {
     // Check if level has a save file first
-
-    // If none, load it fresh
-    G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
+    char filename[260];
+    snprintf(filename, 260, "AP_%s_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
+    if (M_FileExists(filename))
+    {
+        // We load
+        extern char savename[256];
+        snprintf(savename, 256, "%s", filename);
+        gameaction = ga_loadgame;
+        //G_DoLoadGame();
+    }
+    else
+    {
+        // If none, load it fresh
+        G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
+    }
 }
 
 
@@ -159,6 +172,7 @@ boolean LevelSelectResponder(event_t* ev)
                         if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
                         restart_wi_anims();
                         urh_anim = 0;
+                        S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
                     }
                     break;
                 case KEY_RIGHTARROW:
@@ -167,6 +181,7 @@ boolean LevelSelectResponder(event_t* ev)
                         selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
                         restart_wi_anims();
                         urh_anim = 0;
+                        S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
                     }
                     break;
                 case KEY_UPARROW:
@@ -178,6 +193,7 @@ boolean LevelSelectResponder(event_t* ev)
                     else
                         selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;
                     urh_anim = 0;
+                    S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_DOWNARROW:
                     if (selected_ep == 1)
@@ -188,8 +204,10 @@ boolean LevelSelectResponder(event_t* ev)
                         if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
                     }
                     urh_anim = 0;
+                    S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_ENTER:
+                    S_StartSoundOptional(NULL, sfx_pistol, NULL);
                     play_level(selected_ep, selected_level[selected_ep]);
                     break;
             }

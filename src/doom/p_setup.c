@@ -1229,6 +1229,7 @@ P_SetupLevel
     strncpy(lumpname, maplumpinfo->name, 8);
 
     leveltime = 0;
+    leveltimesinceload = 0;
     oldleveltime = 0;
 	
     // [crispy] better logging

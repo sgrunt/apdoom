@@ -71,6 +71,7 @@ void G_Ticker (void);
 boolean G_Responder (event_t*	ev);
 
 void G_ScreenShot (void);
+void G_LevelSelect(void);
 
 void G_DrawMouseSpeedBox(void);
 int G_VanillaVersionCode(void);

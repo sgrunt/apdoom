@@ -26,6 +26,7 @@
 
 
 int	leveltime;
+int leveltimesinceload;
 
 //
 // THINKERS
@@ -154,4 +155,5 @@ void P_Ticker (void)
 
     // for par times
     leveltime++;	
+    leveltimesinceload++;
 }
