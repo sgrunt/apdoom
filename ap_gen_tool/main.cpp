@@ -393,10 +393,10 @@ int main(int argc, char** argv)
     add_item("Backpack", 8, 1, PROGRESSION, "");
 
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    add_item("Shotgun", 2001, 3, PROGRESSION, "Weapons");
-    add_item("Shotgun", 2001, 7, USEFUL, "Weapons");
-    add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
-    add_item("Rocket launcher", 2003, 2, USEFUL, "Weapons");
+    //add_item("Shotgun", 2001, 3, PROGRESSION, "Weapons");
+    add_item("Shotgun", 2001, 10, USEFUL, "Weapons");
+    //add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
+    add_item("Rocket launcher", 2003, 3, USEFUL, "Weapons");
     add_item("Plasma gun", 2004, 2, USEFUL, "Weapons");
     add_item("Chainsaw", 2005, 5, USEFUL, "Weapons");
     add_item("Chaingun", 2002, 2, PROGRESSION, "Weapons");

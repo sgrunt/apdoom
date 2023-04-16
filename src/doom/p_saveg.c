@@ -427,6 +427,8 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->oldy = 0;
     str->oldz = 0;
     str->oldangle = 0;
+
+    str->index = saveg_read32();
 }
 
 // [crispy] enumerate all thinker pointers
@@ -592,6 +594,8 @@ static void saveg_write_mobj_t(mobj_t *str)
     // [crispy] instead of the actual pointer, store the
     // corresponding index in the mobj->tracers field
     saveg_writep((void *)(uintptr_t) P_ThinkerToIndex((thinker_t *) str->tracer));
+
+    saveg_write32(str->index);
 }
 
 

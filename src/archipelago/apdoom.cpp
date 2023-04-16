@@ -435,7 +435,7 @@ void f_itemrecv(int64_t item_id, bool notify_player /* Unused */)
 	}
 
 	// Give item to player
-	ap_settings.give_item_callback(item.doom_type);
+	ap_settings.give_item_callback(item.doom_type, item.ep, item.map);
 }
 
 

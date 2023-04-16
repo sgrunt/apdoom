@@ -230,7 +230,7 @@ boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
 
 // Kind of a copy of P_TouchSpecialThing
-void on_ap_give_item(int doom_type)
+void on_ap_give_item(int doom_type, int ep, int map)
 {
     player_t* player = &players[consoleplayer];
     int sound = sfx_itemup;
@@ -240,20 +240,32 @@ void on_ap_give_item(int doom_type)
         // Level specifics
         case 5: // Blue keycard
         case 40: // Blue skull key
-            player->cards[it_bluecard] = true;
-            player->cards[it_blueskull] = true;
+            if (ep == gameepisode && map == gamemap)
+            {
+                player->cards[it_bluecard] = true;
+                player->cards[it_blueskull] = true;
+            }
             break;
         case 6: // Yellow keycard
         case 39: // Yellow skull key
-            player->cards[it_yellowcard] = true;
-            player->cards[it_yellowskull] = true;
+            if (ep == gameepisode && map == gamemap)
+            {
+                player->cards[it_yellowcard] = true;
+                player->cards[it_yellowskull] = true;
+            }
             break;
         case 13: // Red keycard
         case 38: // Red skull key
-            player->cards[it_redcard] = true;
-            player->cards[it_redskull] = true;
+            if (ep == gameepisode && map == gamemap)
+            {
+                player->cards[it_redcard] = true;
+                player->cards[it_redskull] = true;
+            }
             break;
         case 2026: // Map
+            if (ep == gameepisode && map == gamemap)
+            {
+            }
             break;
 
         case 8: // Backpack
