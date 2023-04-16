@@ -242,29 +242,50 @@ void on_ap_give_item(int doom_type, int ep, int map)
         case 40: // Blue skull key
             if (ep == gameepisode && map == gamemap)
             {
-                player->cards[it_bluecard] = true;
-                player->cards[it_blueskull] = true;
+                if (player->cards[it_bluecard])
+                {
+                    player->cards[it_bluecard] = true;
+                    player->cards[it_blueskull] = true;
+                    player->message = DEH_String(GOTBLUECARD);
+                    sound = sfx_keyup;
+                }
             }
             break;
         case 6: // Yellow keycard
         case 39: // Yellow skull key
             if (ep == gameepisode && map == gamemap)
             {
-                player->cards[it_yellowcard] = true;
-                player->cards[it_yellowskull] = true;
+                if (player->cards[it_yellowcard])
+                {
+                    player->cards[it_yellowcard] = true;
+                    player->cards[it_yellowskull] = true;
+	                player->message = DEH_String(GOTYELWCARD);
+                    sound = sfx_keyup;
+                }
             }
             break;
         case 13: // Red keycard
         case 38: // Red skull key
             if (ep == gameepisode && map == gamemap)
             {
-                player->cards[it_redcard] = true;
-                player->cards[it_redskull] = true;
+                if (!player->cards[it_redcard])
+                {
+                    player->cards[it_redcard] = true;
+                    player->cards[it_redskull] = true;
+	                player->message = DEH_String(GOTREDCARD);
+                    sound = sfx_keyup;
+                }
             }
             break;
         case 2026: // Map
             if (ep == gameepisode && map == gamemap)
             {
+	            if (P_GivePower(player, pw_allmap))
+                {
+                    player->message = DEH_String(GOTMAP);
+	                if (gameversion > exe_doom_1_2)
+	                    sound = sfx_getpow;
+                }
             }
             break;
 
@@ -280,21 +301,33 @@ void on_ap_give_item(int doom_type, int ep, int map)
         // Weapons
         case 2001:
             P_GiveWeapon(player, wp_shotgun, false);
+	        player->message = DEH_String(GOTSHOTGUN);
+	        sound = sfx_wpnup;	
             break;
         case 2002:
             P_GiveWeapon(player, wp_chaingun, false);
+	        player->message = DEH_String(GOTCHAINGUN);
+	        sound = sfx_wpnup;	
             break;
         case 2003:
             P_GiveWeapon(player, wp_missile, false);
+	        player->message = DEH_String(GOTLAUNCHER);
+	        sound = sfx_wpnup;	
             break;
         case 2004:
             P_GiveWeapon(player, wp_plasma, false);
+	        player->message = DEH_String(GOTPLASMA);
+	        sound = sfx_wpnup;	
             break;
         case 2005:
             P_GiveWeapon(player, wp_chainsaw, false);
+	        player->message = DEH_String(GOTCHAINSAW);
+	        sound = sfx_wpnup;	
             break;
         case 2006:
             P_GiveWeapon(player, wp_bfg, false);
+	        player->message = DEH_String(GOTBFG9000);
+	        sound = sfx_wpnup;	
             break;
 
         // Powerups
