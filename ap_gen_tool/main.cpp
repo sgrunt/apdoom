@@ -361,7 +361,6 @@ int main(int argc, char** argv)
                 case 38: add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
                 case 6: add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
                 case 39: add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
-                case 2026: add_unique(lvl_prefix + "Map", thing, level, i, false, USEFUL, ""); break;
 
                 // Locations
                 case 2018: add_loc(lvl_prefix + "Armor", thing, level, i); ++armor_count; break;
@@ -377,9 +376,12 @@ int main(int argc, char** argv)
                 case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i); break;
                 case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i); break;
                 case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i); break;
+                case 2026: add_loc(lvl_prefix + "Map", thing, level, i); break;
             }
             ++i;
         }
+
+        add_item(lvl_prefix + "Map", 2026, 1, FILLER, "");
     }
 
     add_item("Armor", 2018, armor_count, FILLER, "Powerups");
@@ -404,11 +406,11 @@ int main(int argc, char** argv)
     add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
 
     // Junk items
-    add_item("Medikit", 2012, 30, FILLER, "");
-    add_item("Box of bullets", 2048, 20, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 20, FILLER, "Ammos");
+    add_item("Medikit", 2012, 21, FILLER, "");
+    add_item("Box of bullets", 2048, 19, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 19, FILLER, "Ammos");
     add_item("Box of shotgun shells", 2049, 20, FILLER, "Ammos");
-    add_item("Energy cell pack", 17, 10, FILLER, "Ammos");
+    add_item("Energy cell pack", 17, 8, FILLER, "Ammos");
 
     printf("%i locations\n%i items\n", (int)ap_locations.size(), total_item_count);
 
