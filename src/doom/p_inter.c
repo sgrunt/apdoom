@@ -844,6 +844,17 @@ P_KillMobj
     else
         return;
 
+	// In AP monsters don't drop weapons
+	switch (item)
+	{
+		case MT_SHOTGUN:
+		case MT_SUPERSHOTGUN: // DOOM II
+		case MT_CHAINGUN: // DOOM II
+			return;
+		// For ultimate doom, are there any other?
+	}
+
+
     mo = P_SpawnMobj (target->x,target->y,ONFLOORZ, item);
     mo->flags |= MF_DROPPED;	// special versions of items
 }
