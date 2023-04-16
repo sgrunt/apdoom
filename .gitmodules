@@ -3,4 +3,4 @@
 	url = https://github.com/chocolate-doom/quickcheck.git
 [submodule "APCpp"]
 	path = APCpp
-	url = https://github.com/N00byKing/APCpp.git
+	url = https://github.com/Daivuk/APCpp
