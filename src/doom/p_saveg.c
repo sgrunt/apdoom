@@ -301,6 +301,8 @@ static void saveg_write_thinker_t(thinker_t *str)
 // mobj_t
 //
 
+mobj_t *just_loaded_hub = 0;
+
 static void saveg_read_mobj_t(mobj_t *str)
 {
     int pl;
@@ -437,6 +439,9 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->oldangle = 0;
 
     str->index = saveg_read32();
+
+    if (str->type == MT_LVSTEL)
+        just_loaded_hub = str;
 }
 
 // [crispy] enumerate all thinker pointers

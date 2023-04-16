@@ -1190,9 +1190,9 @@ void set_ap_player_states()
     p->armortype = ap_state.player_state.armor_type;
     p->backpack = ap_state.player_state.backpack ? true : false;
     p->readyweapon = (weapontype_t)ap_state.player_state.ready_weapon;
-    p->killcount = ap_state.player_state.kill_count;
-    p->itemcount = ap_state.player_state.item_count;
-    p->secretcount = ap_state.player_state.secret_count;
+    //p->killcount = ap_state.player_state.kill_count;
+    //p->itemcount = ap_state.player_state.item_count;
+    //p->secretcount = ap_state.player_state.secret_count;
     for (int i = 0; i < AP_NUM_POWERS; ++i)
         p->powers[i] = ap_state.player_state.powers[i];
     for (int i = 0; i < AP_NUM_WEAPONS; ++i)
@@ -2271,10 +2271,12 @@ void G_LoadGame (char* name)
     gameaction = ga_loadgame; 
 } 
 
+extern mobj_t *just_loaded_hub;
 int savedleveltime = 0; // [crispy] moved here for level time logging
 void G_DoLoadGame (void) 
 { 
     leveltimesinceload = 0;
+    just_loaded_hub = 0;
 	 
     // [crispy] loaded game must always be single player.
     // Needed for ability to use a further game loading, as well as
@@ -2363,6 +2365,34 @@ void G_DoLoadGame (void)
     // do not consider it for reload
     if (players[consoleplayer].health <= 0)
 	G_ClearSavename();
+
+    // [AP] Move player back to player spawn and reset its velocity (Make sure z is set to floor too)
+    player_t* player = &players[consoleplayer];
+    player->pendingweapon = wp_nochange;
+    player->attackdown = 0;
+    player->usedown = 0;
+    player->refire = 0;
+    player->refire = 0;
+    player->damagecount = 0;
+    player->bonuscount = 0;
+    player->attacker = 0;
+    player->extralight = 0;
+    player->fixedcolormap = 0;
+    player->colormap = 0;
+    if (just_loaded_hub && player->mo)
+    {
+        P_UnsetThingPosition(player->mo);
+        player->mo->x = just_loaded_hub->x;
+        player->mo->y = just_loaded_hub->y;
+        player->mo->z = just_loaded_hub->z;
+        player->mo->angle = just_loaded_hub->angle;
+        player->mo->floorz = just_loaded_hub->floorz;
+        player->mo->ceilingz = just_loaded_hub->ceilingz;
+        player->mo->momx = just_loaded_hub->momx;
+        player->mo->momy = just_loaded_hub->momy;
+        player->mo->momz = just_loaded_hub->momz;
+        P_SetThingPosition(player->mo);
+    }
 
     // [crisy] once loaded from the command line,
     // the next savegame will be loaded from the menu
