@@ -139,89 +139,16 @@ void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
 
 
-#define STICKY_MESSAGE_MAX 4
-
-
-typedef struct
-{
-    int delay;
-    char text[256];
-} sticky_msg_t;
-
-
-static sticky_msg_t sticky_msgs[STICKY_MESSAGE_MAX] = {0};
-
-
-void print_sticky_msg(const char* text)
-{
-    // Shift current ones
-    for (int i = STICKY_MESSAGE_MAX - 1; i > 0; --i)
-    {
-        memcpy(&sticky_msgs[i], &sticky_msgs[i - 1], sizeof(sticky_msg_t));
-    }
-    sticky_msgs[0].delay = 35 * 10; // Keep them for at least 10sec
-    M_snprintf(sticky_msgs[0].text, 256, "%s", text);
-
-	// Play a sound
-	int sfx_id = I_GetSfxLumpNum(&S_sfx[sfx_secret]) != -1 ? sfx_secret : I_GetSfxLumpNum(&S_sfx[sfx_itmbk]) != -1 ? sfx_itmbk : -1;
-	if (sfx_id != -1) S_StartSound(NULL, sfx_id);
-}
-
-
-//TODO: Use HUlib_drawTextLine. It also supports colored text. But this here is good enough for now for debugging
-int draw_text(const char* text, int x, int y) // There's already a way to do this in the Hud code, but we want this to appear anywhere in the game
-{
-    char* lump_name[9];
-    for (int i = 0, len = (int)strlen(text); i < len; ++i)
-    {
-        auto c = toupper(text[i]);
-        if (c < 0) continue;
-        snprintf(lump_name, 9, "STCFN%03i", (int)c);
-        if (W_CheckNumForName(lump_name) >= 0)
-        {
-            patch_t* patch = W_CacheLumpName(lump_name, PU_CACHE);
-            V_DrawPatch(x, y, patch);
-            x += patch->width;
-        }
-        else if (c == ' ') x += 6;
-        if (x > 320 - 8)
-        {
-            x = 0;
-            y += 8;
-        }
-    }
-    return y;
-}
-
-
-void draw_sticky_msgs()
-{
-    int y = 30;
-    for (int i = 0; i < STICKY_MESSAGE_MAX; ++i)
-    {
-        if (sticky_msgs[i].delay > 0)
-        {
-            y = draw_text(sticky_msgs[i].text, 0, y);
-            y += 8;
-        }
-    }
-}
-
-
 void tick_sticky_msgs()
 {
-    for (int i = 0; i < STICKY_MESSAGE_MAX; ++i)
-    {
-        if (sticky_msgs[i].delay > 0)
-            sticky_msgs[i].delay--;
-    }
+    HU_TickAPMessages();
 }
 
 
 void on_ap_message(const char* text) // This string is cached for several seconds
 {
     if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
-    print_sticky_msg(text);
+    HU_AddAPMessage(text);
 }
 
 
@@ -603,7 +530,7 @@ boolean D_Display (void)
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
-    draw_sticky_msgs();   // ^ no, Sticky messages on top of everything :)
+    HU_DrawAPMessages();   // ^ no, Sticky messages on top of everything :)
     NetUpdate ();         // send out any new accumulation
 
     return wipe;

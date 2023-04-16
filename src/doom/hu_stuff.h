@@ -40,6 +40,8 @@
 
 #define HU_MSGTIMEOUT	(4*TICRATE)
 
+#define HU_APMSGTIMEOUT	(8*TICRATE)
+
 //
 // HEADS UP TEXT
 //
@@ -53,6 +55,10 @@ void HU_Ticker(void);
 void HU_Drawer(void);
 char HU_dequeueChatChar(void);
 void HU_Erase(void);
+
+void HU_AddAPMessage(const char* message);
+void HU_DrawAPMessages();
+void HU_TickAPMessages();
 
 extern const char *player_names[4];
 extern char *chat_macros[10];

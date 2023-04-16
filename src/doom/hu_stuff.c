@@ -51,6 +51,8 @@
 #include "v_video.h" // [crispy] V_DrawPatch() et al.
 #include "v_trans.h" // [crispy] colored kills/items/secret/etc. messages
 
+#include "i_swap.h"
+
 //
 // Locally used constants, shortcuts.
 //
@@ -112,6 +114,9 @@ static hu_stext_t	w_message;
 static int		message_counter;
 static hu_stext_t	w_secret;
 static int		secret_counter;
+static hu_stext_t   w_ap_messages[4];
+static boolean      ap_message_ons[4];
+static int		ap_message_counters[4];
 
 
 static boolean		headsupactive = false;
@@ -604,8 +609,17 @@ void HU_Start(void)
     hu_widescreendelta = WIDESCREENDELTA;
 
     // create the message widget
+    int w_message_y = HU_MSGY;
+    //if (HU_MSGX <= -50)
+    //{
+    //    w_message_y = 20 * 8;
+    //}
+    //else
+    //{
+        w_message_y = 20 * 8;
+    //}
     HUlib_initSText(&w_message,
-		    HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
+		    HU_MSGX, w_message_y, HU_MSGHEIGHT,
 		    hu_font,
 		    HU_FONTSTART, &message_on);
 
@@ -913,7 +927,8 @@ void HU_Drawer(void)
 
 void HU_Erase(void)
 {
-
+    //for (int i = 0; i < 4; ++i)
+    //    HUlib_eraseSText(&w_ap_messages[i]); // [AP] Nah, we don't erase. When we go other screens, we still see them. They are global
     HUlib_eraseSText(&w_message);
     HUlib_eraseSText(&w_secret);
     HUlib_eraseIText(&w_chat);
@@ -967,6 +982,59 @@ static const crispy_statsline_func_t crispy_statslines[NUM_STATSFORMATS] =
 	Crispy_Statsline_Boolean,
 };
 
+
+void HU_InitAPMessages()
+{
+    // [AP] AP messages
+    for (int i = 0; i < 4; ++i)
+        HUlib_initSText(&w_ap_messages[i],
+                        HU_MSGX, i * 8, HU_MSGHEIGHT,
+                        hu_font,
+                        HU_FONTSTART, &ap_message_ons[i]);
+}
+
+void HU_AddAPMessage(const char* message)
+{
+    // Lazy init
+    if (!w_ap_messages[0].on)
+    {
+        // [AP] AP messages
+        for (int i = 0; i < 4; ++i)
+            HUlib_initSText(&w_ap_messages[i],
+                            HU_MSGX, i * 8, HU_MSGHEIGHT,
+                            hu_font,
+                            HU_FONTSTART, &ap_message_ons[i]);
+    }
+
+    // Shift currents
+    for (int i = 3; i > 0; --i)
+    {
+        memcpy(&w_ap_messages[i], &w_ap_messages[i - 1], sizeof(hu_stext_t));
+        w_ap_messages[i].on = &ap_message_ons[i]; // Don't break that
+        ap_message_counters[i] = ap_message_counters[i - 1];
+        ap_message_ons[i] = ap_message_ons[i - 1];
+        w_ap_messages[i].l[0].y = i * 8;
+    }
+
+	HUlib_addMessageToSText(&w_ap_messages[0], 0, message);
+	ap_message_ons[0] = true;
+	ap_message_counters[0] = HU_APMSGTIMEOUT;
+}
+
+void HU_DrawAPMessages()
+{
+    for (int i = 0; i < 4; ++i)
+        HUlib_drawSText(&w_ap_messages[i]);
+}
+
+void HU_TickAPMessages()
+{
+    for (int i = 0; i < 4; ++i)
+        if (ap_message_counters[i] && !--ap_message_counters[i])
+            ap_message_ons[i] = false;
+}
+
+
 void HU_Ticker(void)
 {
 
@@ -1017,7 +1085,17 @@ void HU_Ticker(void)
 
     } // else message_on = false;
 
-    w_kills.y = HU_MSGY + 1 * 8;
+
+    // [AP] Check if status bar leaves some space on the side, we will put our stats there (Only in wide screen)
+    int base_y = 17 * 8;
+
+    //if (w_kills.x <= -50)
+    //    base_y += 30 + 8;
+
+    w_kills.y = base_y;
+    w_items.y = base_y + 8;
+    w_scrts.y = base_y + 16;
+
 
     // check for incoming chat characters
     if (netgame)

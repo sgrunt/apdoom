@@ -473,44 +473,93 @@ void apdoom_victory()
 	AP_StoryComplete(); // Isn't this already handled by the server rules?
 }
 
+/*
+    black: "000000"
+    red: "EE0000"
+    green: "00FF7F"  # typically a location
+    yellow: "FAFAD2"  # typically other slots/players
+    blue: "6495ED"  # typically extra info (such as entrance)
+    magenta: "EE00EE"  # typically your slot/player
+    cyan: "00EEEE"  # typically regular item
+    slateblue: "6D8BE8"  # typically useful item
+    plum: "AF99EF"  # typically progression item
+    salmon: "FA8072"  # typically trap item
+    white: "FFFFFF"  # not used, if you want to change the generic text color change color in Label
+
+    (byte *) &cr_none, // 0 (RED)
+    (byte *) &cr_dark, // 1 (DARK RED)
+    (byte *) &cr_gray, // 2 (WHITE) normal text
+    (byte *) &cr_green, // 3 (GREEN) location
+    (byte *) &cr_gold, // 4 (YELLOW) player
+    (byte *) &cr_red, // 5 (RED, same as cr_none)
+    (byte *) &cr_blue, // 6 (BLUE) extra info such as Entrance
+    (byte *) &cr_red2blue, // 7 (BLUE) items
+    (byte *) &cr_red2green // 8 (DARK EDGE GREEN)
+*/
+
 void apdoom_update()
 {
 	while (AP_IsMessagePending())
 	{
-		auto msg = AP_GetLatestMessage();
+		AP_Message* msg = AP_GetLatestMessage();
 
-		switch (msg->type)
+		std::string colored_msg;
+
+		if (msg->messageParts.empty())
 		{
-			case AP_MessageType::Plaintext:
+			colored_msg = "~2" + msg->text;
+		}
+		else
+		{
+			for (const auto& message_part : msg->messageParts)
 			{
-				ap_settings.message_callback(msg->text.c_str());
-				break;
-			}
-			case AP_MessageType::ItemSend:
-			{
-				AP_ItemSendMessage* item_send_msg = (AP_ItemSendMessage*)msg;
-				ap_settings.message_callback(msg->text.c_str());
-				break;
-			}
-			case AP_MessageType::ItemRecv:
-			{
-				AP_ItemRecvMessage* item_recv_msg = (AP_ItemRecvMessage*)msg;
-				ap_settings.message_callback(msg->text.c_str());
-				break;
-			}
-			case AP_MessageType::Hint:
-			{
-				AP_HintMessage* hint_msg = (AP_HintMessage*)msg;
-				ap_settings.message_callback(msg->text.c_str());
-				break;
-			}
-			case AP_MessageType::Countdown:
-			{
-				AP_CountdownMessage* countdown_msg = (AP_CountdownMessage*)msg;
-				ap_settings.message_callback(msg->text.c_str());
-				break;
+				switch (message_part.type)
+				{
+					case AP_NormalText:
+						colored_msg += "~2" + message_part.text;
+						break;
+					case AP_LocationText:
+						colored_msg += "~3" + message_part.text;
+						break;
+					case AP_ItemText:
+						colored_msg += "~7" + message_part.text;
+						break;
+					case AP_PlayerText:
+						colored_msg += "~4" + message_part.text;
+						break;
+				}
 			}
 		}
+
+		ap_settings.message_callback(colored_msg.c_str());
+
+		//switch (msg->type)
+		//{
+		//	case AP_MessageType::Plaintext:
+		//	{
+		//		break;
+		//	}
+		//	case AP_MessageType::ItemSend:
+		//	{
+		//		AP_ItemSendMessage* item_send_msg = (AP_ItemSendMessage*)msg;
+		//		break;
+		//	}
+		//	case AP_MessageType::ItemRecv:
+		//	{
+		//		AP_ItemRecvMessage* item_recv_msg = (AP_ItemRecvMessage*)msg;
+		//		break;
+		//	}
+		//	case AP_MessageType::Hint:
+		//	{
+		//		AP_HintMessage* hint_msg = (AP_HintMessage*)msg;
+		//		break;
+		//	}
+		//	case AP_MessageType::Countdown:
+		//	{
+		//		AP_CountdownMessage* countdown_msg = (AP_CountdownMessage*)msg;
+		//		break;
+		//	}
+		//}
 
 		AP_ClearLatestMessage();
 	}
