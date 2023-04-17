@@ -200,20 +200,33 @@ void add_loc(const std::string& name, const map_thing_t& thing, const level_t* l
 
 void add_unique(const std::string& name, const map_thing_t& thing, const level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name)
 {
-    ap_item_t item;
-    item.id = item_next_id++;
-    item.name = name;
-    item.ep = level->ep;
-    item.lvl = level->lvl;
-    item.doom_type = thing.type;
-    item.count = 1;
-    total_item_count++;
-    item.is_key = is_key;
-    item.classification = classification;
-    ap_items.push_back(item);
-    if (!group_name.empty())
+    bool duplicated_item = false;
+    for (const auto& other_item : ap_items)
     {
-        item_name_groups[group_name].insert(name);
+        if (other_item.name == name)
+        {
+            duplicated_item = true;
+            break;
+        }
+    }
+
+    if (!duplicated_item)
+    {
+        ap_item_t item;
+        item.id = item_next_id++;
+        item.name = name;
+        item.ep = level->ep;
+        item.lvl = level->lvl;
+        item.doom_type = thing.type;
+        item.count = 1;
+        total_item_count++;
+        item.is_key = is_key;
+        item.classification = classification;
+        ap_items.push_back(item);
+        if (!group_name.empty())
+        {
+            item_name_groups[group_name].insert(name);
+        }
     }
     add_loc(name, thing, level, index);
 }
@@ -407,7 +420,7 @@ int main(int argc, char** argv)
 
     // Junk items
     add_item("Medikit", 2012, 21, FILLER, "");
-    add_item("Box of bullets", 2048, 19, FILLER, "Ammos");
+    add_item("Box of bullets", 2048, 20, FILLER, "Ammos");
     add_item("Box of rockets", 2046, 19, FILLER, "Ammos");
     add_item("Box of shotgun shells", 2049, 20, FILLER, "Ammos");
     add_item("Energy cell pack", 17, 8, FILLER, "Ammos");
