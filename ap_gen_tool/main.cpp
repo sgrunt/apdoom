@@ -5,6 +5,175 @@
 #include <string>
 #include <map>
 #include <set>
+#include <fstream>
+#include <json/json.h>
+
+
+//---- LINE TYPES ----
+#define LT_NONE 0
+
+// Doors types
+#define LT_DR_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS 1
+#define LT_DR_DOOR_OPEN_WAIT_CLOSE_FAST 117
+#define LT_SR_DOOR_OPEN_WAIT_CLOSE 63
+#define LT_SR_DOOR_OPEN_WAIT_CLOSE_FAST 114
+#define LT_S1_DOOR_OPEN_WAIT_CLOSE 29
+#define LT_S1_DOOR_OPEN_WAIT_CLOSE_FAST 111
+#define LT_WR_DOOR_OPEN_WAIT_CLOSE 90
+#define LT_WR_DOOR_OPEN_WAIT_CLOSE_FAST 105
+#define LT_W1_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS 4
+#define LT_W1_DOOR_OPEN_WAIT_CLOSE_FAST 108
+#define LT_D1_DOOR_OPEN_STAY 31
+#define LT_D1_DOOR_OPEN_STAY_FAST 118
+#define LT_SR_DOOR_OPEN_STAY 61
+#define LT_SR_DOOR_OPEN_STAY_FAST 115
+#define LT_S1_DOOR_OPEN_STAY 103
+#define LT_S1_DOOR_OPEN_STAY_FAST 112
+#define LT_WR_DOOR_OPEN_STAY 86
+#define LT_WR_DOOR_OPEN_STAY_FAST 106
+#define LT_W1_DOOR_OPEN_STAY 2
+#define LT_W1_DOOR_OPEN_STAY_FAST 109
+#define LT_GR_DOOR_OPEN_STAY 46
+#define LT_SR_DOOR_CLOSE_STAY 42
+#define LT_SR_DOOR_CLOSE_STAY_FAST 116
+#define LT_S1_DOOR_CLOSE_STAY 50
+#define LT_S1_DOOR_CLOSE_STAY_FAST 113
+#define LT_WR_DOOR_CLOSE_STAY 75
+#define LT_WR_DOOR_CLOSE_STAY_FAST 107
+#define LT_W1_DOOR_CLOSE_STAY 3
+#define LT_W1_DOOR_CLOSE_FAST 110
+#define LT_WR_DOOR_CLOSE_STAY_OPEN 76
+#define LT_W1_DOOR_CLOSE_WAIT_OPEN 16
+
+// Locked door types
+#define LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE 26
+#define LT_DR_DOOR_RED_OPEN_WAIT_CLOSE 28
+#define LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE 27
+#define LT_D1_DOOR_BLUE_OPEN_STAY 32
+#define LT_D1_DOOR_RED_OPEN_STAY 33
+#define LT_D1_DOOR_YELLOW_OPEN_STAY 34
+#define LT_SR_DOOR_BLUE_OPEN_STAY_FAST 99
+#define LT_SR_DOOR_RED_OPEN_STAY_FAST 134
+#define LT_SR_DOOR_YELLOW_OPEN_STAY_FAST 136
+#define LT_S1_DOOR_BLUE_OPEN_STAY_FAST 133
+#define LT_S1_DOOR_RED_OPEN_STAY_FAST 135
+#define LT_S1_DOOR_YELLOW_OPEN_STAY_FAST 137
+
+// Floor types
+#define LT_SR_FLOOR_LOWER_TO_LOWEST_FLOOR 60
+#define LT_S1_FLOOR_LOWER_TO_LOWEST_FLOOR 23
+#define LT_WR_FLOOR_LOWER_TO_LOWEST_FLOOR 82
+#define LT_W1_FLOOR_LOWER_TO_LOWEST_FLOOR 38
+#define LT_WR_FLOOR_LOWER_TO_LOWEST_FLOOR_CHANGES_TEXTURE 84
+#define LT_W1_FLOOR_LOWER_BY_LOWEST_FLOOR_CHANGES_TEXTURE 37
+#define LT_SR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR 69
+#define LT_S1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR 18
+#define LT_WR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR 128
+#define LT_W1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR 119
+#define LT_SR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST 132
+#define LT_S1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST 131
+#define LT_WR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST 129
+#define LT_W1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST 130
+#define LT_SR_FLOOR_RAISE_TO_LOWEST_CEILING 64
+#define LT_S1_FLOOR_RAISE_TO_LOWEST_CEILING 101
+#define LT_WR_FLOOR_RAISE_TO_LOWEST_CEILING 91
+#define LT_W1_FLOOR_RAISE_TO_LOWEST_CEILING 5
+#define LT_G1_FLOOR_RAISE_TO_LOWEST_CEILING 24
+#define LT_SR_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES 65
+#define LT_S1_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES 55
+#define LT_WR_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES 94
+#define LT_W1_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES 56
+#define LT_SR_FLOOR_LOWER_TO_HIGHEST_FLOOR 45
+#define LT_S1_FLOOR_LOWER_TO_HIGHEST_FLOOR 102
+#define LT_WR_FLOOR_LOWER_TO_HIGHEST_FLOOR 83
+#define LT_W1_FLOOR_LOWER_TO_HIGHEST_FLOOR 19
+#define LT_SR_FLOOR_LOWER_TO_8_ABOVE_HIGHEST_FLOOR 70
+#define LT_S1_FLOOR_LOWER_TO_8_ABOVE_HIGHEST_FLOOR 71
+#define LT_WR_FLOOR_LOWER_TO_8_ABOVE_HIGHEST_FLOOR 98
+#define LT_W1_FLOOR_LOWER_BY_8_ABOVE_HIGHEST_FLOOR 36
+#define LT_WR_FLOOR_RAISE_BY_24 92
+#define LT_W1_FLOOR_RAISE_BY_24 58
+#define LT_WR_FLOOR_RAISE_BY_24_CHANGES_TEXTURE 93
+#define LT_W1_FLOOR_RAISE_BY_24_CHANGES_TEXTURE 59
+#define LT_WR_FLOOR_RAISE_BY_SHORTEST_LOWER_TEXTURE 96
+#define LT_W1_FLOOR_RAISE_BY_SHORTEST_LOWER_TEXTURE 30
+#define LT_S1_FLOOR_RAISE_BY_512 140
+
+// Ceiling types
+#define LT_SR_CEILING_LOWER_TO_FLOOR 43
+#define LT_S1_CEILING_LOWER_TO_FLOOR 41
+#define LT_W1_CEILING_RAISE_TO_HIGHEST_CEILING 40
+#define LT_WR_CEILING_LOWER_TO_8_ABOVE_FLOOR 72
+#define LT_W1_CEILING_LOWER_TO_8_ABOVE_FLOOR 44
+
+// Platform types
+#define LT_SR_FLOOR_RAISE_BY_24_CHANGES_TEXTURE 66
+#define LT_S1_FLOOR_RAISE_BY_24_CHANGES_TEXTURE 15
+#define LT_SR_FLOOR_RAISE_BY_32_CHANGES_TEXTURE 67
+#define LT_S1_FLOOR_RAISE_BY_32_CHANGES_TEXTURE 14
+#define LT_SR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE 68
+#define LT_S1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE 20
+#define LT_WR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE 95
+#define LT_W1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE 22
+#define LT_G1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE 47
+#define LT_WR_FLOOR_START_MOVING_UP_AND_DOWN 87
+#define LT_W1_FLOOR_START_MOVING_UP_AND_DOWN 53
+#define LT_WR_FLOOR_STOP_MOVING 89
+#define LT_W1_FLOOR_STOP_MOVING 54
+#define LT_SR_LIFT_LOWER_WAIT_RAISE 62
+#define LT_S1_LIFT_LOWER_WAIT_RAISE 21
+#define LT_WR_LIFT_LOWER_WAIT_RAISE_ALSO_MONSTERS 88
+#define LT_W1_LIFT_LOWER_WAIT_RAISE 10
+#define LT_SR_LIFT_LOWER_WAIT_RAISE_FAST 123
+#define LT_S1_LIFT_LOWER_WAIT_RAISE_FAST 122
+#define LT_WR_LIFT_LOWER_WAIT_RAISE_FAST 120
+#define LT_W1_LIFT_LOWER_WAIT_RAISE_FAST 121
+
+// Crusher types
+#define LT_S1_CEILING_LOWER_TO_8_ABOVE_FLOOR_PERPETUAL_SLOW_CHRUSHER_DAMAGE 49
+#define LT_WR_CRUSHER_START_WITH_SLOW_DAMAGE 73
+#define LT_W1_CRUSHER_START_WITH_SLOW_DAMAGE 25
+#define LT_WR_CRUSHER_START_WITH_FAST_DAMAGE 77
+#define LT_W1_CRUSHER_START_WITH_FAST_DAMAGE 6
+#define LT_W1_CRUSHER_START_WITH_SLOW_DAMAGE_SILENT 141
+#define LT_WR_CRUSHER_STOP 74
+#define LT_W1_CRUSHER_STOP 57
+
+// Stairs types
+#define LT_S1_STAIRS_RAISE_BY_8 7
+#define LT_W1_STAIRS_RAISE_BY_8 8
+#define LT_S1_STAIRS_RAISE_BY_16_FAST 127
+#define LT_W1_STAIRS_RAISE_BY_16_FAST 100
+
+// Lighting types
+#define LT_SR_LIGHT_CHANGE_TO_35 139
+#define LT_WR_LIGHT_CHANGE_TO_35 79
+#define LT_W1_LIGHT_CHANGE_TO_35 35
+#define LT_SR_LIGHT_CHANGE_TO_255 138
+#define LT_WR_LIGHT_CHANGE_TO_255 81
+#define LT_W1_LIGHT_CHANGE_TO_255 13
+#define LT_WR_LIGHT_CHANGE_TO_BRIGHTEST_ADGACENT 80
+#define LT_W1_LIGHT_CHANGE_TO_BRIGHTEST_ADJACENT 12
+#define LT_W1_LIGHT_CHANGE_TO_DARKEST_ADJACENT 104
+#define LT_W1_LIGHT_START_BLINKING 17
+
+// Exit types
+#define LT_S1_EXIT_LEVEL 11
+#define LT_W1_EXIT_LEVEL 52
+#define LT_S1_EXIT_LEVEL_GOES_TO_SECRET_LEVEL 51
+#define LT_W1_EXIT_LEVEL_GOES_TO_SECRET_LEVEL 124
+
+// Teleporter types
+#define LT_WR_TELEPORT_ALSO_MONSTERS 97
+#define LT_W1_TELEPORT_ALSO_MONSTERS 39
+#define LT_WR_TELEPORT_MONSTERS_ONLY 126
+#define LT_W1_TELEPORT_MONSTERS_ONLY 125
+
+// Donut types
+#define LT_S1_FLOOR_RAISE_DONUT_CHANGES_TEXTURE 9
+
+// Animated textures
+#define LT_SCROLL_TEXTURE_LEFT 48
 
 
 struct map_header_t
@@ -75,6 +244,65 @@ struct map_sectors_t
 };
 
 
+struct map_subsector_t
+{
+    uint16_t numsegs;
+    uint16_t firstseg;
+};
+
+
+struct map_node_t
+{
+    // Partition line from (x,y) to x+dx,y+dy)
+    int16_t x;
+    int16_t y;
+    int16_t dx;
+    int16_t dy;
+
+    // Bounding box for each child,
+    // clip against view frustum.
+    int16_t bbox[2][4];
+
+    // If NF_SUBSECTOR its a subsector,
+    // else it's a node of another subtree.
+    uint16_t children[2];
+};
+
+
+struct map_seg_t
+{
+    uint16_t v1;
+    uint16_t v2;
+    int16_t angle;
+    uint16_t linedef;
+    int16_t side;
+    int16_t offset;
+};
+
+
+struct node_t
+{
+    int x;
+    int y;
+    int dx;
+    int dy;
+    int bbox[2][4];
+    int children[2];
+};
+
+
+struct subsector_t
+{
+    int sector;
+};
+
+struct region_t
+{
+    std::vector<int64_t> required_items;
+    std::vector<int64_t> locations;
+};
+
+
 enum item_classification_t
 {
     FILLER          = 0b0000, // aka trash, as in filler items like ammo, currency etc,
@@ -103,11 +331,29 @@ struct ap_location_t
 {
     int64_t id;
     std::string name;
+    int x, y;
     int ep;
     int lvl;
     int doom_thing_index;
     int doom_type;
     std::vector<int64_t> required_items;
+    int sector;
+    int region = -1;
+};
+
+
+struct connection_t
+{
+    int sector;
+    std::vector<int64_t> required_items; // OR
+};
+
+
+struct sector_t
+{
+    bool visited = false;
+    std::vector<connection_t> connections;
+    std::vector<int> locations;
 };
 
 
@@ -116,11 +362,18 @@ struct level_t
     char name[9];
     int ep;
     int lvl;
-    std::vector<map_thing_t>    things;
-    std::vector<map_linedefs_t> linedefs;
-    std::vector<map_sidedefs_t> sidedefs;
-    std::vector<map_vertex_t>   vertexes;
-    std::vector<map_sectors_t>  sectors;
+    std::vector<map_thing_t>        things;
+    std::vector<map_linedefs_t>     linedefs;
+    std::vector<map_sidedefs_t>     sidedefs;
+    std::vector<map_vertex_t>       vertexes;
+    std::vector<map_sectors_t>      map_sectors;
+    std::vector<sector_t>           sectors;
+    std::vector<map_subsector_t>    map_subsectors;
+    std::vector<map_node_t>         map_nodes;
+    std::vector<map_seg_t>          map_segs;
+    std::vector<subsector_t>        subsectors;
+    std::vector<node_t>             nodes;
+    int starting_sector = -1;
 };
 
 
@@ -131,6 +384,7 @@ int total_item_count = 0;
 std::vector<ap_item_t> ap_items;
 std::vector<ap_location_t> ap_locations;
 std::map<std::string, std::set<std::string>> item_name_groups;
+std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
 
 
 const char* level_names[3][9] = {
@@ -169,6 +423,90 @@ const char* level_names[3][9] = {
     }
 };
 
+
+void generate_regions(level_t* level);
+void connect_neighbors(level_t* level);
+
+
+int FixedMul(int a, int b)
+{
+    return ((int64_t) a * (int64_t) b) >> 16;
+}
+
+
+int point_on_side(int x, int y, node_t* node)
+{
+    int	dx;
+    int	dy;
+    int	left;
+    int	right;
+	
+    if (!node->dx)
+    {
+        if (x <= node->x)
+        return node->dy > 0;
+	
+        return node->dy < 0;
+    }
+    if (!node->dy)
+    {
+        if (y <= node->y)
+        return node->dx < 0;
+	
+        return node->dx > 0;
+    }
+	
+    dx = (x - node->x);
+    dy = (y - node->y);
+	
+    // Try to quickly decide by looking at sign bits.
+    if ( (node->dy ^ node->dx ^ dx ^ dy)&0x80000000 )
+    {
+        if  ( (node->dy ^ dx) & 0x80000000 )
+        {
+            // (left is negative)
+            return 1;
+        }
+        return 0;
+    }
+
+    left = FixedMul(node->dy >> 16, dx);
+    right = FixedMul(dy, node->dx >> 16);
+	
+    if (right < left)
+    {
+        // front side
+        return 0;
+    }
+
+    // back side
+    return 1;			
+}
+
+
+subsector_t* point_in_subsector(int x, int y, level_t* level)
+{
+    node_t*	node;
+    int side;
+    int nodenum;
+
+    // single subsector is a special case
+    if (level->nodes.empty())
+        return level->subsectors.data();
+		
+    nodenum = (int)level->nodes.size() - 1;
+
+    while (!(nodenum & 0x80000000))
+    {
+        node = &level->nodes[nodenum];
+        side = point_on_side(x, y, node);
+        nodenum = node->children[side];
+    }
+	
+    return &level->subsectors[nodenum & ~0x80000000];
+}
+
+
 bool loc_name_taken(const std::string& name)
 {
     for (const auto& loc : ap_locations)
@@ -178,7 +516,7 @@ bool loc_name_taken(const std::string& name)
     return false;
 }
 
-void add_loc(const std::string& name, const map_thing_t& thing, const level_t* level, int index)
+void add_loc(const std::string& name, const map_thing_t& thing, const level_t* level, int index, int x, int y)
 {
     int count = 0;
     std::string loc_name = name;
@@ -195,17 +533,21 @@ void add_loc(const std::string& name, const map_thing_t& thing, const level_t* l
     loc.lvl = level->lvl;
     loc.doom_thing_index = index;
     loc.doom_type = thing.type; // Index can be a risky one. We could replace the item by it's type if it's unique enough
+    loc.x = x << 16;
+    loc.y = y << 16;
     ap_locations.push_back(loc);
 }
 
-void add_unique(const std::string& name, const map_thing_t& thing, const level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name)
+int64_t add_unique(const std::string& name, const map_thing_t& thing, const level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name, int x, int y)
 {
+    int64_t ret = 0;
     bool duplicated_item = false;
     for (const auto& other_item : ap_items)
     {
         if (other_item.name == name)
         {
             duplicated_item = true;
+            ret = other_item.id;
             break;
         }
     }
@@ -227,8 +569,10 @@ void add_unique(const std::string& name, const map_thing_t& thing, const level_t
         {
             item_name_groups[group_name].insert(name);
         }
+        ret = item.id;
     }
-    add_loc(name, thing, level, index);
+    add_loc(name, thing, level, index, x, y);
+    return ret;
 }
 
 void add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name)
@@ -331,11 +675,47 @@ int main(int argc, char** argv)
                 try_load_lump("LINEDEFS", f, dir_entry, level->linedefs);
                 try_load_lump("SIDEDEFS", f, dir_entry, level->sidedefs);
                 try_load_lump("VERTEXES", f, dir_entry, level->vertexes);
-                try_load_lump("SECTORS", f, dir_entry, level->sectors);
+                try_load_lump("SECTORS", f, dir_entry, level->map_sectors);
+                try_load_lump("SSECTORS", f, dir_entry, level->map_subsectors);
+                try_load_lump("NODES", f, dir_entry, level->map_nodes);
+                try_load_lump("SEGS", f, dir_entry, level->map_segs);
                 if (strncmp(dir_entry.name, "BLOCKMAP", 8) == 0)
                 {
                     break;
                 }
+            }
+
+            level->sectors.resize(level->map_sectors.size());
+            level->subsectors.resize(level->map_subsectors.size());
+            level->nodes.resize(level->map_nodes.size());
+            for (int j = 0, len = (int)level->map_nodes.size(); j < len; ++j)
+            {
+                level->nodes[j].x = (int)level->map_nodes[j].x << 16;
+                level->nodes[j].y = (int)level->map_nodes[j].y << 16;
+                level->nodes[j].dx = (int)level->map_nodes[j].dx << 16;
+                level->nodes[j].dy = (int)level->map_nodes[j].dy << 16;
+                for (int jj = 0; jj < 2; ++jj)
+                {
+                    level->nodes[j].children[jj] = (uint16_t)(int16_t)level->map_nodes[j].children[jj];
+                    if (level->nodes[j].children[jj] == (uint16_t)-1)
+                        level->nodes[j].children[jj] = -1;
+                    else if (level->nodes[j].children[jj] & 0x8000)
+                    {
+                        level->nodes[j].children[jj] &= ~0x8000;
+                        if (level->nodes[j].children[jj] >= (int)level->map_subsectors.size())
+                            level->nodes[j].children[jj] = 0;
+                        level->nodes[j].children[jj] |= 0x80000000;
+                    }
+                    for (int k = 0; k < 4; ++k)
+                        level->nodes[j].bbox[jj][k] = (int)level->map_nodes[j].bbox[jj][k] << 16;
+                }
+            }
+
+            for (int j = 0, len = (int)level->map_subsectors.size(); j < len; ++j)
+            {
+                const auto& map_seg = level->map_segs[level->map_subsectors[j].firstseg];
+                const auto& map_sidedef = level->sidedefs[map_seg.linedef];
+                level->subsectors[j].sector = map_sidedef.sector;
             }
 
             levels.push_back(level);
@@ -358,6 +738,8 @@ int main(int argc, char** argv)
         std::string lvl_prefix = level_names[level->ep - 1][level->lvl - 1] + std::string(" - "); //"E" + std::to_string(level->ep) + "M" + std::to_string(level->lvl) + " ";
         int i = 0;
 
+        add_item(level_names[level->ep - 1][level->lvl - 1], -1, 1, PROGRESSION, "Levels");
+
         for (const auto& thing : level->things)
         {
             if (thing.flags & 0x0010)
@@ -368,28 +750,57 @@ int main(int argc, char** argv)
             switch (thing.type)
             {
                 // Uniques
-                case 5: add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
-                case 40: add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
-                case 13: add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
-                case 38: add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
-                case 6: add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys"); break;
-                case 39: add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys"); break;
+                case 5:
+                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    break;
+                case 40:
+                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    break;
+                case 6:
+                    level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    break;
+                case 39:
+                    level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    break;
+                case 13:
+                    level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    break;
+                case 38:
+                    level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    break;
 
                 // Locations
-                case 2018: add_loc(lvl_prefix + "Armor", thing, level, i); ++armor_count; break;
-                case 8: add_loc(lvl_prefix + "Backpack", thing, level, i); break;
-                case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i); ++megaarmor_count; break;
-                case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i); ++berserk_count; break;
-                case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i); ++invulnerability_count; break;
-                case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i); ++partial_invisibility_count; break;
-                case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i); ++supercharge_count; break;
-                case 2006: add_loc(lvl_prefix + "BFG9000", thing, level, i); break;
-                case 2002: add_loc(lvl_prefix + "Chaingun", thing, level, i); break;
-                case 2005: add_loc(lvl_prefix + "Chainsaw", thing, level, i); break;
-                case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i); break;
-                case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i); break;
-                case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i); break;
-                case 2026: add_loc(lvl_prefix + "Map", thing, level, i); break;
+                case 2018: add_loc(lvl_prefix + "Armor", thing, level, i, thing.x, thing.y); ++armor_count; break;
+                case 8: add_loc(lvl_prefix + "Backpack", thing, level, i, thing.x, thing.y); break;
+                case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i, thing.x, thing.y); ++megaarmor_count; break;
+                case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i, thing.x, thing.y); ++berserk_count; break;
+                case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i, thing.x, thing.y); ++invulnerability_count; break;
+                case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i, thing.x, thing.y); ++partial_invisibility_count; break;
+                case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i, thing.x, thing.y); ++supercharge_count; break;
+                case 2006: add_loc(lvl_prefix + "BFG9000", thing, level, i, thing.x, thing.y); break;
+                case 2002: add_loc(lvl_prefix + "Chaingun", thing, level, i, thing.x, thing.y); break;
+                case 2005: add_loc(lvl_prefix + "Chainsaw", thing, level, i, thing.x, thing.y); break;
+                case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i, thing.x, thing.y); break;
+                case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i, thing.x, thing.y); break;
+                case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i, thing.x, thing.y); break;
+                case 2026: add_loc(lvl_prefix + "Map", thing, level, i, thing.x, thing.y); break;
+
+#if 0
+                // Player spawn
+                case 1:
+                {
+                    auto subsector = point_in_subsector(thing.x << 16, thing.y << 16, level);
+                    if (subsector)
+                    {
+                        level->starting_sector = subsector->sector;
+                    }
+                    else
+                    {
+                        printf("Player start is not in sector: %s\n", lvl_prefix.c_str());
+                    }
+                    break;
+                }
+#endif
             }
             ++i;
         }
@@ -419,13 +830,46 @@ int main(int argc, char** argv)
     add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
 
     // Junk items
-    add_item("Medikit", 2012, 21, FILLER, "");
-    add_item("Box of bullets", 2048, 20, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 19, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 20, FILLER, "Ammos");
-    add_item("Energy cell pack", 17, 8, FILLER, "Ammos");
+    add_item("Medikit", 2012, 14, FILLER, "");
+    add_item("Box of bullets", 2048, 13, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 12, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 12, FILLER, "Ammos");
+    add_item("Energy cell pack", 17, 10, FILLER, "Ammos");
 
     printf("%i locations\n%i items\n", (int)ap_locations.size(), total_item_count);
+
+#if 0
+    // Fill in locations into level's sectors
+    for (int i = 0, len = (int)ap_locations.size(); i < len; ++i)
+    {
+        auto& loc = ap_locations[i];
+        for (const auto& level : levels)
+        {
+            if (loc.lvl == level->lvl &&
+                loc.ep == level->ep)
+            {
+                auto subsector = point_in_subsector(loc.x, loc.y, level);
+                if (subsector)
+                {
+                    level->sectors[subsector->sector].locations.push_back(i);
+                    loc.sector = subsector->sector;
+                }
+                else
+                {
+                    printf("Cannot find sector for location: %s\n", loc.name.c_str());
+                }
+                break;
+            }
+        }
+    }
+
+    // Collect sector neighbors
+    for (auto level : levels)
+        connect_neighbors(level);
+
+    // Regions
+    generate_regions(levels[0]);
+#endif
 
     //--- Generate the python files
 
@@ -569,7 +1013,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "#pragma once\n\n");
         fprintf(fout, "#include <map>\n\n");
 
-        std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int /* loc id */>>> location_table;
+        std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int16_t /* loc id */>>> location_table;
         for (const auto& loc : ap_locations)
         {
             location_table[loc.ep][loc.lvl][loc.doom_thing_index] = loc.id;
@@ -640,7 +1084,298 @@ class LocationDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 
+    // Generate regions.json without all the rules, filling all locations for now.
+    // (I should have just import JsonCPP, this is dumb...)
+#if 0
+    {
+        FILE* fout = fopen((cpp_out_dir + "regions.json").c_str(), "w");
+        fprintf(fout, "{\n");
+
+        for (auto level : levels)
+        {
+            int substr_len = strlen(level_names[level->ep - 1][level->lvl - 1]) + 3;
+            fprintf(fout, "    \"%s\": {\n", level_names[level->ep - 1][level->lvl - 1]);
+            fprintf(fout, "        \"Regions\": {\n");
+            fprintf(fout, "            \"Main\": {\n");
+            fprintf(fout, "                \"locations\": [");
+            bool keys[3] = {false};
+            bool first = true;
+            for (const auto& loc : ap_locations)
+            {
+                if (loc.ep == level->ep && loc.lvl == level->lvl)
+                {
+                    if (!first) fprintf(fout, ", ");
+                    first = false;
+                    fprintf(fout, "\"%s\"", loc.name.substr(substr_len).c_str());
+                    if (loc.name.find("keycard") != std::string::npos || 
+                        loc.name.find("skull key") != std::string::npos)
+                    {
+                        if (loc.name.find("Blue") != std::string::npos) keys[0] = true;
+                        else if (loc.name.find("Yellow") != std::string::npos) keys[1] = true;
+                        else if (loc.name.find("Red") != std::string::npos) keys[2] = true;
+                    }
+                }
+            }
+            fprintf(fout, "],\n");
+            fprintf(fout, "                \"connects_to_hub\": true,\n");
+            fprintf(fout, "                \"connects_to_exit\": true\n");
+            if (keys[0] || keys[1] || keys[2])
+            {
+                fprintf(fout, "            },\n");
+
+                if (keys[0])
+                {
+                    fprintf(fout, "            \"Blue\": {\n                \"locations\": []\n            }");
+                    if (keys[1] || keys[2]) fprintf(fout, ",\n");
+                    else fprintf(fout, "\n");
+                }
+
+                if (keys[1])
+                {
+                    fprintf(fout, "            \"Yellow\": {\n                \"locations\": []\n            }");
+                    if (keys[2]) fprintf(fout, ",\n");
+                    else fprintf(fout, "\n");
+                }
+
+                if (keys[2])
+                    fprintf(fout, "            \"Red\": {\n                \"locations\": []\n            }\n");
+            }
+            else
+            {
+                fprintf(fout, "            }\n");
+            }
+            if (keys[0] || keys[1] || keys[2])
+            {
+                fprintf(fout, "        },\n");
+                fprintf(fout, "        \"connections\": [\n");
+                fprintf(fout, "            {\"from\": \"Main\", \"to\": \"Red\", \"requirement\": [\"Red keycard\"]}\n");
+                fprintf(fout, "        ]\n");
+            }
+            else
+            {
+                fprintf(fout, "        }\n");
+            }
+            if (level == levels.back())
+                fprintf(fout, "    }\n");
+            else
+                fprintf(fout, "    },\n");
+        }
+
+        fprintf(fout, "}\n");
+        fclose(fout);
+    }
+#else
+    // Generate Regions.py from regions.json (Manually entered data)
+    {
+        std::ifstream fregions(cpp_out_dir + "regions.json");
+        Json::Value levels_json;
+        fregions >> levels_json;
+        fregions.close();
+
+        FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
+        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
+        fprintf(fout, "from typing import TypedDict, List\n\n\n");
+
+        fprintf(fout, "class RegionDict(TypedDict, total=False):\n");
+        fprintf(fout, "    name: str\n");
+        fprintf(fout, "    locations: list\n\n\n");
+
+        // Regions
+        fprintf(fout, "regions: List[RegionDict] = [\n");
+        auto level_names = levels_json.getMemberNames();
+        for (const auto& level_name : level_names)
+        {
+            const auto& level_json = levels_json[level_name];
+            auto region_names = level_json["Regions"].getMemberNames();
+            for (const auto& region_name : region_names)
+            {
+                const auto& region_json = level_json["Regions"][region_name];
+                fprintf(fout, "    {'%s %s Region', [\n", level_name.c_str(), region_name.c_str());
+                const auto& locs_json = level_json["Regions"][region_name]["locations"];
+                for (const auto& loc_json : locs_json)
+                {
+                    fprintf(fout, "        '%s - %s',\n", level_name.c_str(), loc_json.asCString());
+                }
+                fprintf(fout, "    ]},\n");
+            }
+
+            // Exit region
+            fprintf(fout, "    {'%s %s', [\n", level_name.c_str(), "Exit");
+            fprintf(fout, "        '%s %s',\n", level_name.c_str(), "Complete");
+            fprintf(fout, "    ]},\n");
+        }
+        fprintf(fout, "]\n");
+
+        // Connections
+
+        fclose(fout);
+    }
+#endif
+
     // Clean up
     for (auto level : levels) delete level; // We don't need to
     return 0;
+}
+
+
+bool is_linedef_door(int16_t type, int& keycard)
+{
+    keycard = -1;
+
+    if (type == LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE ||
+        type == LT_D1_DOOR_BLUE_OPEN_STAY ||
+        type == LT_SR_DOOR_BLUE_OPEN_STAY_FAST ||
+        type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
+    {
+        keycard = 0;
+        return true;
+    }
+    if (type == LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE ||
+        type == LT_D1_DOOR_YELLOW_OPEN_STAY ||
+        type == LT_SR_DOOR_YELLOW_OPEN_STAY_FAST ||
+        type == LT_S1_DOOR_YELLOW_OPEN_STAY_FAST)
+    {
+        keycard = 1;
+        return true;
+    }
+    if (type == LT_DR_DOOR_RED_OPEN_WAIT_CLOSE ||
+        type == LT_D1_DOOR_RED_OPEN_STAY ||
+        type == LT_SR_DOOR_RED_OPEN_STAY_FAST ||
+        type == LT_S1_DOOR_RED_OPEN_STAY_FAST)
+    {
+        keycard = 2;
+        return true;
+    }
+
+    return
+        type == LT_DR_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS ||
+        type == LT_DR_DOOR_OPEN_WAIT_CLOSE_FAST ||
+        type == LT_SR_DOOR_OPEN_WAIT_CLOSE ||
+        type == LT_SR_DOOR_OPEN_WAIT_CLOSE_FAST ||
+        type == LT_S1_DOOR_OPEN_WAIT_CLOSE ||
+        type == LT_S1_DOOR_OPEN_WAIT_CLOSE_FAST ||
+        type == LT_WR_DOOR_OPEN_WAIT_CLOSE ||
+        type == LT_WR_DOOR_OPEN_WAIT_CLOSE_FAST ||
+        type == LT_W1_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS ||
+        type == LT_W1_DOOR_OPEN_WAIT_CLOSE_FAST ||
+        type == LT_D1_DOOR_OPEN_STAY ||
+        type == LT_D1_DOOR_OPEN_STAY_FAST ||
+        type == LT_SR_DOOR_OPEN_STAY ||
+        type == LT_SR_DOOR_OPEN_STAY_FAST ||
+        type == LT_S1_DOOR_OPEN_STAY ||
+        type == LT_S1_DOOR_OPEN_STAY_FAST ||
+        type == LT_WR_DOOR_OPEN_STAY ||
+        type == LT_WR_DOOR_OPEN_STAY_FAST ||
+        type == LT_W1_DOOR_OPEN_STAY ||
+        type == LT_W1_DOOR_OPEN_STAY_FAST ||
+        type == LT_GR_DOOR_OPEN_STAY;
+}
+
+
+int64_t get_keycard_for_level(level_t* level, int keycard)
+{
+    return level_to_keycards[(uintptr_t)level][keycard];
+}
+
+
+void connect_neighbors(level_t* level)
+{
+    for (int i = 0, len = (int)level->linedefs.size(); i < len; ++i)
+    {
+        const auto& linedef = level->linedefs[i];
+        if (linedef.back_sidedef == -1) continue; // One-sided
+        if (linedef.front_sidedef == -1) continue; // One-sided, but only back? its possible, but bad level design
+        if (linedef.flags & 0x0001) continue; // Blocks players
+
+        auto front_sectori = level->sidedefs[linedef.front_sidedef].sector;
+        auto back_sectori = level->sidedefs[linedef.back_sidedef].sector;
+
+        auto& front_map_sector = level->map_sectors[front_sectori];
+        auto& back_map_sector = level->map_sectors[back_sectori];
+
+        auto& front_sector = level->sectors[front_sectori];
+        auto& back_sector = level->sectors[back_sectori];
+
+        // Front to back
+        {
+            auto can_step = front_map_sector.floor_height >= back_map_sector.floor_height - 24;
+            auto can_fit = back_map_sector.ceiling_height - front_map_sector.floor_height >= 56;
+            int keycard;
+            auto is_door = is_linedef_door(linedef.special_type, keycard);
+
+            if ((can_step && can_fit) || is_door)
+            {
+                connection_t connection_front_to_back;
+                if (keycard != -1) connection_front_to_back.required_items.push_back(get_keycard_for_level(level, keycard));
+                connection_front_to_back.sector = back_sectori;
+                front_sector.connections.push_back(connection_front_to_back);
+            }
+        }
+
+        // back to front
+        {
+            auto can_step = back_map_sector.floor_height >= front_map_sector.floor_height - 24;
+            auto can_fit = front_map_sector.ceiling_height - back_map_sector.floor_height >= 56;
+            int keycard;
+            auto is_door = is_linedef_door(linedef.special_type, keycard);
+
+            if ((can_step && can_fit) || is_door)
+            {
+                connection_t connection_back_to_front;
+                if (keycard != -1) connection_back_to_front.required_items.push_back(get_keycard_for_level(level, keycard));
+                connection_back_to_front.sector = front_sectori;
+                back_sector.connections.push_back(connection_back_to_front);
+            }
+        }
+    }
+}
+
+
+// That's the tough one!
+void generate_regions(level_t* level)
+{
+    if (level->starting_sector == -1)
+    {
+        printf("Level has no starting sector: %i\n", level->name);
+        return;
+    }
+
+    std::set<int> to_check = {level->starting_sector};
+
+    std::vector<region_t> regions;
+    int regioni = 0;
+
+    region_t region;
+    while (!to_check.empty())
+    {
+        auto sectori = *to_check.begin();
+        to_check.erase(to_check.begin());
+
+        auto& sector = level->sectors[sectori];
+        sector.visited = true;
+
+        region.locations.insert(region.locations.end(), sector.locations.begin(), sector.locations.end());
+        for (auto& loc : sector.locations)
+            ap_locations[loc].region = regioni;
+
+        for (const auto& connection : sector.connections)
+        {
+            if (level->sectors[connection.sector].visited) continue; // Already visited
+            if (to_check.count(connection.sector)) continue; // Already to check
+            to_check.insert(connection.sector);
+        }
+    }
+    regions.push_back(region);
+
+    // Print missed regions
+    for (const auto& loc : ap_locations)
+    {
+        if (loc.ep == level->ep && loc.lvl == level->lvl)
+        {
+            if (loc.region == -1)
+            {
+                printf("Unreachable location: %s\n", loc.name.c_str());
+            }
+        }
+    }
 }

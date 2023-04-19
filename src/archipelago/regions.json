@@ -1,0 +1,446 @@
+{
+    "Hangar": {
+        "Regions": {
+            "Main": {
+                "locations": ["Mega Armor", "Armor", "Shotgun"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            }
+        }
+    },
+    "Nuclear Plant": {
+        "Regions": {
+            "Main": {
+                "locations": ["Chainsaw", "Shotgun", "Armor", "Supercharge", "Chaingun", "Red keycard", "Armor 2", "Mega Armor", "Armor 3", "Backpack", "Backpack 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Toxin Refinery": {
+        "Regions": {
+            "Main": {
+                "locations": ["Armor", "Supercharge", "Yellow keycard", "Blue keycard", "Shotgun", "Shotgun 2", "Armor 2", "Rocket launcher", "Chaingun", "Backpack", "Supercharge 2", "Partial invisibility", "Chainsaw", "Mega Armor", "Armor 3"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Command Control": {
+        "Regions": {
+            "Main": {
+                "locations": ["Chaingun", "Armor", "Yellow keycard", "Blue keycard", "Supercharge", "Rocket launcher", "Mega Armor", "Backpack", "Shotgun"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Phobos Lab": {
+        "Regions": {
+            "Main": {
+                "locations": ["Blue keycard", "Yellow keycard", "Mega Armor", "Rocket launcher", "Shotgun", "Shotgun 2", "Chainsaw", "Supercharge", "Chaingun", "Backpack", "Map", "Mega Armor 2", "Shotgun 3", "Armor", "Armor 2", "Partial invisibility"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Central Processing": {
+        "Regions": {
+            "Main": {
+                "locations": ["Supercharge", "Blue keycard", "Red keycard", "Yellow keycard", "Partial invisibility", "Chaingun", "Backpack", "Rocket launcher", "Shotgun", "Mega Armor", "Armor", "Backpack 2", "Map", "Partial invisibility 2", "Armor 2", "Armor 3", "Armor 4", "Supercharge 2", "Backpack 3"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Computer Station": {
+        "Regions": {
+            "Main": {
+                "locations": ["Chaingun", "Map", "Supercharge", "Yellow keycard", "Blue keycard", "Red keycard", "Chainsaw", "Shotgun", "Shotgun 2", "Rocket launcher", "Armor", "Armor 2", "Mega Armor", "Backpack", "Partial invisibility"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Phobos Anomaly": {
+        "Regions": {
+            "Main": {
+                "locations": ["Supercharge", "Shotgun", "Shotgun 2", "Armor", "Chaingun", "Partial invisibility", "Map"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            }
+        }
+    },
+    "Military Base": {
+        "Regions": {
+            "Main": {
+                "locations": ["Yellow keycard", "Red keycard", "Chaingun", "Armor", "Rocket launcher", "Blue keycard", "Backpack", "Shotgun", "Chainsaw"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Deimos Anomaly": {
+        "Regions": {
+            "Main": {
+                "locations": ["Plasma gun", "Blue keycard", "Shotgun", "Armor", "Red keycard", "Map", "Mega Armor", "Shotgun 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Containment Area": {
+        "Regions": {
+            "Main": {
+                "locations": ["Chaingun", "Armor", "Armor 2", "Backpack", "Supercharge", "Chainsaw", "Armor 3", "Map", "Mega Armor", "Plasma gun", "Rocket launcher", "Blue keycard", "Yellow keycard", "Red keycard", "Shotgun", "Shotgun 2", "Armor 4", "Berserk", "Backpack 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Refinery": {
+        "Regions": {
+            "Main": {
+                "locations": ["Plasma gun", "Backpack", "Mega Armor", "Armor", "Partial invisibility", "Supercharge", "Blue keycard", "Partial invisibility 2", "Shotgun", "Berserk", "Chaingun"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Deimos Lab": {
+        "Regions": {
+            "Main": {
+                "locations": ["Armor", "Partial invisibility", "Map", "Armor 2", "Blue keycard", "Yellow keycard", "Supercharge", "Shotgun", "Mega Armor", "Plasma gun", "Backpack", "Berserk", "Partial invisibility 2", "Armor 3", "Chaingun", "Supercharge 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Command Center": {
+        "Regions": {
+            "Main": {
+                "locations": ["Backpack", "Mega Armor", "Berserk", "Chaingun", "Chainsaw", "Plasma gun", "Map", "Armor", "Armor 2", "Partial invisibility"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            }
+        }
+    },
+    "Halls of the Damned": {
+        "Regions": {
+            "Main": {
+                "locations": ["Berserk", "Blue skull key", "Backpack", "Mega Armor", "Map", "Armor", "Partial invisibility", "Yellow skull key", "Supercharge", "Chaingun", "Plasma gun", "Partial invisibility 2", "Red skull key", "Shotgun", "Rocket launcher", "Chainsaw", "Partial invisibility 3"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Spawning Vats": {
+        "Regions": {
+            "Main": {
+                "locations": ["Rocket launcher", "Backpack", "Partial invisibility", "Mega Armor", "Chaingun", "Armor", "Red keycard", "Yellow keycard", "Blue keycard", "Invulnerability", "Berserk", "Chainsaw", "Supercharge", "Invulnerability 2", "Map", "Plasma gun"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Tower of Babel": {
+        "Regions": {
+            "Main": {
+                "locations": ["Rocket launcher", "Supercharge", "Supercharge 2", "Mega Armor"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            }
+        }
+    },
+    "Fortress of Mystery": {
+        "Regions": {
+            "Main": {
+                "locations": ["Supercharge", "Blue skull key", "Red skull key", "Yellow skull key", "Backpack", "Chaingun", "Plasma gun", "Rocket launcher", "Shotgun", "Chainsaw", "Map", "Mega Armor"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Hell Keep": {
+        "Regions": {
+            "Main": {
+                "locations": ["Shotgun", "Rocket launcher"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            }
+        }
+    },
+    "Slough of Despair": {
+        "Regions": {
+            "Main": {
+                "locations": ["Chaingun", "Berserk", "Mega Armor", "Armor", "Rocket launcher", "Plasma gun", "Map", "Blue skull key", "Supercharge"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Pandemonium": {
+        "Regions": {
+            "Main": {
+                "locations": ["Berserk", "Chaingun", "BFG9000", "Supercharge", "Invulnerability", "Blue skull key", "Mega Armor", "Shotgun", "Armor", "Backpack", "Map", "Mega Armor 2", "Shotgun 2", "Rocket launcher"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "House of Pain": {
+        "Regions": {
+            "Main": {
+                "locations": ["Shotgun", "Berserk", "Mega Armor", "Chaingun", "Invulnerability", "Blue skull key", "Armor", "Yellow skull key", "Invulnerability 2", "Red skull key", "Backpack", "Mega Armor 2", "Partial invisibility", "BFG9000", "Supercharge", "Armor 2", "Rocket launcher", "Armor 3"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Unholy Cathedral": {
+        "Regions": {
+            "Main": {
+                "locations": ["Blue skull key", "Chaingun", "Plasma gun", "Supercharge", "Yellow skull key", "Invulnerability", "Berserk", "Partial invisibility", "Chainsaw", "BFG9000", "Shotgun", "Shotgun 2", "Rocket launcher", "Supercharge 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Mt. Erebus": {
+        "Regions": {
+            "Main": {
+                "locations": ["Mega Armor", "Armor", "Backpack", "Invulnerability", "Chaingun", "Shotgun", "Rocket launcher", "Plasma gun", "Armor 2", "Berserk", "Invulnerability 2", "Supercharge", "Blue skull key", "Blue skull key 2", "Map", "Chainsaw", "Supercharge 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Limbo": {
+        "Regions": {
+            "Main": {
+                "locations": ["Blue skull key", "Supercharge", "Rocket launcher", "Red skull key", "Backpack", "Plasma gun", "Armor", "Yellow skull key", "Armor 2", "Mega Armor", "BFG9000"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Yellow": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    },
+    "Dis": {
+        "Regions": {
+            "Main": {
+                "locations": ["Rocket launcher", "Plasma gun", "Mega Armor"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            }
+        }
+    },
+    "Warrens": {
+        "Regions": {
+            "Main": {
+                "locations": ["Shotgun", "Rocket launcher", "Rocket launcher 2", "Supercharge", "Blue skull key", "Berserk", "Invulnerability", "Partial invisibility", "Chaingun", "Plasma gun", "Invulnerability 2", "Armor", "Chainsaw", "BFG9000", "Red skull key", "Supercharge 2"],
+                "connects_to_hub": true,
+                "connects_to_exit": true
+            },
+            "Blue": {
+                "locations": []
+            },
+            "Red": {
+                "locations": []
+            }
+        },
+        "connections": [
+            {"from": "Main", "to": "Red", "requirement": ["Red keycard"]}
+        ]
+    }
+}
