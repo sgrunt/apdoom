@@ -496,7 +496,15 @@ void apdoom_victory()
     (byte *) &cr_red2blue, // 7 (BLUE) items
     (byte *) &cr_red2green // 8 (DARK EDGE GREEN)
 */
-
+//AP: Received Hangar from Archipelago
+//AP: Received Nuclear Plant from Archipelago
+//AP: Received Toxin Refinery from Archipelago
+//AP: Received Command Control from Archipelago
+//AP: Received Phobos Lab from Archipelago
+//AP: Received Central Processing from Archipelago
+//AP: Received Computer Station from Archipelago
+//AP: Received Phobos Anomaly from Archipelago
+//AP: Received Military Base from Archipelago
 void apdoom_update()
 {
 	while (AP_IsMessagePending())
@@ -530,6 +538,8 @@ void apdoom_update()
 				}
 			}
 		}
+
+		printf("AP: %s\n", msg->text.c_str());
 
 		ap_settings.message_callback(colored_msg.c_str());
 

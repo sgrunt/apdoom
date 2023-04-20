@@ -985,10 +985,6 @@ R_PointInSubsector
 ( fixed_t	x,
   fixed_t	y )
 {
-    if (x == 119537664 && y == -214958080)
-    {
-        __debugbreak();
-    }
     node_t*	node;
     int		side;
     int		nodenum;

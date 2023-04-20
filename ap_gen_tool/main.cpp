@@ -9,6 +9,9 @@
 #include <json/json.h>
 
 
+#define FIRST_EP_ONLY 1
+
+
 //---- LINE TYPES ----
 #define LT_NONE 0
 
@@ -385,6 +388,7 @@ std::vector<ap_item_t> ap_items;
 std::vector<ap_location_t> ap_locations;
 std::map<std::string, std::set<std::string>> item_name_groups;
 std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
+std::map<std::string, ap_item_t*> item_map;
 
 
 const char* level_names[3][9] = {
@@ -658,7 +662,11 @@ int main(int argc, char** argv)
             level_t* level = new level_t();
             level->ep = dir_entry.name[1] - '0';
             level->lvl = dir_entry.name[3] - '0';
+#if FIRST_EP_ONLY
+            if (level->ep < 1 || level->ep > 1 || level->lvl < 1 || level->lvl > 9)
+#else
             if (level->ep < 1 || level->ep > 3 || level->lvl < 1 || level->lvl > 9)
+#endif
             {
                 // ok.. not a level
                 delete level;
@@ -818,15 +826,25 @@ int main(int argc, char** argv)
     // Make backpack progression item (Idea, gives more than one, with less increase each time)
     add_item("Backpack", 8, 1, PROGRESSION, "");
 
+#if FIRST_EP_ONLY
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    //add_item("Shotgun", 2001, 3, PROGRESSION, "Weapons");
+    add_item("Shotgun", 2001, 4, USEFUL, "Weapons");
+    add_item("Rocket launcher", 2003, 1, USEFUL, "Weapons");
+    add_item("Chainsaw", 2005, 1, USEFUL, "Weapons");
+    add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
+
+    // Junk items
+    add_item("Medikit", 2012, 8, FILLER, "");
+    add_item("Box of bullets", 2048, 7, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 7, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 8, FILLER, "Ammos");
+#else
+    // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
     add_item("Shotgun", 2001, 10, USEFUL, "Weapons");
-    //add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
     add_item("Rocket launcher", 2003, 3, USEFUL, "Weapons");
     add_item("Plasma gun", 2004, 2, USEFUL, "Weapons");
     add_item("Chainsaw", 2005, 5, USEFUL, "Weapons");
-    add_item("Chaingun", 2002, 2, PROGRESSION, "Weapons");
-    add_item("Chaingun", 2002, 2, USEFUL, "Weapons");
+    add_item("Chaingun", 2002, 4, USEFUL, "Weapons");
     add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
 
     // Junk items
@@ -835,8 +853,10 @@ int main(int argc, char** argv)
     add_item("Box of rockets", 2046, 12, FILLER, "Ammos");
     add_item("Box of shotgun shells", 2049, 12, FILLER, "Ammos");
     add_item("Energy cell pack", 17, 10, FILLER, "Ammos");
+#endif
 
-    printf("%i locations\n%i items\n", (int)ap_locations.size(), total_item_count);
+    printf("%i locations\n%i items\n", (int)ap_locations.size(), total_item_count - 9 /* Early items */);
+
 
 #if 0
     // Fill in locations into level's sectors
@@ -998,7 +1018,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "events: List[str] = [");
         for (auto level : levels)
         {
-            fprintf(fout, "\n    '%s Complete',", level_names[level->ep - 1][level->lvl - 1]);
+            fprintf(fout, "\n    '%s - Complete',", level_names[level->ep - 1][level->lvl - 1]);
         }
         fprintf(fout, "\n]\n");
 
@@ -1093,8 +1113,10 @@ class LocationDict(TypedDict, total=False): \n\
 
         for (auto level : levels)
         {
-            int substr_len = strlen(level_names[level->ep - 1][level->lvl - 1]) + 3;
-            fprintf(fout, "    \"%s\": {\n", level_names[level->ep - 1][level->lvl - 1]);
+            const auto level_name = level_names[level->ep - 1][level->lvl - 1];
+            int substr_len = strlen(level_name) + 3;
+            fprintf(fout, "    \"%s\": {\n", level_name);
+            fprintf(fout, "        \"episode\": %i, \"map\": %i,\n", level->ep, level->lvl); // For extra context
             fprintf(fout, "        \"Regions\": {\n");
             fprintf(fout, "            \"Main\": {\n");
             fprintf(fout, "                \"locations\": [");
@@ -1118,43 +1140,35 @@ class LocationDict(TypedDict, total=False): \n\
             }
             fprintf(fout, "],\n");
             fprintf(fout, "                \"connects_to_hub\": true,\n");
-            fprintf(fout, "                \"connects_to_exit\": true\n");
+            fprintf(fout, "                \"connects_to_exit\": true,\n");
+            fprintf(fout, "                \"required_items_or\": []\n");
+               
             if (keys[0] || keys[1] || keys[2])
             {
                 fprintf(fout, "            },\n");
 
                 if (keys[0])
                 {
-                    fprintf(fout, "            \"Blue\": {\n                \"locations\": []\n            }");
+                    fprintf(fout, "            \"Blue\": {\n                \"locations\": [],\n                \"required_items_or\": [\"Blue keycard\"]\n            }");
                     if (keys[1] || keys[2]) fprintf(fout, ",\n");
                     else fprintf(fout, "\n");
                 }
 
                 if (keys[1])
                 {
-                    fprintf(fout, "            \"Yellow\": {\n                \"locations\": []\n            }");
+                    fprintf(fout, "            \"Yellow\": {\n                \"locations\": [],\n                \"required_items_or\": [\"Yellow keycard\"]\n            }");
                     if (keys[2]) fprintf(fout, ",\n");
                     else fprintf(fout, "\n");
                 }
 
                 if (keys[2])
-                    fprintf(fout, "            \"Red\": {\n                \"locations\": []\n            }\n");
+                    fprintf(fout, "            \"Red\": {\n                \"locations\": [],\n                \"required_items_or\": [\"Red keycard\"]\n            }\n");
             }
             else
             {
                 fprintf(fout, "            }\n");
             }
-            if (keys[0] || keys[1] || keys[2])
-            {
-                fprintf(fout, "        },\n");
-                fprintf(fout, "        \"connections\": [\n");
-                fprintf(fout, "            {\"from\": \"Main\", \"to\": \"Red\", \"requirement\": [\"Red keycard\"]}\n");
-                fprintf(fout, "        ]\n");
-            }
-            else
-            {
-                fprintf(fout, "        }\n");
-            }
+            fprintf(fout, "        }\n");
             if (level == levels.back())
                 fprintf(fout, "    }\n");
             else
@@ -1165,6 +1179,7 @@ class LocationDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 #else
+#if 0 // Regions.py
     // Generate Regions.py from regions.json (Manually entered data)
     {
         std::ifstream fregions(cpp_out_dir + "regions.json");
@@ -1208,8 +1223,88 @@ class LocationDict(TypedDict, total=False): \n\
 
         // Connections
 
+
         fclose(fout);
     }
+#else // else, Rules.py
+    // Generate Rules.py from regions.json (Manually entered data)
+    {
+        std::ifstream fregions(cpp_out_dir + "regions.json");
+        Json::Value levels_json;
+        fregions >> levels_json;
+        fregions.close();
+
+        FILE* fout = fopen((py_out_dir + "Rules.py").c_str(), "w");
+        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
+        fprintf(fout, "from typing import TYPE_CHECKING, Dict, Callable, Optional\n\n");
+
+        fprintf(fout, "from worlds.generic.Rules import set_rule, add_rule\n");
+        fprintf(fout, "from .Locations import location_table, LocationDict\n");
+        fprintf(fout, "import math\n\n");
+
+        fprintf(fout, "if TYPE_CHECKING:\n");
+        fprintf(fout, "    from . import UltimateDOOMWorld\n");
+        fprintf(fout, "    from BaseClasses import CollectionState, Location\n\n\n");
+
+        fprintf(fout, "def set_rules(ultimate_doom_world: \"UltimateDOOMWorld\"):\n");
+        fprintf(fout, "    player = ultimate_doom_world.player\n");
+        fprintf(fout, "    world = ultimate_doom_world.multiworld\n\n");
+
+
+        for (auto level : levels)
+        {
+            auto level_name = level_names[level->ep - 1][level->lvl - 1];
+            const auto& level_json = levels_json[level_name];
+            fprintf(fout, "    # %s - E%iM%i\n", level_name, level_json["episode"].asInt(), level_json["map"].asInt());
+            auto region_names = level_json["Regions"].getMemberNames();
+            for (const auto& region_name : region_names)
+            {
+                const auto& region_json = level_json["Regions"][region_name];
+                const auto& locs_json = level_json["Regions"][region_name]["locations"];
+
+                std::vector<std::string> required_items_or;
+                for (const auto& required_item_json : region_json["required_items_or"])
+                {
+                    required_items_or.push_back(required_item_json.asString());
+                }
+
+                std::vector<std::string> required_items_and;
+                for (const auto& required_item_json : region_json["required_items_and"])
+                {
+                    required_items_and.push_back(required_item_json.asString());
+                }
+
+                for (const auto& loc_json : locs_json)
+                {
+                    fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, loc_json.asCString(), level_name);
+                    for (const auto& required_item_and : required_items_and)
+                    {
+                        fprintf(fout, " and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                    }
+                    if (!required_items_or.empty())
+                    {
+                        fprintf(fout, " and (");
+                    }
+                    bool first = true;
+                    for (const auto& required_item_or : required_items_or)
+                    {
+                        if (!first) fprintf(fout, " or ");
+                        first = false;
+                        fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                    }
+                    if (!required_items_or.empty())
+                    {
+                        fprintf(fout, ")");
+                    }
+                    fprintf(fout, ")\n");
+                }
+            }
+            fprintf(fout, "\n");
+        }
+
+        fclose(fout);
+    }
+#endif
 #endif
 
     // Clean up
