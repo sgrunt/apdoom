@@ -35,6 +35,7 @@
 #include "w_wad.h" // [crispy] W_CacheLumpNum()
 
 #include "doomstat.h"
+#include "apdoom_c_def.h"
 
 
 void G_PlayerReborn (int player);
@@ -672,12 +673,6 @@ P_SpawnMobjSafe
     // because action routines can not be called yet
     st = &states[safe ? P_LatestSafeState(info->spawnstate) : info->spawnstate];
 
-    if (type == MT_LVSTEL)
-    {
-        int tmp;
-        tmp = 5;
-    }
-
     mobj->state = st;
     mobj->tics = st->tics;
     mobj->sprite = st->sprite;
@@ -1016,7 +1011,10 @@ void P_SpawnMapThing (mapthing_t* mthing, int index)
     }
 
     if (!(mthing->options & bit) )
-	return;
+    {
+        if (mthing->type != 20000)
+	        return;
+    }
 	
     // [crispy] support MUSINFO lump (dynamic music changing)
     if (mthing->type >= 14100 && mthing->type <= 14164)

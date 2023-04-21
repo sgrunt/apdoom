@@ -47,6 +47,7 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 	    { 71, 24, 22, "WIURH1", 0, 0 }	// location of level 8 (CJ)
     },
 
+#ifndef FIRST_EP_ONLY
     // Episode 1 World Map should go here
     {
 	    { 254, 25, 18, "WIURH2", 0, 0 },	// location of level 0 (CJ)
@@ -72,6 +73,7 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 	    { 140, 25, 22, "WIURH1", 0, 0 },	// location of level 7 (CJ)
 	    { 281, 136, -26, "WIURH3", 0, 0 }	// location of level 8 (CJ)
     }
+#endif
 };
 
 
@@ -165,6 +167,7 @@ boolean LevelSelectResponder(event_t* ev)
         {
             switch (ev->data1)
             {
+#ifndef FIRST_EP_ONLY
                 case KEY_LEFTARROW:
                     if (gamemode != shareware)
                     {
@@ -184,6 +187,7 @@ boolean LevelSelectResponder(event_t* ev)
                         S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
                     }
                     break;
+#endif
                 case KEY_UPARROW:
                     if (selected_ep == 1)
                     {
@@ -207,8 +211,15 @@ boolean LevelSelectResponder(event_t* ev)
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_ENTER:
-                    S_StartSoundOptional(NULL, sfx_pistol, NULL);
-                    play_level(selected_ep, selected_level[selected_ep]);
+                    if (ap_state.level_states[selected_ep][selected_level[selected_ep]].unlocked)
+                    {
+                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
+                        play_level(selected_ep, selected_level[selected_ep]);
+                    }
+                    else
+                    {
+                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_noway);
+                    }
                     break;
             }
             break;
@@ -281,6 +292,10 @@ void DrawLevelSelectStats()
         // Level complete splash
         if (ap_level_state->completed)
             V_DrawPatch(x, y, W_CacheLumpName("WISPLAT", PU_CACHE));
+
+        // Lock
+        if (!ap_level_state->unlocked)
+            V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
 
         // Keys
         const char* key_lump_names[] = {"STKEYS0", "STKEYS1", "STKEYS2"};

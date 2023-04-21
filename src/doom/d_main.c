@@ -169,7 +169,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
         case 40: // Blue skull key
             if (ep == gameepisode && map == gamemap)
             {
-                if (player->cards[it_bluecard])
+                if (!player->cards[it_bluecard] && !player->cards[it_blueskull])
                 {
                     player->cards[it_bluecard] = true;
                     player->cards[it_blueskull] = true;
@@ -182,7 +182,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
         case 39: // Yellow skull key
             if (ep == gameepisode && map == gamemap)
             {
-                if (player->cards[it_yellowcard])
+                if (!player->cards[it_yellowcard] && !player->cards[it_yellowskull])
                 {
                     player->cards[it_yellowcard] = true;
                     player->cards[it_yellowskull] = true;
@@ -195,7 +195,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
         case 38: // Red skull key
             if (ep == gameepisode && map == gamemap)
             {
-                if (!player->cards[it_redcard])
+                if (!player->cards[it_redcard] && !player->cards[it_redskull])
                 {
                     player->cards[it_redcard] = true;
                     player->cards[it_redskull] = true;

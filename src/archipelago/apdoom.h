@@ -8,11 +8,18 @@ extern "C"
 #endif
 
 
+#define FIRST_EP_ONLY 1
+
+#ifdef FIRST_EP_ONLY
+#define AP_EPISODE_COUNT 1
+#else
 #define AP_EPISODE_COUNT 3
+#endif
 #define AP_LEVEL_COUNT 9
 #define AP_NUM_POWERS 6
 #define AP_NUM_AMMO 4
 #define AP_NUM_WEAPONS 9
+
 
 
 typedef struct
@@ -29,6 +36,7 @@ typedef struct
     int keys[3];
     int check_count;
     int has_map;
+    int unlocked;
 
 } ap_level_state_t;
 
@@ -70,7 +78,11 @@ typedef struct
 } ap_settings_t;
 
 
+#ifdef FIRST_EP_ONLY
+extern ap_level_info_t ap_level_infos[1][AP_LEVEL_COUNT];
+#else
 extern ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
+#endif
 extern ap_state_t ap_state;
 extern int ap_is_in_game; // Don't give items when in menu (Or when dead on the ground).
 
@@ -79,8 +91,9 @@ int apdoom_init(ap_settings_t* settings);
 void apdoom_shutdown();
 void apdoom_save_state();
 void apdoom_check_location(int ep, int map, int index);
-void apdoom_victory();
+void apdoom_check_victory();
 void apdoom_update();
+int ap_is_doomtype_location(int doomtype);
 const char* apdoom_get_seed();
 
 #ifdef __cplusplus

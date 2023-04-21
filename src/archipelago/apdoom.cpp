@@ -10,9 +10,8 @@
 #endif
 
 
-#include "apdoom.h"
-#include "Archipelago.h"
 #include "apdoom_def.h"
+#include "Archipelago.h"
 #include <json/json.h>
 #include <memory.h>
 #include <chrono>
@@ -141,50 +140,6 @@ int AP_FileExists(const char *filename)
         return errno == EISDIR;
     }
 }
-
-
-
-ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
-{
-    // Episode 0 World Map
-    {
-        { {false,false,false}, 0 },	// location of level 0 (CJ)
-	    { {false,false,true}, 1 },	// location of level 1 (CJ)
-	    { {true,true,false}, 2 },	// location of level 2 (CJ)
-	    { {true,true,false}, 2 },	// location of level 3 (CJ)
-	    { {true,true,false}, 2 },	// location of level 4 (CJ)
-	    { {true,true,true}, 3 },	// location of level 5 (CJ)
-	    { {true,true,true}, 3 },	// location of level 6 (CJ)
-	    { {false,false,false}, 0 },	// location of level 7 (CJ)
-	    { {true,true,true}, 3 }	// location of level 8 (CJ)
-    },
-
-    // Episode 1 World Map should go here
-    {
-	    { {true,false,true}, 2 },	// location of level 0 (CJ)
-	    { {true,true,true}, 3 },	// location of level 1 (CJ)
-	    { {true,false,false}, 1 },	// location of level 2 (CJ)
-	    { {true,true,false}, 2 },	// location of level 3 (CJ)
-	    { {false,false,false}, 0 },	// location of level 4 (CJ)
-	    { {true,true,true}, 3 },	// location of level 5 (CJ)
-	    { {true,true,true}, 3 },	// location of level 6 (CJ)
-	    { {false,false,false}, 0 },	// location of level 7 (CJ)
-	    { {true,true,true}, 3 }	// location of level 8 (CJ)
-    },
-
-    // Episode 2 World Map should go here
-    {
-	    { {false,false,false}, 0 },	// location of level 0 (CJ)
-	    { {true,false,false}, 1 },	// location of level 1 (CJ)
-	    { {true,false,false}, 1 },	// location of level 2 (CJ)
-	    { {true,true,true}, 3 },	// location of level 3 (CJ)
-	    { {true,true,false}, 2 },	// location of level 4 (CJ)
-	    { {true,false,false}, 1 },	// location of level 5 (CJ)
-	    { {true,true,true}, 3 },	// location of level 6 (CJ)
-	    { {false,false,false}, 0 },	// location of level 7 (CJ)
-	    { {true,false,true}, 2 }	// location of level 8 (CJ)
-    }
-};
 
 
 ap_state_t ap_state;
@@ -320,6 +275,7 @@ void load_state()
 			json_get_int(json["episodes"][i][j]["keys2"], ap_state.level_states[i][j].keys[2]);
 			json_get_int(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
 			json_get_int(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
+			json_get_int(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
 		}
 	}
 }
@@ -384,6 +340,7 @@ void save_state()
 			json_level["keys2"] = ap_state.level_states[i][j].keys[2];
 			json_level["check_count"] = ap_state.level_states[i][j].check_count;
 			json_level["has_map"] = ap_state.level_states[i][j].has_map;
+			json_level["unlocked"] = ap_state.level_states[i][j].unlocked;
 
 			json_levels.append(json_level);
 		}
@@ -428,6 +385,12 @@ void f_itemrecv(int64_t item_id, bool notify_player /* Unused */)
 			break;
 	}
 
+	// Is it a level?
+	if (item.doom_type == -1)
+	{
+		ap_state.level_states[item.ep - 1][item.map - 1].unlocked = 1;
+	}
+
 	if (!ap_is_in_game)
 	{
 		ap_item_queue.push(item_id);
@@ -464,14 +427,25 @@ void apdoom_check_location(int ep, int map, int index)
 
 	int64_t id = it3->second;
 
+	ap_state.level_states[ep - 1][map - 1].check_count++;
+
 	AP_SendItem(id);
 }
 
 
-void apdoom_victory()
+void apdoom_check_victory()
 {
-	AP_StoryComplete(); // Isn't this already handled by the server rules?
+	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
+	{
+		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
+		{
+			if (!ap_state.level_states[ep][map].completed) return;
+		}
+	}
+
+	AP_StoryComplete();
 }
+
 
 /*
     black: "000000"
@@ -496,15 +470,6 @@ void apdoom_victory()
     (byte *) &cr_red2blue, // 7 (BLUE) items
     (byte *) &cr_red2green // 8 (DARK EDGE GREEN)
 */
-//AP: Received Hangar from Archipelago
-//AP: Received Nuclear Plant from Archipelago
-//AP: Received Toxin Refinery from Archipelago
-//AP: Received Command Control from Archipelago
-//AP: Received Phobos Lab from Archipelago
-//AP: Received Central Processing from Archipelago
-//AP: Received Computer Station from Archipelago
-//AP: Received Phobos Anomaly from Archipelago
-//AP: Received Military Base from Archipelago
 void apdoom_update()
 {
 	while (AP_IsMessagePending())

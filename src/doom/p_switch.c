@@ -502,7 +502,7 @@ P_UseSpecialLine
       case 51:
 	// Secret EXIT
 	P_ChangeSwitchTexture(line,0);
-	G_SecretExitLevel ();
+	//G_SecretExitLevel (); // [AP] No secret exit for now
 	break;
 	
       case 55:

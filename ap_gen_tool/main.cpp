@@ -377,6 +377,8 @@ struct level_t
     std::vector<subsector_t>        subsectors;
     std::vector<node_t>             nodes;
     int starting_sector = -1;
+    bool keys[3] = {false};
+    int location_count = 0;
 };
 
 
@@ -384,14 +386,17 @@ int64_t item_next_id = 350000;
 int64_t location_next_id = 351000;
 
 int total_item_count = 0;
+int total_loc_count = 0;
 std::vector<ap_item_t> ap_items;
 std::vector<ap_location_t> ap_locations;
 std::map<std::string, std::set<std::string>> item_name_groups;
 std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
 std::map<std::string, ap_item_t*> item_map;
 
+#define EP_COUNT 3
+#define MAP_COUNT 9
 
-const char* level_names[3][9] = {
+const char* level_names[EP_COUNT][MAP_COUNT] = {
     {
         "Hangar",
         "Nuclear Plant",
@@ -520,7 +525,7 @@ bool loc_name_taken(const std::string& name)
     return false;
 }
 
-void add_loc(const std::string& name, const map_thing_t& thing, const level_t* level, int index, int x, int y)
+void add_loc(const std::string& name, const map_thing_t& thing, level_t* level, int index, int x, int y)
 {
     int count = 0;
     std::string loc_name = name;
@@ -540,9 +545,34 @@ void add_loc(const std::string& name, const map_thing_t& thing, const level_t* l
     loc.x = x << 16;
     loc.y = y << 16;
     ap_locations.push_back(loc);
+
+    level->location_count++;
+    total_loc_count++;
 }
 
-int64_t add_unique(const std::string& name, const map_thing_t& thing, const level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name, int x, int y)
+void add_loc(const std::string& name, level_t* level)
+{
+    int count = 0;
+    std::string loc_name = name;
+    while (loc_name_taken(loc_name))
+    {
+        ++count;
+        loc_name = name + " " + std::to_string(count + 1);
+    }
+
+    ap_location_t loc;
+    loc.id = location_next_id++;
+    loc.name = loc_name;
+    loc.ep = level->ep;
+    loc.lvl = level->lvl;
+    loc.doom_thing_index = -1;
+    loc.doom_type = -1;
+    loc.x = -1;
+    loc.y = -1;
+    ap_locations.push_back(loc);
+}
+
+int64_t add_unique(const std::string& name, const map_thing_t& thing, level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name, int x, int y)
 {
     int64_t ret = 0;
     bool duplicated_item = false;
@@ -579,7 +609,7 @@ int64_t add_unique(const std::string& name, const map_thing_t& thing, const leve
     return ret;
 }
 
-void add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name)
+ap_item_t& add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name)
 {
     ap_item_t item;
     item.id = item_next_id++;
@@ -596,6 +626,7 @@ void add_item(const std::string& name, int doom_type, int count, item_classifica
         item_name_groups[group_name].insert(name);
     }
     ap_items.push_back(item);
+    return ap_items.back();
 }
 
 
@@ -746,7 +777,11 @@ int main(int argc, char** argv)
         std::string lvl_prefix = level_names[level->ep - 1][level->lvl - 1] + std::string(" - "); //"E" + std::to_string(level->ep) + "M" + std::to_string(level->lvl) + " ";
         int i = 0;
 
-        add_item(level_names[level->ep - 1][level->lvl - 1], -1, 1, PROGRESSION, "Levels");
+        auto& level_item = add_item(level_names[level->ep - 1][level->lvl - 1], -1, 1, PROGRESSION, "Levels");
+        level_item.ep = level->ep;
+        level_item.lvl = level->lvl;
+
+        //add_loc(level_names[level->ep - 1][level->lvl - 1] + std::string(" - Complete"), level);
 
         for (const auto& thing : level->things)
         {
@@ -760,21 +795,27 @@ int main(int argc, char** argv)
                 // Uniques
                 case 5:
                     level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[0] = true;
                     break;
                 case 40:
                     level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[0] = true;
                     break;
                 case 6:
                     level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[1] = true;
                     break;
                 case 39:
                     level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[1] = true;
                     break;
                 case 13:
                     level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[2] = true;
                     break;
                 case 38:
                     level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[2] = true;
                     break;
 
                 // Locations
@@ -834,10 +875,10 @@ int main(int argc, char** argv)
     add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
 
     // Junk items
-    add_item("Medikit", 2012, 8, FILLER, "");
-    add_item("Box of bullets", 2048, 7, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 7, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 8, FILLER, "Ammos");
+    add_item("Medikit", 2012, 6, FILLER, "");
+    add_item("Box of bullets", 2048, 5, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 5, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 6, FILLER, "Ammos");
 #else
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
     add_item("Shotgun", 2001, 10, USEFUL, "Weapons");
@@ -855,7 +896,7 @@ int main(int argc, char** argv)
     add_item("Energy cell pack", 17, 10, FILLER, "Ammos");
 #endif
 
-    printf("%i locations\n%i items\n", (int)ap_locations.size(), total_item_count - 9 /* Early items */);
+    printf("%i locations\n%i items\n", total_loc_count, total_item_count - 1 /* Early items */);
 
 
 #if 0
@@ -1031,14 +1072,16 @@ class LocationDict(TypedDict, total=False): \n\
         
         fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
         fprintf(fout, "#pragma once\n\n");
-        fprintf(fout, "#include <map>\n\n");
+        fprintf(fout, "#include \"apdoom.h\"\n");
+        fprintf(fout, "#include <map>\n\n\n");
 
-        std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int16_t /* loc id */>>> location_table;
+        std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table;
         for (const auto& loc : ap_locations)
         {
             location_table[loc.ep][loc.lvl][loc.doom_thing_index] = loc.id;
         }
 
+        // locations
         fprintf(fout, "const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {\n");
         for (const auto& kv1 : location_table)
         {
@@ -1048,14 +1091,15 @@ class LocationDict(TypedDict, total=False): \n\
                 fprintf(fout, "        {%i, {\n", kv2.first);
                 for (const auto& kv3 : kv2.second)
                 {
-                    fprintf(fout, "            {%i, %i},\n", kv3.first, kv3.second);
+                    fprintf(fout, "            {%i, %lli},\n", kv3.first, kv3.second);
                 }
                 fprintf(fout, "        }},\n");
             }
             fprintf(fout, "    }},\n");
         }
-        fprintf(fout, "};\n\n");
+        fprintf(fout, "};\n\n\n");
         
+        // items
         fprintf(fout, "// Map item id\n");
         fprintf(fout, "struct ap_item_t\n");
         fprintf(fout, "{\n");
@@ -1067,6 +1111,44 @@ class LocationDict(TypedDict, total=False): \n\
         for (const auto& item : ap_items)
         {
             fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, item.ep, item.lvl);
+        }
+        fprintf(fout, "};\n\n\n");
+
+        // Level infos
+#ifdef FIRST_EP_ONLY
+        fprintf(fout, "ap_level_info_t ap_level_infos[1][AP_LEVEL_COUNT] = \n");
+        fprintf(fout, "{\n");
+        for (int ep = 0; ep < 1; ++ep)
+#else
+        fprintf(fout, "ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n");
+        fprintf(fout, "{\n");
+        for (int ep = EP_COUNT; ep < 1; ++ep)
+#endif
+        {
+            fprintf(fout, "    {\n");
+            for (int map = 0; map < MAP_COUNT; ++map)
+            {
+                for (auto level : levels)
+                {
+                    if (level->ep - 1== ep && level->lvl - 1 == map)
+                    {
+                        int64_t loc_id = 0;
+                        for (const auto& loc : ap_locations)
+                        {
+                            if (loc.ep == level->ep && loc.lvl == level->lvl)
+                            {
+                                if (loc.doom_type == -1)
+                                {
+                                    loc_id = loc.id;
+                                    break;
+                                }
+                            }
+                        }
+                        fprintf(fout, "        {{%s, %s, %s}, %i},\n", level->keys[0] ? "true" : "false", level->keys[1] ? "true": "false", level->keys[2] ? "true" : "false", level->location_count);
+                    }
+                }
+            }
+            fprintf(fout, "    },\n");
         }
         fprintf(fout, "};\n");
 
