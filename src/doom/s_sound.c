@@ -437,14 +437,15 @@ void S_Start(void)
     }
 
     // [crispy] do not change music if not changing map (preserves IDMUS choice)
-    {
-	const short curmap = (gameepisode << 8) + gamemap;
+    // [AP] Ok we actually want that for AP
+ //   {
+	//const short curmap = (gameepisode << 8) + gamemap;
 
-	if (prevmap == curmap || (nodrawers && singletics))
-	    return;
+	//if (prevmap == curmap || (nodrawers && singletics))
+	//    return;
 
-	prevmap = curmap;
-    }
+	//prevmap = curmap;
+ //   }
 
     // [crispy] reset musinfo data at the start of a new map
     memset(&musinfo, 0, sizeof(musinfo));
