@@ -9,7 +9,7 @@
 #include <json/json.h>
 
 
-#define FIRST_EP_ONLY 1
+//#define FIRST_EP_ONLY 1
 
 
 //---- LINE TYPES ----
@@ -879,6 +879,8 @@ int main(int argc, char** argv)
     add_item("Box of bullets", 2048, 5, FILLER, "Ammos");
     add_item("Box of rockets", 2046, 5, FILLER, "Ammos");
     add_item("Box of shotgun shells", 2049, 6, FILLER, "Ammos");
+
+    printf("%i locations\n%i items\n", total_loc_count, total_item_count - 1 /* Early items */);
 #else
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
     add_item("Shotgun", 2001, 10, USEFUL, "Weapons");
@@ -889,14 +891,14 @@ int main(int argc, char** argv)
     add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
 
     // Junk items
-    add_item("Medikit", 2012, 14, FILLER, "");
+    add_item("Medikit", 2012, 15, FILLER, "");
     add_item("Box of bullets", 2048, 13, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 12, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 12, FILLER, "Ammos");
-    add_item("Energy cell pack", 17, 10, FILLER, "Ammos");
-#endif
+    add_item("Box of rockets", 2046, 13, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 13, FILLER, "Ammos");
+    add_item("Energy cell pack", 10, 10, FILLER, "Ammos");
 
-    printf("%i locations\n%i items\n", total_loc_count, total_item_count - 1 /* Early items */);
+    printf("%i locations\n%i items\n", total_loc_count, total_item_count - 3 /* Early items */);
+#endif
 
 
 #if 0
@@ -1122,7 +1124,7 @@ class LocationDict(TypedDict, total=False): \n\
 #else
         fprintf(fout, "ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n");
         fprintf(fout, "{\n");
-        for (int ep = EP_COUNT; ep < 1; ++ep)
+        for (int ep = 0; ep < EP_COUNT; ++ep)
 #endif
         {
             fprintf(fout, "    {\n");
@@ -1332,8 +1334,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    player = ultimate_doom_world.player\n");
         fprintf(fout, "    world = ultimate_doom_world.multiworld\n\n");
 
-        fprintf(fout, "    # Specific Case for E1M4, item you have 1 shot to get. Lets not put progressive in there.\n");
-        fprintf(fout, "    forbid_items(world.get_location(\"Command Control - Supercharge\", player), [\n");
+        fprintf(fout, "    progression_items = [\n");
         for (const auto& item : ap_items)
         {
             if (item.classification == PROGRESSION)
@@ -1341,7 +1342,10 @@ class LocationDict(TypedDict, total=False): \n\
                 fprintf(fout, "        \"%s\",\n", item.name.c_str());
             }
         }
-        fprintf(fout, "    ])\n\n");
+        fprintf(fout, "    ]\n\n");
+
+        fprintf(fout, "    # Specific Case for E1M4, item you have 1 shot to get. Lets not put progressive in there.\n");
+        fprintf(fout, "    forbid_items(world.get_location(\"Command Control - Supercharge\", player), progression_items)\n\n");
 
         for (auto level : levels)
         {
@@ -1369,6 +1373,33 @@ class LocationDict(TypedDict, total=False): \n\
                 for (const auto& loc_json : locs_json)
                 {
                     fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, loc_json.asCString(), level_name);
+                    for (const auto& required_item_and : required_items_and)
+                    {
+                        fprintf(fout, " and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                    }
+                    if (!required_items_or.empty())
+                    {
+                        fprintf(fout, " and (");
+                    }
+                    bool first = true;
+                    for (const auto& required_item_or : required_items_or)
+                    {
+                        if (!first) fprintf(fout, " or ");
+                        first = false;
+                        fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                    }
+                    if (!required_items_or.empty())
+                    {
+                        fprintf(fout, ")");
+                    }
+                    fprintf(fout, ")\n");
+                }
+
+                if (region_json["connects_to_exit"].asBool())
+                {
+                    fprintf(fout, "    set_rule(world.get_location(\"%s - Complete\", player), lambda state: state.has(\"%s\", player, 1)", level_name, level_name);
+
+                    // Gotta love some duplicated code
                     for (const auto& required_item_and : required_items_and)
                     {
                         fprintf(fout, " and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());

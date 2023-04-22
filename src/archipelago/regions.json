@@ -166,17 +166,17 @@
         "episode": 2, "map": 1,
         "Regions": {
             "Main": {
-                "locations": ["Plasma gun", "Blue keycard", "Shotgun", "Armor", "Red keycard", "Map", "Mega Armor", "Shotgun 2"],
+                "locations": ["Shotgun", "Shotgun 2", "Red keycard", "Armor", "Blue keycard", "Plasma gun"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": [],
+                "connects_to_exit": true,
                 "required_items_or": ["Blue keycard"]
             },
             "Red": {
-                "locations": [],
+                "locations": ["Map", "Mega Armor"],
                 "required_items_or": ["Red keycard"]
             }
         }
@@ -185,21 +185,21 @@
         "episode": 2, "map": 2,
         "Regions": {
             "Main": {
-                "locations": ["Chaingun", "Armor", "Armor 2", "Backpack", "Supercharge", "Chainsaw", "Armor 3", "Map", "Mega Armor", "Plasma gun", "Rocket launcher", "Blue keycard", "Yellow keycard", "Red keycard", "Shotgun", "Shotgun 2", "Armor 4", "Berserk", "Backpack 2"],
+                "locations": ["Shotgun", "Shotgun 2", "Berserk", "Armor", "Armor 2", "Armor 3", "Armor 4", "Yellow keycard", "Backpack", "Map", "Mega Armor", "Plasma gun", "Chainsaw", "Supercharge", "Blue keycard"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
+                "locations": ["Red keycard"],
                 "required_items_or": ["Blue keycard"]
             },
             "Yellow": {
-                "locations": [],
+                "locations": ["Chaingun", "Backpack 2", "Rocket launcher"],
                 "required_items_or": ["Yellow keycard"]
             },
             "Red": {
                 "locations": [],
+                "connects_to_exit": true,
                 "required_items_or": ["Red keycard"]
             }
         }
@@ -208,13 +208,13 @@
         "episode": 2, "map": 3,
         "Regions": {
             "Main": {
-                "locations": ["Plasma gun", "Backpack", "Mega Armor", "Armor", "Partial invisibility", "Supercharge", "Blue keycard", "Partial invisibility 2", "Shotgun", "Berserk", "Chaingun"],
+                "locations": ["Chaingun", "Shotgun", "Berserk", "Partial invisibility 2", "Mega Armor", "Backpack", "Plasma gun", "Blue keycard", "Armor"],
                 "connects_to_hub": true,
                 "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
+                "locations": ["Supercharge", "Partial invisibility"],
                 "required_items_or": ["Blue keycard"]
             }
         }
@@ -223,18 +223,18 @@
         "episode": 2, "map": 4,
         "Regions": {
             "Main": {
-                "locations": ["Armor", "Partial invisibility", "Map", "Armor 2", "Blue keycard", "Yellow keycard", "Supercharge", "Shotgun", "Mega Armor", "Plasma gun", "Backpack", "Berserk", "Partial invisibility 2", "Armor 3", "Chaingun", "Supercharge 2"],
+                "locations": ["Shotgun", "Map", "Armor 2", "Partial invisibility", "Armor", "Berserk", "Backpack", "Supercharge 2", "Partial invisibility 2", "Chaingun", "Armor 3", "Blue keycard"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
+                "locations": ["Yellow keycard"],
                 "required_items_or": ["Blue keycard"]
             },
-            "Yellow": {
-                "locations": [],
-                "required_items_or": ["Yellow keycard"]
+            "Blue Yellow": {
+                "locations": ["Plasma gun", "Supercharge", "Mega Armor"],
+                "connects_to_exit": true,
+                "required_items_and": ["Blue keycard", "Yellow keycard"]
             }
         }
     },
@@ -253,22 +253,18 @@
         "episode": 2, "map": 6,
         "Regions": {
             "Main": {
-                "locations": ["Berserk", "Blue skull key", "Backpack", "Mega Armor", "Map", "Armor", "Partial invisibility", "Yellow skull key", "Supercharge", "Chaingun", "Plasma gun", "Partial invisibility 2", "Red skull key", "Shotgun", "Rocket launcher", "Chainsaw", "Partial invisibility 3"],
+                "locations": ["Shotgun", "Rocket launcher", "Berserk", "Chainsaw", "Mega Armor", "Backpack", "Plasma gun", "Yellow skull key", "Partial invisibility 3", "Partial invisibility", "Armor", "Chaingun", "Red skull key", "Blue skull key"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
-            "Blue": {
-                "locations": [],
-                "required_items_or": ["Blue keycard"]
-            },
             "Yellow": {
-                "locations": [],
-                "required_items_or": ["Yellow keycard"]
+                "locations": ["Map", "Supercharge", "Partial invisibility 2"],
+                "required_items_or": ["Yellow skull key"]
             },
-            "Red": {
+            "Blue Yellow Red": {
                 "locations": [],
-                "required_items_or": ["Red keycard"]
+                "connects_to_exit": true,
+                "required_items_and": ["Red skull key", "Blue skull key", "Yellow skull key"]
             }
         }
     },
@@ -276,21 +272,21 @@
         "episode": 2, "map": 7,
         "Regions": {
             "Main": {
-                "locations": ["Rocket launcher", "Backpack", "Partial invisibility", "Mega Armor", "Chaingun", "Armor", "Red keycard", "Yellow keycard", "Blue keycard", "Invulnerability", "Berserk", "Chainsaw", "Supercharge", "Invulnerability 2", "Map", "Plasma gun"],
+                "locations": ["Rocket launcher", "Partial invisibility", "Mega Armor", "Armor", "Blue keycard", "Invulnerability", "Berserk", "Chainsaw", "Invulnerability 2", "Map", "Plasma gun"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
+                "locations": ["Yellow keycard", "Chaingun", "Backpack", "Supercharge"],
                 "required_items_or": ["Blue keycard"]
             },
             "Yellow": {
-                "locations": [],
+                "locations": ["Red keycard"],
                 "required_items_or": ["Yellow keycard"]
             },
             "Red": {
                 "locations": [],
+                "connects_to_exit": true,
                 "required_items_or": ["Red keycard"]
             }
         }
@@ -312,20 +308,20 @@
             "Main": {
                 "locations": ["Supercharge", "Blue skull key", "Red skull key", "Yellow skull key", "Backpack", "Chaingun", "Plasma gun", "Rocket launcher", "Shotgun", "Chainsaw", "Map", "Mega Armor"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "locations": ["Red skull key"],
+                "required_items_or": ["Blue skull key"]
             },
             "Yellow": {
                 "locations": [],
-                "required_items_or": ["Yellow keycard"]
+                "connects_to_exit": true,
+                "required_items_or": ["Yellow skull key"]
             },
             "Red": {
-                "locations": [],
-                "required_items_or": ["Red keycard"]
+                "locations": ["Yellow skull key"],
+                "required_items_or": ["Red skull key"]
             }
         }
     },
@@ -346,12 +342,12 @@
             "Main": {
                 "locations": ["Chaingun", "Berserk", "Mega Armor", "Armor", "Rocket launcher", "Plasma gun", "Map", "Blue skull key", "Supercharge"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "connects_to_exit": true,
+                "required_items_or": ["Blue skull key"]
             }
         }
     },
@@ -361,12 +357,12 @@
             "Main": {
                 "locations": ["Berserk", "Chaingun", "BFG9000", "Supercharge", "Invulnerability", "Blue skull key", "Mega Armor", "Shotgun", "Armor", "Backpack", "Map", "Mega Armor 2", "Shotgun 2", "Rocket launcher"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "connects_to_exit": true,
+                "required_items_or": ["Blue skull key"]
             }
         }
     },
@@ -374,22 +370,22 @@
         "episode": 3, "map": 4,
         "Regions": {
             "Main": {
-                "locations": ["Shotgun", "Berserk", "Mega Armor", "Chaingun", "Invulnerability", "Blue skull key", "Armor", "Yellow skull key", "Invulnerability 2", "Red skull key", "Backpack", "Mega Armor 2", "Partial invisibility", "BFG9000", "Supercharge", "Armor 2", "Rocket launcher", "Armor 3"],
+                "locations": ["Shotgun", "Berserk", "Mega Armor", "Chaingun", "Invulnerability", "Blue skull key", "Armor", "Mega Armor 2", "Armor 2", "Rocket launcher", "Armor 3"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "locations": ["Yellow skull key", "Partial invisibility", "BFG9000", "Supercharge", "Invulnerability 2"],
+                "required_items_or": ["Blue skull key"]
             },
-            "Yellow": {
-                "locations": [],
-                "required_items_or": ["Yellow keycard"]
+            "Blue Yellow": {
+                "locations": ["Red skull key"],
+                "required_items_and": ["Yellow skull key", "Blue skull key"]
             },
-            "Red": {
-                "locations": [],
-                "required_items_or": ["Red keycard"]
+            "Blue Red": {
+                "locations": ["Backpack"],
+                "connects_to_exit": true,
+                "required_items_and": ["Red skull key", "Blue skull key"]
             }
         }
     },
@@ -397,18 +393,18 @@
         "episode": 3, "map": 5,
         "Regions": {
             "Main": {
-                "locations": ["Blue skull key", "Chaingun", "Plasma gun", "Supercharge", "Yellow skull key", "Invulnerability", "Berserk", "Partial invisibility", "Chainsaw", "BFG9000", "Shotgun", "Shotgun 2", "Rocket launcher", "Supercharge 2"],
+                "locations": ["Blue skull key", "Chaingun", "Plasma gun", "Supercharge", "Yellow skull key", "Invulnerability", "Berserk", "Partial invisibility", "Shotgun", "Shotgun 2", "Rocket launcher"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "locations": ["BFG9000"],
+                "connects_to_exit": true,
+                "required_items_or": ["Blue skull key"]
             },
             "Yellow": {
-                "locations": [],
-                "required_items_or": ["Yellow keycard"]
+                "locations": ["Chainsaw", "Supercharge 2"],
+                "required_items_or": ["Yellow skull key"]
             }
         }
     },
@@ -418,12 +414,12 @@
             "Main": {
                 "locations": ["Mega Armor", "Armor", "Backpack", "Invulnerability", "Chaingun", "Shotgun", "Rocket launcher", "Plasma gun", "Armor 2", "Berserk", "Invulnerability 2", "Supercharge", "Blue skull key", "Blue skull key 2", "Map", "Chainsaw", "Supercharge 2"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "connects_to_exit": true,
+                "required_items_or": ["Blue skull key"]
             }
         }
     },
@@ -431,22 +427,22 @@
         "episode": 3, "map": 7,
         "Regions": {
             "Main": {
-                "locations": ["Blue skull key", "Supercharge", "Rocket launcher", "Red skull key", "Backpack", "Plasma gun", "Armor", "Yellow skull key", "Armor 2", "Mega Armor", "BFG9000"],
+                "locations": ["Blue skull key", "Supercharge", "Rocket launcher", "Backpack", "Armor 2", "Mega Armor"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
-                "locations": [],
-                "required_items_or": ["Blue keycard"]
-            },
-            "Yellow": {
-                "locations": [],
-                "required_items_or": ["Yellow keycard"]
+                "locations": ["BFG9000", "Red skull key"],
+                "required_items_or": ["Blue skull key"]
             },
             "Red": {
+                "locations": ["Armor", "Yellow skull key", "Plasma gun"],
+                "required_items_or": ["Red skull key"]
+            },
+            "Yellow Red": {
                 "locations": [],
-                "required_items_or": ["Red keycard"]
+                "connects_to_exit": true,
+                "required_items_or": ["Yellow skull key", "Red skull key"]
             }
         }
     },
@@ -467,16 +463,16 @@
             "Main": {
                 "locations": ["Shotgun", "Rocket launcher", "Rocket launcher 2", "Supercharge", "Blue skull key", "Berserk", "Invulnerability", "Partial invisibility", "Chaingun", "Plasma gun", "Invulnerability 2", "Armor", "Chainsaw", "BFG9000", "Red skull key", "Supercharge 2"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": [],
-                "required_items_or": ["Blue keycard"]
+                "required_items_or": ["Blue skull key"]
             },
             "Red": {
                 "locations": [],
-                "required_items_or": ["Red keycard"]
+                "connects_to_exit": true,
+                "required_items_or": ["Red skull key"]
             }
         }
     }
