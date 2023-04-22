@@ -19,7 +19,7 @@ extern "C"
 #define AP_NUM_POWERS 6
 #define AP_NUM_AMMO 4
 #define AP_NUM_WEAPONS 9
-
+#define AP_CHECK_MAX 50 // Arbitrary number
 
 
 typedef struct
@@ -37,6 +37,7 @@ typedef struct
     int check_count;
     int has_map;
     int unlocked;
+    int checks[AP_CHECK_MAX];
 
 } ap_level_state_t;
 

@@ -46,6 +46,7 @@
 #include "p_extnodes.h" // [crispy] support extended node formats
 
 #include "apdoom_c_def.h"
+#include "apdoom.h"
 
 void	P_SpawnMapThing (mapthing_t*	mthing);
 
@@ -492,7 +493,7 @@ void P_LoadNodes (int lump)
 void P_LoadThings (int lump)
 {
     byte               *data;
-    int			i;
+    int			i, j;
     mapthing_t         *mt;
     mapthing_t          spawnthing;
     mapthing_t  spawnthing_player1_start;
@@ -538,7 +539,20 @@ void P_LoadThings (int lump)
 
         // Replace AP locations with AP item
         if (is_doom_type_ap_location(spawnthing.type))
+        {
             spawnthing.type = 20000;
+            int skip = 0;
+            for (j = 0; j < ap_state.level_states[gameepisode - 1][gamemap - 1].check_count; ++j)
+            {
+                if (ap_state.level_states[gameepisode - 1][gamemap - 1].checks[j] == i)
+                {
+                    skip = 1;
+                    break;
+                }
+            }
+            if (skip)
+                continue;
+        }
 
         // [AP] On player start 1, put level select teleport "HUB"
         if (spawnthing.type == 1)

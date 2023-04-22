@@ -170,6 +170,10 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.max_ammo[1] = 50;
 	ap_state.player_state.max_ammo[2] = 300;
 	ap_state.player_state.max_ammo[3] = 50;
+	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
+		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
+			for (int k = 0; k < AP_CHECK_MAX; ++k)
+				ap_state.level_states[ep][map].checks[k] = -1;
 
 	ap_settings = *settings;
 
@@ -276,6 +280,12 @@ void load_state()
 			json_get_int(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
 			json_get_int(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
 			json_get_int(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
+
+			int k = 0;
+			for (const auto& json_check : json["episodes"][i][j]["checks"])
+			{
+				json_get_int(json_check, ap_state.level_states[i][j].checks[k++]);
+			}
 		}
 	}
 }
@@ -341,6 +351,15 @@ void save_state()
 			json_level["check_count"] = ap_state.level_states[i][j].check_count;
 			json_level["has_map"] = ap_state.level_states[i][j].has_map;
 			json_level["unlocked"] = ap_state.level_states[i][j].unlocked;
+
+			Json::Value json_checks(Json::arrayValue);
+			for (int k = 0; k < AP_CHECK_MAX; ++k)
+			{
+				if (ap_state.level_states[i][j].checks[k] == -1)
+					continue;
+				json_checks.append(ap_state.level_states[i][j].checks[k]);
+			}
+			json_level["checks"] = json_checks;
 
 			json_levels.append(json_level);
 		}
@@ -427,6 +446,7 @@ void apdoom_check_location(int ep, int map, int index)
 
 	int64_t id = it3->second;
 
+	ap_state.level_states[ep - 1][map - 1].checks[ap_state.level_states[ep - 1][map - 1].check_count] = index;
 	ap_state.level_states[ep - 1][map - 1].check_count++;
 
 	AP_SendItem(id);
