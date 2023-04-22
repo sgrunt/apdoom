@@ -872,7 +872,7 @@ int main(int argc, char** argv)
     add_item("Shotgun", 2001, 4, USEFUL, "Weapons");
     add_item("Rocket launcher", 2003, 1, USEFUL, "Weapons");
     add_item("Chainsaw", 2005, 1, USEFUL, "Weapons");
-    add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
+    add_item("Chaingun", 2002, 1, USEFUL, "Weapons");
 
     // Junk items
     add_item("Medikit", 2012, 6, FILLER, "");
@@ -1320,7 +1320,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import TYPE_CHECKING, Dict, Callable, Optional\n\n");
 
-        fprintf(fout, "from worlds.generic.Rules import set_rule, add_rule\n");
+        fprintf(fout, "from worlds.generic.Rules import set_rule, add_rule, forbid_items\n");
         fprintf(fout, "from .Locations import location_table, LocationDict\n");
         fprintf(fout, "import math\n\n");
 
@@ -1332,6 +1332,16 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    player = ultimate_doom_world.player\n");
         fprintf(fout, "    world = ultimate_doom_world.multiworld\n\n");
 
+        fprintf(fout, "    # Specific Case for E1M4, item you have 1 shot to get. Lets not put progressive in there.\n");
+        fprintf(fout, "    forbid_items(world.get_location(\"Command Control - Supercharge\", player), [\n");
+        for (const auto& item : ap_items)
+        {
+            if (item.classification == PROGRESSION)
+            {
+                fprintf(fout, "        \"%s\",\n", item.name.c_str());
+            }
+        }
+        fprintf(fout, "    ])\n\n");
 
         for (auto level : levels)
         {
@@ -1513,7 +1523,7 @@ void generate_regions(level_t* level)
 {
     if (level->starting_sector == -1)
     {
-        printf("Level has no starting sector: %i\n", level->name);
+        printf("Level has no starting sector: %s\n", level->name);
         return;
     }
 
