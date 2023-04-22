@@ -16,7 +16,7 @@
 #include <memory.h>
 #include <chrono>
 #include <thread>
-#include <queue>
+#include <vector>
 #include <fstream>
 
 
@@ -147,7 +147,7 @@ int ap_is_in_game = 0;
 
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
-static std::queue<int64_t> ap_item_queue; // We queue when we're in the menu.
+static std::vector<int64_t> ap_item_queue; // We queue when we're in the menu.
 static bool ap_was_connected = false; // Got connected at least once. That means the state is valid
 
 
@@ -288,6 +288,12 @@ void load_state()
 			}
 		}
 	}
+
+	// Item queue
+	for (const auto& item_id_json : json["item_queue"])
+	{
+		ap_item_queue.push_back(item_id_json.asInt64());
+	}
 }
 
 
@@ -367,6 +373,14 @@ void save_state()
 	}
 	json["episodes"] = json_episodes;
 
+	// Item queue
+	Json::Value json_item_queue(Json::arrayValue);
+	for (auto item_id : ap_item_queue)
+	{
+		json_item_queue.append(item_id);
+	}
+	json["item_queue"] = json_item_queue;
+
 	f << json;
 }
 
@@ -377,7 +391,7 @@ void f_itemclr()
 }
 
 
-void f_itemrecv(int64_t item_id, bool notify_player /* Unused */)
+void f_itemrecv(int64_t item_id, bool notify_player)
 {
 	auto it = item_doom_type_table.find(item_id);
 	if (it == item_doom_type_table.end())
@@ -410,9 +424,11 @@ void f_itemrecv(int64_t item_id, bool notify_player /* Unused */)
 		ap_state.level_states[item.ep - 1][item.map - 1].unlocked = 1;
 	}
 
+	if (!notify_player) return;
+
 	if (!ap_is_in_game)
 	{
-		ap_item_queue.push(item_id);
+		ap_item_queue.push_back(item_id);
 		return;
 	}
 
@@ -565,7 +581,7 @@ void apdoom_update()
 		while (!ap_item_queue.empty())
 		{
 			auto item_id = ap_item_queue.front();
-			ap_item_queue.pop();
+			ap_item_queue.erase(ap_item_queue.begin());
 			f_itemrecv(item_id, true);
 		}
 	}
