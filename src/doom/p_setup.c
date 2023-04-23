@@ -487,6 +487,15 @@ void P_LoadNodes (int lump)
 }
 
 
+
+boolean validate_doom_location(int ep, int map, int doom_type, int index)
+{
+    ap_level_info_t* level_info = &ap_level_infos[ep][map];
+    if (index >= level_info->thing_count) return false;
+    return level_info->thing_infos[index].doom_type == doom_type;
+}
+
+
 //
 // P_LoadThings
 //
@@ -540,6 +549,11 @@ void P_LoadThings (int lump)
         // Replace AP locations with AP item
         if (is_doom_type_ap_location(spawnthing.type))
         {
+            // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
+            if (!validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
+            {
+                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD from the steam release.");
+            }
             spawnthing.type = 20000;
             int skip = 0;
             for (j = 0; j < ap_state.level_states[gameepisode - 1][gamemap - 1].check_count; ++j)

@@ -686,6 +686,7 @@ int main(int argc, char** argv)
     fread(directory.data(), sizeof(map_directory_t), header.num_lumps, f);
 
     // loop directory and find levels, then load them all. YOLO
+    int max_thing_per_level = 0;
     std::vector<level_t*> levels;
     for (int i = 0, len = (int)directory.size(); i < len; ++i)
     {
@@ -726,6 +727,8 @@ int main(int argc, char** argv)
                     break;
                 }
             }
+
+            max_thing_per_level = std::max(max_thing_per_level, (int)level->things.size());
 
             level->sectors.resize(level->map_sectors.size());
             level->subsectors.resize(level->map_subsectors.size());
@@ -1154,14 +1157,22 @@ class LocationDict(TypedDict, total=False): \n\
                                 }
                             }
                         }
-                        fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i},\n", 
+                        fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
                                 level->keys[0] ? "true" : "false", 
                                 level->keys[1] ? "true" : "false", 
                                 level->keys[2] ? "true" : "false", 
                                 level->use_skull[0] ? 1 : 0, 
                                 level->use_skull[1] ? 1 : 0, 
                                 level->use_skull[2] ? 1 : 0, 
-                                level->location_count);
+                                level->location_count,
+                                (int)level->things.size());
+                        int idx = 0;
+                        for (const auto& thing : level->things)
+                        {
+                            fprintf(fout, "            {%i, %i},\n", thing.type, idx);
+                            ++idx;
+                        }
+                        fprintf(fout, "        }},\n");
                     }
                 }
             }

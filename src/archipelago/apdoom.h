@@ -19,7 +19,15 @@ extern "C"
 #define AP_NUM_POWERS 6
 #define AP_NUM_AMMO 4
 #define AP_NUM_WEAPONS 9
-#define AP_CHECK_MAX 50 // Arbitrary number
+#define AP_CHECK_MAX 64 // Arbitrary number
+#define AP_MAX_THING 1024 // Twice more than current max for every level
+
+
+typedef struct
+{
+    int doom_type;
+    int index;
+} ap_thing_info_t;
 
 
 typedef struct
@@ -27,6 +35,8 @@ typedef struct
     int keys[3];
     int use_skull[3];
     int check_count;
+    int thing_count;
+    ap_thing_info_t thing_infos[AP_MAX_THING];
 
 } ap_level_info_t;
 
