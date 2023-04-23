@@ -1214,6 +1214,12 @@ void set_ap_player_states()
     p->cards[3] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
     p->cards[4] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
     p->cards[5] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
+    
+    // mo
+    if (p->mo)
+    {
+        p->mo->health = p->health;
+    }
 }
 
 

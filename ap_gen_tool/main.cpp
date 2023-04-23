@@ -889,7 +889,7 @@ int main(int argc, char** argv)
     printf("%i locations\n%i items\n", total_loc_count, total_item_count - 1 /* Early items */);
 #else
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    add_item("Shotgun", 2001, 10, USEFUL, "Weapons");
+    add_item("Shotgun", 2001, 10, USEFUL, "Weapons", 1);
     add_item("Rocket launcher", 2003, 3, USEFUL, "Weapons", 1);
     add_item("Plasma gun", 2004, 2, USEFUL, "Weapons", 1);
     add_item("Chainsaw", 2005, 5, USEFUL, "Weapons");
@@ -1395,7 +1395,15 @@ class LocationDict(TypedDict, total=False): \n\
 
                 for (const auto& loc_json : locs_json)
                 {
-                    fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, loc_json.asCString(), level_name);
+                    // We guarantee shotgun for any level that is not first of each episode
+                    if (level->lvl > 1)
+                    {
+                        fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: (state.has(\"%s\", player, 1) and state.has(\"Shotgun\", player, 1))", level_name, loc_json.asCString(), level_name);
+                    }
+                    else
+                    {
+                        fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, loc_json.asCString(), level_name);
+                    }
                     for (const auto& required_item_and : required_items_and)
                     {
                         if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
@@ -1426,7 +1434,14 @@ class LocationDict(TypedDict, total=False): \n\
 
                 if (region_json["connects_to_exit"].asBool())
                 {
-                    fprintf(fout, "    set_rule(world.get_location(\"%s - Complete\", player), lambda state: state.has(\"%s\", player, 1)", level_name, level_name);
+                    if (level->lvl > 1)
+                    {
+                        fprintf(fout, "    set_rule(world.get_location(\"%s - Complete\", player), lambda state: (state.has(\"%s\", player, 1) and state.has(\"Shotgun\", player, 1))", level_name, level_name);
+                    }
+                    else
+                    {
+                        fprintf(fout, "    set_rule(world.get_location(\"%s - Complete\", player), lambda state: state.has(\"%s\", player, 1)", level_name, level_name);
+                    }
 
                     // Gotta love some duplicated code
                     for (const auto& required_item_and : required_items_and)
