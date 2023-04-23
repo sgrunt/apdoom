@@ -611,13 +611,13 @@ int64_t add_unique(const std::string& name, const map_thing_t& thing, level_t* l
     return ret;
 }
 
-ap_item_t& add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name, int progression_count = 0)
+ap_item_t& add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name, int progression_count = 0, level_t* level = nullptr)
 {
     ap_item_t item;
     item.id = item_next_id++;
     item.name = name;
-    item.ep = -1;
-    item.lvl = -1;
+    item.ep = level ? level->ep : -1;
+    item.lvl = level ? level->lvl : -1;
     item.doom_type = doom_type;
     item.count = count;
     item.progression_count = progression_count;
@@ -860,7 +860,7 @@ int main(int argc, char** argv)
             ++i;
         }
 
-        add_item(lvl_prefix + "Map", 2026, 1, FILLER, "");
+        add_item(lvl_prefix + "Map", 2026, 1, FILLER, "", 0, level);
     }
 
     add_item("Armor", 2018, armor_count, FILLER, "Powerups");

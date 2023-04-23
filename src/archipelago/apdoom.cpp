@@ -536,7 +536,7 @@ void apdoom_update()
 
 		if (msg->messageParts.empty())
 		{
-			colored_msg = "~9" + msg->text;
+			colored_msg = "~2" + msg->text;
 		}
 		else
 		{
