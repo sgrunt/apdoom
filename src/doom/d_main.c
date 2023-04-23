@@ -147,8 +147,9 @@ void tick_sticky_msgs()
 
 void on_ap_message(const char* text) // This string is cached for several seconds
 {
-    if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
+    //if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
     HU_AddAPMessage(text);
+    S_StartSound(NULL, sfx_tink);
 }
 
 

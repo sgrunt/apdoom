@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+#include <sstream>
 
 
 #if defined(_WIN32)
@@ -480,6 +481,17 @@ void apdoom_check_victory()
 	}
 
 	AP_StoryComplete();
+}
+
+
+void APSend(std::string msg);
+void apdoom_send_message(const char* msg)
+{
+	Json::Value say_packet;
+	say_packet[0]["cmd"] = "Say";
+	say_packet[0]["text"] = msg;
+	Json::FastWriter writer;
+	APSend(writer.write(say_packet));
 }
 
 

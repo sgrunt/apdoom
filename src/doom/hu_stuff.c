@@ -53,6 +53,8 @@
 
 #include "i_swap.h"
 
+#include "apdoom.h"
+
 //
 // Locally used constants, shortcuts.
 //
@@ -69,7 +71,7 @@
 
 #define HU_INPUTTOGGLE	't'
 #define HU_INPUTX	HU_MSGX
-#define HU_INPUTY	(HU_MSGY + HU_MSGHEIGHT*(SHORT(hu_font[0]->height) +1))
+#define HU_INPUTY	(16 * 8)//(HU_MSGY + HU_MSGHEIGHT*(SHORT(hu_font[0]->height) +1))
 #define HU_INPUTWIDTH	64
 #define HU_INPUTHEIGHT	1
 
@@ -1312,6 +1314,7 @@ char HU_dequeueChatChar(void)
 static void StartChatInput(int dest)
 {
     chat_on = true;
+
     HUlib_resetIText(&w_chat);
     HU_queueChatChar(HU_BROADCAST);
 
@@ -1362,7 +1365,7 @@ boolean HU_Responder(event_t *ev)
 	    message_counter = HU_MSGTIMEOUT;
 	    eatkey = true;
 	}
-	else if (netgame && !demoplayback && ev->data2 == key_multi_msg)
+	else if (/*netgame &&*/ /* We always enable chat in AP */ !demoplayback && ev->data2 == key_multi_msg)
 	{
 	    eatkey = true;
             StartChatInput(HU_BROADCAST);
@@ -1437,9 +1440,11 @@ boolean HU_Responder(event_t *ev)
 	    }
 	    if (c == KEY_ENTER)
 	    {
+
 		StopChatInput();
                 if (w_chat.l.len)
                 {
+                    apdoom_send_message(w_chat.l.l);
                     M_StringCopy(lastmessage, w_chat.l.l, sizeof(lastmessage));
                     plr->message = lastmessage;
                 }
