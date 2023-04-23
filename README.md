@@ -15,6 +15,23 @@ To be used with [Archipelago](archipelago.gg).
 
 The rules were built using the WAD file found in the Steam release of DOOM. It wasn't tested with other WAD files, but if the levels are identical, it should work. Shareware DOOM1.WAD won't work yet. Episode selection options still not implemented.
 
+## Archiving a Release
+
+1. Generate the project with CMake into `build/`. Crispy-DOOM repository setup doesn't use submodules and `add_subdirectory`, so it can be a bit tricky to get to work. Recommended using cmake GUI and install the libraries manually.
+2. Open the solution, select crispy-doom project and build in Release.
+3. Copy the executable and required DLLs into `RunDir/`.
+4. Compile the C# project "Launcher" in Release, and put it into `RunDir/`.
+5. Run locally to see that everything works
+6. Archive the content of `RunDir/` directly. Do not include subfolders with `AP_####...` format. Those are saves.
+
+## Generating Rules.
+
+The rules for Archipelago server are generate with the project "ap_gen_tool". Setup the command line like so:
+```
+path_to_wad/DOOM.WAD path_to_archipelago/worlds/ultimate_doom path_to_this_repository/src/archipelago
+```
+It will parse the WAD file, and dump the Python files into Archipelago, then dump some C header files into AP-DOOM.
+
 ## Acknowledgement
 
 Source port forked from [Crispy Doom](https://github.com/fabiangreffrath/crispy-doom).
