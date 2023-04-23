@@ -462,10 +462,16 @@ static inline int cht_CheckCheatSP (cheatseq_t *cht, char key)
 		return false;
 	}
 	else
-	if (!crispy->singleplayer)
 	{
-		plyr->message = "Cheater!";
+#ifndef _DEBUG // [AP] Never allow cheats in AP, except in Debug
+		plyr->message = "Cheats not allowed in AP";
 		return false;
+#endif
+		if (!crispy->singleplayer)
+		{
+			plyr->message = "Cheater!";
+			return false;
+		}
 	}
 	return true;
 }
