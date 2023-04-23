@@ -1377,6 +1377,9 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    forbid_items(world.get_location(\"House of Pain - Chaingun\", player), progression_items)\n");
         fprintf(fout, "    forbid_items(world.get_location(\"House of Pain - Invulnerability\", player), progression_items)\n\n");
 
+        fprintf(fout, "    # Specific Case for E3M3, item behind one way elevator. You can die to get it.\n");
+        fprintf(fout, "    forbid_items(world.get_location(\"Pandemonium - Mega Armor\", player), progression_items)\n\n");
+
         std::vector<std::string> map_items = {
             "Blue keycard", "Blue skull key", "Yellow keycard", "Yellow skull key", "Red keycard", "Red skull key"
         };
