@@ -634,7 +634,8 @@ void WI_drawAnimatedBack(void)
     }
 
     // [crispy] show Fortress of Mystery if it has been completed
-    if (wbs->epsd == 1 && wbs->didsecret)
+	// [AP] Always show
+    if (wbs->epsd == 1/* && wbs->didsecret*/)
     {
 	a = &anims[wbs->epsd][7];
 

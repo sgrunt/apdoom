@@ -62,7 +62,7 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 	    { 133, 130, 20, "WIURH0", 0, 0 },	// location of level 5 (CJ)
 	    { 208, 136 - 1, 18, "WIURH0", 0, 0 },	// location of level 6 (CJ)
 	    { 148, 140 + 20, 22, "WIURH2", 0, 0 },	// location of level 7 (CJ)
-	    { 235, 158, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
+	    { 235, 158 + 10, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
     },
 
     // Episode 2 World Map should go here
