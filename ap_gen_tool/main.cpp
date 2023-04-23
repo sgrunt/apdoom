@@ -1351,14 +1351,14 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "from worlds.generic.Rules import set_rule, add_rule, forbid_items\n");
         fprintf(fout, "from .Locations import location_table, LocationDict\n");
         fprintf(fout, "import math\n\n");
-
+        
         fprintf(fout, "if TYPE_CHECKING:\n");
-        fprintf(fout, "    from . import UltimateDOOMWorld\n");
+        fprintf(fout, "    from . import DOOM1993World\n");
         fprintf(fout, "    from BaseClasses import CollectionState, Location\n\n\n");
 
-        fprintf(fout, "def set_rules(ultimate_doom_world: \"UltimateDOOMWorld\"):\n");
-        fprintf(fout, "    player = ultimate_doom_world.player\n");
-        fprintf(fout, "    world = ultimate_doom_world.multiworld\n\n");
+        fprintf(fout, "def set_rules(doom_1993_world: \"DOOM1993World\"):\n");
+        fprintf(fout, "    player = doom_1993_world.player\n");
+        fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
 
         fprintf(fout, "    progression_items = [\n");
         for (const auto& item : ap_items)
