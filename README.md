@@ -1,10 +1,23 @@
-# Archipelago Crispy Doom
+# Archipelago Doom
 
-archipelago.gg
+_Version 0.1.0 (beta)_
+
+To be used with [Archipelago](archipelago.gg).
+
+## Usage
+
+1. Download the zip from the release page.
+2. Extract on your PC.
+3. Copy your DOOM.WAD into the newly extracted folder.
+4. Run APDOOM.exe.
+
+### DOOM.WAD
+
+The rules were built using the WAD file found in the Steam release of DOOM. It wasn't tested with other WAD files, but if the levels are identical, it should work. Shareware DOOM1.WAD won't work yet. Episode selection options still not implemented.
 
 ## Acknowledgement
 
-Crispy Doom
+Source port forked from [Crispy Doom](https://github.com/fabiangreffrath/crispy-doom).
 
 ## Legalese
 

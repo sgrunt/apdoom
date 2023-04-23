@@ -1272,6 +1272,25 @@ void M_MusicVol(int choice)
 }
 
 
+void draw_apdoom_version(void)
+{
+    const char* version_text = APDOOM_VERSION_FULL_TEXT;
+    auto len = strlen(APDOOM_VERSION_FULL_TEXT);
+    int x = 0;
+    for (int i = 0; i < len; ++i)
+    {
+        if (version_text[i] == ' ')
+        {
+            x += 8;
+            continue;
+        }
+        const char* char_name[9];
+        sprintf(char_name, "STCFN0%i", (int)version_text[i]);
+        patch_t* patch = W_CacheLumpName(char_name, PU_CACHE);
+        V_DrawPatchDirect(x, 200 - 8, patch);
+        x += patch->width;
+    }
+}
 
 
 //
@@ -1284,6 +1303,8 @@ void M_DrawMainMenu(void)
 
     V_DrawPatchDirect(94, 2,
                       W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
+
+    draw_apdoom_version();
 }
 
 
@@ -1297,6 +1318,8 @@ void M_InGameMenuDraw(void)
 
     V_DrawPatchDirect(94, 2,
                       W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
+
+    draw_apdoom_version();
 }
 
 
