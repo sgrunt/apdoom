@@ -50,7 +50,12 @@ It will parse the WAD file, and dump the Python files into Archipelago, then dum
 
 ## Acknowledgement
 
+### Crispy DOOM
+
 Source port forked from [Crispy Doom](https://github.com/fabiangreffrath/crispy-doom).
+
+### Archipelago Icons and art:
+This work © 2022 by Krista Corkos and Christopher Wilson is licensed under Attribution-NonCommercial 4.0 International. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc/4.0/
 
 ## Legalese
 
