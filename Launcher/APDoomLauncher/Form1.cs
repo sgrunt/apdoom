@@ -37,8 +37,15 @@ namespace APDoomLauncher
             Settings.Default.Password = txtPassword.Text;
             Settings.Default.Save();
 
-            string command_line = $"-width {txtWidth.Text} -height {txtHeight.Text} -apserver {txtServer.Text} -applayer {txtPlayer.Text}";
-            if (!chkFullscreen.Checked) command_line += " -nofullscreen";
+            string command_line = $"-apserver {txtServer.Text} -applayer {txtPlayer.Text}";
+            if (chkFullscreen.Checked)
+            {
+                command_line += " -fullscreen";
+            }
+            else
+            {
+                command_line += $" -nofullscreen -width {txtWidth.Text} -height {txtHeight.Text}";
+            }
             if (txtCommandLine.Text != "") command_line += " " + txtCommandLine.Text;
             System.Diagnostics.Process.Start("crispy-doom.exe", command_line);
 

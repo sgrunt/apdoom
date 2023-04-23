@@ -22,12 +22,21 @@ The rules were built using the WAD file found in the Steam release of DOOM. It w
 1. Generate the project with CMake into `build/`. Crispy-DOOM repository setup doesn't use submodules and `add_subdirectory`, so it can be a bit tricky to get to work. Recommended using cmake GUI and install the libraries manually.
 2. Open the solution, select crispy-doom project and build in Release.
 3. Create a temporary folder `Release/`.
-4. Copy the executable and required DLLs into `Release/`.
-5. Compile the C# project "Launcher" in Release, and put it into `Release/`.
-6. Copy `APDOOM.WAD` into `Release/`
-7. Copy `DOOM.WAD` into `Release/` (For testing!)
-8. Run locally to see that everything works
-9. Archive the content of `Release/` directly.
+4. Copy the `crispy-doom.exe` into `Release/`.
+5. Copy the following DLLs from your library installs, into `Release/`:
+    * SDL2.dll
+    * SDL2_mixer.dll
+    * samplerate.dll
+    * libfluidsynth-3.dll
+    * intl.dll
+    * libglib-2.0-0.dll
+    * libsndfile-1.dll
+    * libgthread-2.0-0.dll
+6. Compile the C# project "Launcher" in Release, and put it into `Release/`. Then rename it to `APDOOM.exe`.
+7. Copy `APDOOM.WAD` into `Release/`
+8. Copy `DOOM.WAD` into `Release/` (For testing!)
+9. Run locally to see that everything works
+10. Archive the content of `Release/` directly.
     * Do not include subfolders with `AP_####...` format. Those are saves.
     * DO NOT INCLUDE `DOOM.WAD`.
 

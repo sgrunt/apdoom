@@ -36,6 +36,8 @@ namespace APDoomLauncher
             this.chkFullscreen = new System.Windows.Forms.CheckBox();
             this.btnLaunchDOOM = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtCommandLine = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
@@ -44,8 +46,6 @@ namespace APDoomLauncher
             this.label4 = new System.Windows.Forms.Label();
             this.txtPlayer = new System.Windows.Forms.TextBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.txtCommandLine = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -122,6 +122,22 @@ namespace APDoomLauncher
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Game Settings";
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(48, 122);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(102, 17);
+            this.label6.TabIndex = 6;
+            this.label6.Text = "Command Line";
+            // 
+            // txtCommandLine
+            // 
+            this.txtCommandLine.Location = new System.Drawing.Point(198, 119);
+            this.txtCommandLine.Name = "txtCommandLine";
+            this.txtCommandLine.Size = new System.Drawing.Size(204, 22);
+            this.txtCommandLine.TabIndex = 4;
+            // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.txtPassword);
@@ -176,9 +192,9 @@ namespace APDoomLauncher
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(48, 70);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(89, 17);
+            this.label4.Size = new System.Drawing.Size(73, 17);
             this.label4.TabIndex = 3;
-            this.label4.Text = "Player Name";
+            this.label4.Text = "Slot Name";
             // 
             // txtPlayer
             // 
@@ -197,22 +213,6 @@ namespace APDoomLauncher
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(48, 122);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(102, 17);
-            this.label6.TabIndex = 6;
-            this.label6.Text = "Command Line";
-            // 
-            // txtCommandLine
-            // 
-            this.txtCommandLine.Location = new System.Drawing.Point(198, 119);
-            this.txtCommandLine.Name = "txtCommandLine";
-            this.txtCommandLine.Size = new System.Drawing.Size(204, 22);
-            this.txtCommandLine.TabIndex = 4;
             // 
             // Form1
             // 

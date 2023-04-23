@@ -1697,7 +1697,7 @@ void D_DoomMain (void)
     // Initialize AP
     ap_settings_t settings;
     settings.ip = myargv[apserver_arg_id + 1];
-    settings.game = "Ultimate DOOM";
+    settings.game = "DOOM 1993";
     settings.player_name = myargv[applayer_arg_id + 1];
     settings.passwd = password;
     settings.message_callback = on_ap_message;
