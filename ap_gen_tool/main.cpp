@@ -379,6 +379,7 @@ struct level_t
     int starting_sector = -1;
     bool keys[3] = {false};
     int location_count = 0;
+    bool use_skull[3] = {false};
 };
 
 
@@ -800,6 +801,7 @@ int main(int argc, char** argv)
                 case 40:
                     level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
                     level->keys[0] = true;
+                    level->use_skull[0] = true;
                     break;
                 case 6:
                     level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
@@ -808,6 +810,7 @@ int main(int argc, char** argv)
                 case 39:
                     level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
                     level->keys[1] = true;
+                    level->use_skull[1] = true;
                     break;
                 case 13:
                     level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
@@ -816,6 +819,7 @@ int main(int argc, char** argv)
                 case 38:
                     level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
                     level->keys[2] = true;
+                    level->use_skull[2] = true;
                     break;
 
                 // Locations
@@ -1146,7 +1150,14 @@ class LocationDict(TypedDict, total=False): \n\
                                 }
                             }
                         }
-                        fprintf(fout, "        {{%s, %s, %s}, %i},\n", level->keys[0] ? "true" : "false", level->keys[1] ? "true": "false", level->keys[2] ? "true" : "false", level->location_count);
+                        fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i},\n", 
+                                level->keys[0] ? "true" : "false", 
+                                level->keys[1] ? "true" : "false", 
+                                level->keys[2] ? "true" : "false", 
+                                level->use_skull[0] ? 1 : 0, 
+                                level->use_skull[1] ? 1 : 0, 
+                                level->use_skull[2] ? 1 : 0, 
+                                level->location_count);
                     }
                 }
             }

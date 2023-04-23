@@ -25,6 +25,7 @@ extern "C"
 typedef struct
 {
     int keys[3];
+    int use_skull[3];
     int check_count;
 
 } ap_level_info_t;

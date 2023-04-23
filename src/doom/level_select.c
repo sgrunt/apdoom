@@ -299,14 +299,18 @@ void DrawLevelSelectStats()
 
         // Keys
         const char* key_lump_names[] = {"STKEYS0", "STKEYS1", "STKEYS2"};
+        const char* key_skull_lump_names[] = {"STKEYS3", "STKEYS4", "STKEYS5"};
         int key_y = y + key_start_offset;
         int key_x = x + level_pos->keys_offset;
         for (int k = 0; k < 3; ++k)
         {
             if (ap_level_info->keys[k])
             {
+                const char* key_lump_name = key_lump_names[k];
+                if (ap_level_info->use_skull[k])
+                    key_lump_name = key_skull_lump_names[k];
                 V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
-                V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_names[k], PU_CACHE));
+                V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
                 if (ap_level_state->keys[k])
                 {
                     if (level_pos->keys_offset < 0)

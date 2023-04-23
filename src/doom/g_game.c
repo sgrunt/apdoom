@@ -1189,7 +1189,7 @@ void set_ap_player_states()
     p->armorpoints = ap_state.player_state.armor_points;
     p->armortype = ap_state.player_state.armor_type;
     p->backpack = ap_state.player_state.backpack ? true : false;
-    p->readyweapon = (weapontype_t)ap_state.player_state.ready_weapon;
+    p->readyweapon = p->pendingweapon = (weapontype_t)ap_state.player_state.ready_weapon;
     //p->killcount = ap_state.player_state.kill_count;
     //p->itemcount = ap_state.player_state.item_count;
     //p->secretcount = ap_state.player_state.secret_count;
@@ -1204,13 +1204,13 @@ void set_ap_player_states()
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 
     // Cards
-    p->cards[0] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] ? true : false;
-    p->cards[1] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] ? true : false;
-    p->cards[2] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] ? true : false;
+    p->cards[0] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] && !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
+    p->cards[1] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] && !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
+    p->cards[2] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] && !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
     // Skulls (redundant)
-    p->cards[3] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] ? true : false;
-    p->cards[4] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] ? true : false;
-    p->cards[5] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] ? true : false;
+    p->cards[3] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
+    p->cards[4] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
+    p->cards[5] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
 }
 
 
