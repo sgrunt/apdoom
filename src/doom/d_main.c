@@ -653,6 +653,7 @@ void D_BindVariables(void)
     M_BindIntVariable("crispy_brightmaps",      &crispy->brightmaps);
     M_BindIntVariable("crispy_centerweapon",    &crispy->centerweapon);
     M_BindIntVariable("crispy_coloredblood",    &crispy->coloredblood);
+    crispy->coloredhud = COLOREDHUD_TEXT; // Default
     M_BindIntVariable("crispy_coloredhud",      &crispy->coloredhud);
     M_BindIntVariable("crispy_crosshair",       &crispy->crosshair);
     M_BindIntVariable("crispy_crosshairhealth", &crispy->crosshairhealth);
