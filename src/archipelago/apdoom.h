@@ -65,6 +65,8 @@ typedef struct
 {
     ap_level_state_t level_states[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
     ap_player_state_t player_state;
+    int ep; // Useful when reloading, to load directly where we left
+    int map;
     
 } ap_state_t;
 

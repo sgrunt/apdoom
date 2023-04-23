@@ -156,6 +156,7 @@ boolean         precache = true;        // if true, load all graphics at start
 
 boolean         testcontrols = false;    // Invoked by setup to test controls
 int             testcontrols_mousespeed;
+int was_in_level = 0;
  
 
  
@@ -1189,7 +1190,8 @@ void set_ap_player_states()
     p->armorpoints = ap_state.player_state.armor_points;
     p->armortype = ap_state.player_state.armor_type;
     p->backpack = ap_state.player_state.backpack ? true : false;
-    p->readyweapon = p->pendingweapon = (weapontype_t)ap_state.player_state.ready_weapon;
+    if (!was_in_level)
+        p->readyweapon = p->pendingweapon = (weapontype_t)ap_state.player_state.ready_weapon;
     //p->pendingweapon = wp_nochange;
     //p->killcount = ap_state.player_state.kill_count;
     //p->itemcount = ap_state.player_state.item_count;
@@ -2338,6 +2340,7 @@ void G_DoLoadGame (void)
     savedleveltime = leveltime;
     
     // load a base level 
+    was_in_level = (ap_state.ep != 0 && ap_state.map != 0) ? 1 : 0;
     G_InitNew (gameskill, gameepisode, gamemap); 
  
     leveltime = savedleveltime;
@@ -2370,31 +2373,34 @@ void G_DoLoadGame (void)
 	G_ClearSavename();
 
     // [AP] Move player back to player spawn and reset its velocity (Make sure z is set to floor too)
-    player_t* player = &players[consoleplayer];
-    player->pendingweapon = wp_nochange;
-    player->attackdown = 0;
-    player->usedown = 0;
-    player->refire = 0;
-    player->refire = 0;
-    player->damagecount = 0;
-    player->bonuscount = 0;
-    player->attacker = 0;
-    player->extralight = 0;
-    player->fixedcolormap = 0;
-    player->colormap = 0;
-    if (just_loaded_hub && player->mo)
+    if (!was_in_level)
     {
-        P_UnsetThingPosition(player->mo);
-        player->mo->x = just_loaded_hub->x;
-        player->mo->y = just_loaded_hub->y;
-        player->mo->z = just_loaded_hub->z;
-        player->mo->angle = just_loaded_hub->angle;
-        player->mo->floorz = just_loaded_hub->floorz;
-        player->mo->ceilingz = just_loaded_hub->ceilingz;
-        player->mo->momx = just_loaded_hub->momx;
-        player->mo->momy = just_loaded_hub->momy;
-        player->mo->momz = just_loaded_hub->momz;
-        P_SetThingPosition(player->mo);
+        player_t* player = &players[consoleplayer];
+        player->pendingweapon = wp_nochange;
+        player->attackdown = 0;
+        player->usedown = 0;
+        player->refire = 0;
+        player->refire = 0;
+        player->damagecount = 0;
+        player->bonuscount = 0;
+        player->attacker = 0;
+        player->extralight = 0;
+        player->fixedcolormap = 0;
+        player->colormap = 0;
+        if (just_loaded_hub && player->mo)
+        {
+            P_UnsetThingPosition(player->mo);
+            player->mo->x = just_loaded_hub->x;
+            player->mo->y = just_loaded_hub->y;
+            player->mo->z = just_loaded_hub->z;
+            player->mo->angle = just_loaded_hub->angle;
+            player->mo->floorz = just_loaded_hub->floorz;
+            player->mo->ceilingz = just_loaded_hub->ceilingz;
+            player->mo->momx = just_loaded_hub->momx;
+            player->mo->momy = just_loaded_hub->momy;
+            player->mo->momz = just_loaded_hub->momz;
+            P_SetThingPosition(player->mo);
+        }
     }
 
     // [crisy] once loaded from the command line,
@@ -2586,6 +2592,9 @@ G_InitNew
   int		episode,
   int		map )
 {
+    ap_state.ep = episode;
+    ap_state.map = map;
+
     const char *skytexturename;
     int             i;
     // [crispy] make sure "fast" parameters are really only applied once

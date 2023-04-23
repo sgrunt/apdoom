@@ -295,6 +295,9 @@ void load_state()
 	{
 		ap_item_queue.push_back(item_id_json.asInt64());
 	}
+
+	json_get_int(json["ep"], ap_state.ep);
+	json_get_int(json["map"], ap_state.map);
 }
 
 
@@ -381,6 +384,9 @@ void save_state()
 		json_item_queue.append(item_id);
 	}
 	json["item_queue"] = json_item_queue;
+
+	json["ep"] = ap_state.ep;
+	json["map"] = ap_state.map;
 
 	f << json;
 }

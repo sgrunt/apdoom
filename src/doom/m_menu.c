@@ -65,6 +65,7 @@
 #include "v_trans.h" // [crispy] colored "invert mouse" message
 
 #include "level_select.h" // [ap]
+#include "apdoom.h"
 
 
 //
@@ -1314,7 +1315,14 @@ void M_APPlay(int choice)
     M_ClearMenus();
 
     // Was the game quit during a level?
-    ShowLevelSelect();
+    if (ap_state.ep != 0 && ap_state.map != 0)
+    {
+        play_level(ap_state.ep - 1, ap_state.map - 1);
+    }
+    else
+    {
+        ShowLevelSelect();
+    }
 }
 
 
@@ -1862,6 +1870,13 @@ void M_QuitResponse(int key)
 
     if (key != key_menu_confirm)
 	return;
+
+    // [AP] Save state if we are currently in a level
+    if (!netgame && ap_state.ep != 0 && ap_state.map != 0)
+    {
+        G_DoSaveGame();
+    }
+
     // [crispy] play quit sound only if the ENDOOM screen is also shown
     if (!netgame && show_endoom)
     {

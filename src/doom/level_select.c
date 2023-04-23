@@ -243,6 +243,9 @@ void ShowLevelSelect()
     viewactive = false;
     automapactive = false;
 
+    ap_state.ep = 0;
+    ap_state.map = 0;
+
     wiinfo.epsd = selected_ep;
     wiinfo.didsecret = false;
     wiinfo.last = -1;
