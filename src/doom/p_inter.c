@@ -723,7 +723,10 @@ P_TouchSpecialThing
 	case SPR_LVST:
 		// Teleport back to level select!
 		if (leveltimesinceload > 350)
+		{
+			S_StartSound(NULL, sfx_telept);
 			G_LevelSelect();
+		}
 		return; // Don't pick up this
 
       default:
