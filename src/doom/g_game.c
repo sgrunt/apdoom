@@ -1190,6 +1190,7 @@ void set_ap_player_states()
     p->armortype = ap_state.player_state.armor_type;
     p->backpack = ap_state.player_state.backpack ? true : false;
     p->readyweapon = p->pendingweapon = (weapontype_t)ap_state.player_state.ready_weapon;
+    //p->pendingweapon = wp_nochange;
     //p->killcount = ap_state.player_state.kill_count;
     //p->itemcount = ap_state.player_state.item_count;
     //p->secretcount = ap_state.player_state.secret_count;

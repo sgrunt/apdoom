@@ -325,6 +325,7 @@ struct ap_item_t
     int lvl;
     int doom_type;
     int count;
+    int progression_count;
     bool is_key;
     item_classification_t classification;
 };
@@ -610,7 +611,7 @@ int64_t add_unique(const std::string& name, const map_thing_t& thing, level_t* l
     return ret;
 }
 
-ap_item_t& add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name)
+ap_item_t& add_item(const std::string& name, int doom_type, int count, item_classification_t classification, const std::string& group_name, int progression_count = 0)
 {
     ap_item_t item;
     item.id = item_next_id++;
@@ -619,6 +620,7 @@ ap_item_t& add_item(const std::string& name, int doom_type, int count, item_clas
     item.lvl = -1;
     item.doom_type = doom_type;
     item.count = count;
+    item.progression_count = progression_count;
     total_item_count += count;
     item.is_key = false;
     item.classification = classification;
@@ -874,8 +876,8 @@ int main(int argc, char** argv)
 #if FIRST_EP_ONLY
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
     add_item("Shotgun", 2001, 4, USEFUL, "Weapons");
-    add_item("Rocket launcher", 2003, 1, USEFUL, "Weapons");
-    add_item("Chainsaw", 2005, 1, USEFUL, "Weapons");
+    add_item("Rocket launcher", 2003, 1, USEFUL, "Weapons", 1);
+    add_item("Chainsaw", 2005, 1, USEFUL, "Weapons", 1);
     add_item("Chaingun", 2002, 1, USEFUL, "Weapons");
 
     // Junk items
@@ -888,10 +890,10 @@ int main(int argc, char** argv)
 #else
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
     add_item("Shotgun", 2001, 10, USEFUL, "Weapons");
-    add_item("Rocket launcher", 2003, 3, USEFUL, "Weapons");
-    add_item("Plasma gun", 2004, 2, USEFUL, "Weapons");
+    add_item("Rocket launcher", 2003, 3, USEFUL, "Weapons", 1);
+    add_item("Plasma gun", 2004, 2, USEFUL, "Weapons", 1);
     add_item("Chainsaw", 2005, 5, USEFUL, "Weapons");
-    add_item("Chaingun", 2002, 4, USEFUL, "Weapons");
+    add_item("Chaingun", 2002, 4, USEFUL, "Weapons", 1);
     add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
 
     // Junk items
@@ -951,6 +953,7 @@ from typing import TypedDict, Dict, Set \n\
 class ItemDict(TypedDict, total=False): \n\
     classification: ItemClassification \n\
     count: int \n\
+    progression_count: int \n\
     name: str \n\
     doom_type: int # Unique numerical id used to spawn the item. \n\
     episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n\
@@ -973,6 +976,7 @@ class ItemDict(TypedDict, total=False): \n\
                 case PROGRESSION_SKIP_BALANCING: fprintf(fout, "'classification': ItemClassification.progression_skip_balancing"); break;
             }
             fprintf(fout, ",\n             'count': %i", item.count);
+            fprintf(fout, ",\n             'progression_count': %i", item.progression_count);
             fprintf(fout, ",\n             'name': '%s'", item.name.c_str());
             fprintf(fout, ",\n             'doom_type': %i", item.doom_type);
             fprintf(fout, ",\n             'episode': %i", item.ep);
@@ -1358,6 +1362,10 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    # Specific Case for E1M4, item you have 1 shot to get. Lets not put progressive in there.\n");
         fprintf(fout, "    forbid_items(world.get_location(\"Command Control - Supercharge\", player), progression_items)\n\n");
 
+        std::vector<std::string> map_items = {
+            "Blue keycard", "Blue skull key", "Yellow keycard", "Yellow skull key", "Red keycard", "Red skull key"
+        };
+
         for (auto level : levels)
         {
             auto level_name = level_names[level->ep - 1][level->lvl - 1];
@@ -1386,7 +1394,10 @@ class LocationDict(TypedDict, total=False): \n\
                     fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, loc_json.asCString(), level_name);
                     for (const auto& required_item_and : required_items_and)
                     {
-                        fprintf(fout, " and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                        if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
+                            fprintf(fout, "and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                        else
+                            fprintf(fout, "and state.has(\"%s\", player, 1)", required_item_and.c_str());
                     }
                     if (!required_items_or.empty())
                     {
@@ -1397,7 +1408,10 @@ class LocationDict(TypedDict, total=False): \n\
                     {
                         if (!first) fprintf(fout, " or ");
                         first = false;
-                        fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                        if (std::find(map_items.begin(), map_items.end(), required_item_or) != map_items.end())
+                            fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                        else
+                            fprintf(fout, "state.has(\"%s\", player, 1)", required_item_or.c_str());
                     }
                     if (!required_items_or.empty())
                     {
@@ -1413,7 +1427,10 @@ class LocationDict(TypedDict, total=False): \n\
                     // Gotta love some duplicated code
                     for (const auto& required_item_and : required_items_and)
                     {
-                        fprintf(fout, " and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                        if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
+                            fprintf(fout, "and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                        else
+                            fprintf(fout, "and state.has(\"%s\", player, 1)", required_item_and.c_str());
                     }
                     if (!required_items_or.empty())
                     {
@@ -1424,7 +1441,10 @@ class LocationDict(TypedDict, total=False): \n\
                     {
                         if (!first) fprintf(fout, " or ");
                         first = false;
-                        fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                        if (std::find(map_items.begin(), map_items.end(), required_item_or) != map_items.end())
+                            fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                        else
+                            fprintf(fout, "state.has(\"%s\", player, 1)", required_item_or.c_str());
                     }
                     if (!required_items_or.empty())
                     {
