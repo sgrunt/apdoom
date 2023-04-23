@@ -1352,7 +1352,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    progression_items = [\n");
         for (const auto& item : ap_items)
         {
-            if (item.classification == PROGRESSION)
+            if (item.classification == PROGRESSION || item.progression_count)
             {
                 fprintf(fout, "        \"%s\",\n", item.name.c_str());
             }
@@ -1361,6 +1361,10 @@ class LocationDict(TypedDict, total=False): \n\
 
         fprintf(fout, "    # Specific Case for E1M4, item you have 1 shot to get. Lets not put progressive in there.\n");
         fprintf(fout, "    forbid_items(world.get_location(\"Command Control - Supercharge\", player), progression_items)\n\n");
+
+        fprintf(fout, "    # Specific Case for E3M4, 2 items here might require you die if you're not fast enough. Lets not put progressive in there.\n");
+        fprintf(fout, "    forbid_items(world.get_location(\"House of Pain - Chaingun\", player), progression_items)\n");
+        fprintf(fout, "    forbid_items(world.get_location(\"House of Pain - Invulnerability\", player), progression_items)\n\n");
 
         std::vector<std::string> map_items = {
             "Blue keycard", "Blue skull key", "Yellow keycard", "Yellow skull key", "Red keycard", "Red skull key"
