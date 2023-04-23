@@ -536,7 +536,7 @@ void apdoom_update()
 
 		if (msg->messageParts.empty())
 		{
-			colored_msg = "~2" + msg->text;
+			colored_msg = "~9" + msg->text;
 		}
 		else
 		{
@@ -551,7 +551,7 @@ void apdoom_update()
 						colored_msg += "~3" + message_part.text;
 						break;
 					case AP_ItemText:
-						colored_msg += "~7" + message_part.text;
+						colored_msg += "~9" + message_part.text;
 						break;
 					case AP_PlayerText:
 						colored_msg += "~4" + message_part.text;

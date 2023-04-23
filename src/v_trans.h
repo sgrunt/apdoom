@@ -46,6 +46,7 @@ enum
     CR_BLUE,
     CR_RED2BLUE,
     CR_RED2GREEN,
+    CR_CYAN,
     CRMAX
 };
 

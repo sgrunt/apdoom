@@ -71,6 +71,8 @@ static const byte cr_red2green[256] =
      224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,
      240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255};
 
+static byte cr_cyan[256];
+
 byte *cr[] =
 {
     (byte *) &cr_none,
@@ -81,7 +83,8 @@ byte *cr[] =
     (byte *) &cr_red,
     (byte *) &cr_blue,
     (byte *) &cr_red2blue,
-    (byte *) &cr_red2green
+    (byte *) &cr_red2green,
+    (byte *) &cr_cyan
 };
 
 char **crstr = 0;
@@ -272,39 +275,48 @@ byte V_Colorize (byte *playpal, int cr, byte source, boolean keepgray109)
     rgb_to_hsv(&rgb, &hsv);
 
     if (cr == CR_DARK)
-	hsv.z *= 0.5;
-    else
-    if (cr == CR_GRAY)
-	hsv.y = 0;
+    {
+    hsv.z *= 0.5;
+    }
+    else if (cr == CR_GRAY)
+    {
+        hsv.y = 0;
+    }
     else
     {
-	// [crispy] hack colors to full saturation
-	hsv.y = 1.0;
+        // [crispy] hack colors to full saturation
+        hsv.y = 1.0;
 
-	if (cr == CR_GREEN)
-	{
-//	    hsv.x = 135./360.;
-	    hsv.x = (145. * hsv.z + 120. * (1. - hsv.z))/360.;
-	}
-	else
-	if (cr == CR_GOLD)
-	{
-//	    hsv.x = 45./360.;
-//	    hsv.x = (50. * hsv.z + 30. * (1. - hsv.z))/360.;
-	    hsv.x = (7.0 + 53. * hsv.z)/360.;
-	    hsv.y = 1.0 - 0.4 * hsv.z;
-	    hsv.z = 0.2 + 0.8 * hsv.z;
-	}
-	else
-	if (cr == CR_RED)
-	{
-	    hsv.x = 0.;
-	}
-	else
-	if (cr == CR_BLUE)
-	{
-	    hsv.x = 240./360.;
-	}
+        if (cr == CR_GREEN)
+        {
+            //	    hsv.x = 135./360.;
+            hsv.x = (145. * hsv.z + 120. * (1. - hsv.z))/360.;
+        }
+        else if (cr == CR_GOLD)
+        {
+            //	    hsv.x = 45./360.;
+            //	    hsv.x = (50. * hsv.z + 30. * (1. - hsv.z))/360.;
+            hsv.x = (7.0 + 53. * hsv.z)/360.;
+            hsv.y = 1.0 - 0.4 * hsv.z;
+            hsv.z = 0.2 + 0.8 * hsv.z;
+        }
+        else if (cr == CR_RED)
+        {
+            hsv.x = 0.;
+        }
+        else if (cr == CR_BLUE)
+        {
+            hsv.x = 240./360.;
+        }
+        else if (cr == CR_CYAN)
+        {
+            //hsv.x = 190./360.;
+            hsv.x = 240./360.;
+            hsv.y *= 0.7;
+            hsv.z *= 1.5;
+            //hsv.y = 0.9;
+            //hsv.z = 0.5;
+        }
     }
 
     hsv_to_rgb(&hsv, &rgb);
