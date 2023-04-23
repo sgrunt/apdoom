@@ -2734,7 +2734,7 @@ G_InitNew
     viewactive = true;
     gameepisode = episode;
     gamemap = map;
-    gameskill = skill;
+    gameskill = (skill_t)ap_state.difficulty;// skill;
 
     // [crispy] CPhipps - total time for all completed levels
     totalleveltimes = 0;

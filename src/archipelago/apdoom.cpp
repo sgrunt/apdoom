@@ -155,6 +155,7 @@ static bool ap_was_connected = false; // Got connected at least once. That means
 void f_itemclr();
 void f_itemrecv(int64_t item_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
+void f_difficulty(int);
 void load_state();
 void save_state();
 
@@ -184,6 +185,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetItemClearCallback(f_itemclr);
 	AP_SetItemRecvCallback(f_itemrecv);
 	AP_SetLocationCheckedCallback(f_locrecv);
+	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
     AP_Start();
 
 	// Block DOOM until connection succeeded or failed
@@ -447,6 +449,12 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 void f_locrecv(int64_t loc_id)
 {
 	// Not much to do here
+}
+
+
+void f_difficulty(int difficulty)
+{
+	ap_state.difficulty = difficulty;
 }
 
 

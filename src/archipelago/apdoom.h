@@ -67,6 +67,7 @@ typedef struct
     ap_player_state_t player_state;
     int ep; // Useful when reloading, to load directly where we left
     int map;
+    int difficulty;
     
 } ap_state_t;
 
