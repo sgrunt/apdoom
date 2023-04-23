@@ -153,6 +153,16 @@ void on_ap_message(const char* text) // This string is cached for several second
 }
 
 
+void on_ap_victory()
+{
+    extern const char* finaletext;
+    extern const char* finaleflat;
+    finaletext = "Congratulation, you have beaten Archipelago DOOM!";
+    finaleflat = "AP_FLAT";
+    F_StartFinale();
+}
+
+
 boolean P_GiveArmor(player_t* player, int armortype);
 boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
@@ -1691,6 +1701,7 @@ void D_DoomMain (void)
     settings.passwd = password;
     settings.message_callback = on_ap_message;
     settings.give_item_callback = on_ap_give_item;
+    settings.victory_callback = on_ap_victory;
     if (!apdoom_init(&settings))
     {
 	    I_Error("Failed to initialize Archipelago.");

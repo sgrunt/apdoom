@@ -453,6 +453,9 @@ static void I_ToggleFullScreen(void)
     }
 }
 
+int cursor_x = 0;
+int cursor_y = 0;
+
 void I_GetEvent(void)
 {
     SDL_Event sdlevent;
@@ -482,6 +485,11 @@ void I_GetEvent(void)
                 {
                     I_HandleMouseEvent(&sdlevent);
                 }
+                break;
+
+            case SDL_MOUSEMOTION:
+                cursor_x = sdlevent.motion.x;
+                cursor_y = sdlevent.motion.y;
                 break;
 
             case SDL_QUIT:

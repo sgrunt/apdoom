@@ -487,6 +487,8 @@ void apdoom_check_victory()
 	}
 
 	AP_StoryComplete();
+
+	ap_settings.victory_callback();
 }
 
 

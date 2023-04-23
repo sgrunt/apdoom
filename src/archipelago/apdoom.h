@@ -79,6 +79,7 @@ typedef struct
     const char* passwd;
     void (*message_callback)(const char*);
     void (*give_item_callback)(int doom_type, int ep, int map);
+    void (*victory_callback)();
 } ap_settings_t;
 
 

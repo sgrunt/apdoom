@@ -192,6 +192,7 @@ void F_Ticker (void)
 {
     size_t		i;
     
+#if 0 // [AP]
     // check for skipping
     if ( (gamemode == commercial)
       && ( finalecount > 50) )
@@ -215,10 +216,12 @@ void F_Ticker (void)
 	  gameaction = ga_worlddone;
       }
     }
+#endif
     
     // advance animation
     finalecount++;
 	
+#if 0 // [AP]
     if (finalestage == F_STAGE_CAST)
     {
 	F_CastTicker ();
@@ -237,6 +240,7 @@ void F_Ticker (void)
 	if (gameepisode == 3)
 	    S_StartMusic (mus_bunny);
     }
+#endif
 }
 
 
@@ -308,7 +312,7 @@ void F_TextWrite (void)
     
     // draw some of the text onto the screen
     cx = 10;
-    cy = 10;
+    cy = 8 * 8; // 10; [AP] Center it a bit much, so we can still see AP messages at the top
     ch = finaletext_rw;
 	
     count = ((signed int) finalecount - 10) / TEXTSPEED;

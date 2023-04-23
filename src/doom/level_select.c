@@ -32,6 +32,10 @@ typedef struct
 } level_pos_t;
 
 
+extern int cursor_x;
+extern int cursor_y;
+
+
 static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 {
     // Episode 0 World Map
@@ -156,6 +160,8 @@ void play_level(int ep, int lvl)
         // If none, load it fresh
         G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
     }
+
+    apdoom_check_victory(); // In case we had pending victory
 }
 
 
@@ -367,6 +373,9 @@ void DrawLevelSelectStats()
         patch_t* finished = W_CacheLumpName(name, PU_STATIC);
         V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
     }
+
+    // Mouse Cursor
+    //V_DrawPatch(cursor_x, cursor_y, W_CacheLumpName("CURSOR", PU_STATIC));
 }
 
 
