@@ -627,7 +627,7 @@ void HU_Start(void)
 
     // [crispy] create the secret message widget
     HUlib_initSText(&w_secret,
-		    88, 86, HU_MSGHEIGHT,
+		    88, 86 + 16, HU_MSGHEIGHT,
 		    hu_font,
 		    HU_FONTSTART, &secret_on);
 
@@ -807,8 +807,8 @@ static void HU_DrawCrosshair (void)
         plr->playerstate != PST_LIVE ||
         (automapactive && !crispy->automapoverlay) ||
         menuactive ||
-        paused ||
-        secret_on)
+        paused/* ||
+        secret_on*/ /* [AP] Draw crosshair even if secret is on, we moved secret message down a bit */)
 	return;
 
     if (lump != laserpatch[crispy->crosshairtype].l)
