@@ -253,12 +253,12 @@
         "episode": 2, "map": 6,
         "Regions": {
             "Main": {
-                "locations": ["Shotgun", "Rocket launcher", "Berserk", "Chainsaw", "Mega Armor", "Backpack", "Plasma gun", "Yellow skull key", "Partial invisibility 3", "Partial invisibility", "Armor", "Chaingun", "Red skull key", "Blue skull key"],
+                "locations": ["Shotgun", "Rocket launcher", "Berserk", "Chainsaw", "Mega Armor", "Backpack", "Plasma gun", "Yellow skull key", "Partial invisibility 3", "Partial invisibility", "Armor", "Chaingun", "Red skull key", "Blue skull key", "Partial invisibility 2"],
                 "connects_to_hub": true,
                 "required_items_or": []
             },
             "Yellow": {
-                "locations": ["Map", "Supercharge", "Partial invisibility 2"],
+                "locations": ["Map", "Supercharge"],
                 "required_items_or": ["Yellow skull key"]
             },
             "Blue Yellow Red": {

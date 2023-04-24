@@ -47,6 +47,7 @@ namespace APDoomLauncher
             this.label4 = new System.Windows.Forms.Label();
             this.txtPlayer = new System.Windows.Forms.TextBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -215,11 +216,21 @@ namespace APDoomLauncher
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 733);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(147, 17);
+            this.label7.TabIndex = 9;
+            this.label7.Text = "APDOOM 0.1.1 (beta)";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(671, 759);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnLaunchDOOM);
@@ -237,6 +248,7 @@ namespace APDoomLauncher
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -259,6 +271,7 @@ namespace APDoomLauncher
         private System.Windows.Forms.TextBox txtPlayer;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox txtCommandLine;
+        private System.Windows.Forms.Label label7;
     }
 }
 
