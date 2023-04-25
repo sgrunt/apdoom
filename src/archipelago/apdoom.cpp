@@ -407,9 +407,9 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		return; // Skip
 	ap_item_t item = it->second;
 
-	// Is it a key?
 	switch (item.doom_type)
 	{
+		// Is it a key?
 		case 5:
 		case 40:
 			ap_state.level_states[item.ep - 1][item.map - 1].keys[0] = 1;
@@ -422,9 +422,36 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		case 38:
 			ap_state.level_states[item.ep - 1][item.map - 1].keys[2] = 1;
 			break;
+
+		// Map
 		case 2026:
 			ap_state.level_states[item.ep - 1][item.map - 1].has_map = 1;
 			break;
+
+		// Backpack
+		case 8:
+			ap_state.player_state.backpack = 1;
+            break;
+
+		// Is it a weapon?
+        case 2001:
+			ap_state.player_state.weapon_owned[2] = 1;
+            break;
+        case 2002:
+			ap_state.player_state.weapon_owned[3] = 1;
+            break;
+        case 2003:
+			ap_state.player_state.weapon_owned[4] = 1;	
+            break;
+        case 2004:
+			ap_state.player_state.weapon_owned[5] = 1;	
+            break;
+        case 2006:
+			ap_state.player_state.weapon_owned[6] = 1;	
+            break;
+        case 2005:
+			ap_state.player_state.weapon_owned[7] = 1;	
+            break;
 	}
 
 	// Is it a level?
@@ -432,6 +459,7 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	{
 		ap_state.level_states[item.ep - 1][item.map - 1].unlocked = 1;
 	}
+
 
 	if (!notify_player) return;
 
