@@ -16,11 +16,11 @@
             "Main": {
                 "locations": ["Shotgun", "Armor", "Supercharge", "Chaingun", "Red keycard", "Armor 2", "Backpack"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Red": {
                 "locations": ["Chainsaw", "Armor 3", "Mega Armor", "Backpack 2", "Complete"],
+                "connects_to_exit": true,
                 "required_items_or": ["Red keycard"]
             }
         }
@@ -65,11 +65,11 @@
             "Main": {
                 "locations": ["Yellow keycard", "Mega Armor", "Rocket launcher", "Shotgun", "Shotgun 2", "Backpack", "Shotgun 3", "Armor"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": [],
+                "connects_to_exit": true,
                 "required_items_or": ["Blue keycard"]
             },
             "Yellow": {
@@ -210,11 +210,11 @@
             "Main": {
                 "locations": ["Chaingun", "Shotgun", "Berserk", "Partial invisibility 2", "Mega Armor", "Backpack", "Plasma gun", "Blue keycard", "Armor"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
             },
             "Blue": {
                 "locations": ["Supercharge", "Partial invisibility"],
+                "connects_to_exit": true,
                 "required_items_or": ["Blue keycard"]
             }
         }
