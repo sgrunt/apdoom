@@ -231,6 +231,8 @@ else()
     add_executable("${PROGRAM_PREFIX}setup" ${SETUP_FILES} ${COMMON_SOURCE_FILES})
 endif()
 
+target_compile_definitions("${PROGRAM_PREFIX}setup" PRIVATE -DSETUP_PRG)
+
 target_include_directories("${PROGRAM_PREFIX}setup"
                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::SDL2main SDL2::SDL2 setup textscreen)

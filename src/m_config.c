@@ -3041,7 +3041,7 @@ static char *GetDefaultConfigDir(void)
         return copy;
     }
 #endif /* #ifndef _WIN32 */
-    return M_StringDuplicate(exedir);
+    return "./"; // [AP] CWD // M_StringDuplicate(exedir);
 }
 
 // 

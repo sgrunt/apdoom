@@ -11,7 +11,9 @@ To be used with [Archipelago](archipelago.gg).
 1. Download the zip from the release page.
 2. Extract on your PC.
 3. Copy your DOOM.WAD into the newly extracted folder.
-4. Run APDOOM.exe.
+4. Run `crispy-setup.exe` if you wish to change key bindings or MIDI synth.
+5. Run APDoomLauncher.exe.
+6. Rip and tear!
 
 ### DOOM.WAD
 
@@ -32,7 +34,7 @@ The rules were built using the WAD file found in the Steam release of DOOM. It w
     * libglib-2.0-0.dll
     * libsndfile-1.dll
     * libgthread-2.0-0.dll
-6. Compile the C# project "Launcher" in Release, and put it into `Release/`. Then rename it to `APDOOM.exe`.
+6. Compile the C# project "Launcher" in Release, and put it into `Release/`.
 7. Copy `APDOOM.WAD` into `Release/`
 8. Copy `DOOM.WAD` into `Release/` (For testing!)
 9. Run locally to see that everything works

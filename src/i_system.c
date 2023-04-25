@@ -49,7 +49,9 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+#ifndef SETUP_PRG
 #include "apdoom.h"
+#endif
 
 #define DEFAULT_RAM 16*2 /* MiB [crispy] */
 #define MIN_RAM     4*4  /* MiB [crispy] */
@@ -251,8 +253,9 @@ void I_Quit (void)
     atexit_listentry_t *entry;
 
     // Run through all exit functions
- 
+#ifndef SETUP_PRG
     apdoom_shutdown(); // [AP] Shutdown properly, this will save player state (Should we put that into exit_funcs?)
+#endif
     entry = exit_funcs; 
 
     while (entry != NULL)
