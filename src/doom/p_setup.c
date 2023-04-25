@@ -508,9 +508,175 @@ void P_LoadThings (int lump)
     mapthing_t  spawnthing_player1_start;
     int			numthings;
     boolean		spawn;
+    int bit;
 
     data = W_CacheLumpNum (lump,PU_STATIC);
     numthings = W_LumpLength (lump) / sizeof(mapthing_t);
+
+    if (ap_state.random_monsters > 0)
+    {
+        // Generate unique random seed from ap seed + level
+        const char* ap_seed = apdoom_get_seed();
+        unsigned long long seed = strtoull(ap_seed, NULL, 10);
+        seed += gameepisode * 9 + gamemap;
+        srand(seed);
+
+        // Make sure at the right difficulty level
+        if (gameskill == sk_baby)
+            bit = 1;
+        else if (gameskill == sk_nightmare)
+            bit = 4;
+        else
+            bit = 1<<(gameskill-1);
+
+        if (ap_state.random_monsters == 1) // Shuffle
+        {
+            int monsters[1024];
+            int monster_count = 0;
+            int indices[1024];
+            int index_count = 0;
+
+            // Collect all monsters
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (!(mt->options & bit))
+                    continue;
+
+                switch (mt->type)
+                {
+                    case 3004: // Former Human
+                    case 9: // Former Human Sergeant
+                    case 3001: // Imp
+                    case 3002: // Demon
+                    case 58: // SPECTRE
+                    case 3006: // Lost soul
+                    case 3005: // Cacodemon
+                    case 3003: // Baron of hell
+                    case 16: // Cyberdemon
+                    case 7: // Spiderdemon
+                    {
+                        monsters[monster_count++] = mt->type;
+                        indices[index_count++] = i;
+                        break;
+                    }
+                }
+            }
+
+            // Randomly pick them until empty, and place them in different spots
+            mt = (mapthing_t *)data;
+            for (i = 0; i < index_count; i++)
+            {
+                int idx = rand() % monster_count;
+                mt[indices[i]].type = monsters[idx];
+                monsters[idx] = monsters[monster_count - 1];
+                monster_count--;
+            }
+        }
+        else if (ap_state.random_monsters == 2) // Random balanced
+        {
+            int ratios[3] = {0, 0, 0};
+            int total = 0;
+
+            // Make sure at the right difficulty level
+            if (gameskill == sk_baby)
+                bit = 1;
+            else if (gameskill == sk_nightmare)
+                bit = 4;
+            else
+                bit = 1<<(gameskill-1);
+
+            // Calculate ratios
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                switch (mt->type)
+                {
+                    case 3004: // Former Human
+                    case 9: // Former Human Sergeant
+                    case 3001: // Imp
+                        ratios[0]++;
+                        total++;
+                        break;
+
+                    case 3002: // Demon
+                    case 58: // SPECTRE
+                    case 3006: // Lost soul
+                    case 3005: // Cacodemon
+                        ratios[1]++;
+                        total++;
+                        break;
+
+                    case 3003: // Baron of hell
+                    case 16: // Cyberdemon
+                    case 7: // Spiderdemon
+                        ratios[2]++;
+                        total++;
+                        break;
+                }
+            }
+
+            // Randomly pick monsters based on ratio
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                switch (mt->type)
+                {
+                    case 3004: // Former Human
+                    case 9: // Former Human Sergeant
+                    case 3001: // Imp
+                    case 3002: // Demon
+                    case 58: // SPECTRE
+                    case 3006: // Lost soul
+                    case 3005: // Cacodemon
+                    case 3003: // Baron of hell
+                    case 16: // Cyberdemon
+                    case 7: // Spiderdemon
+                    {
+                        int rnd = rand() % total;
+                        if (rnd < ratios[0])
+                        {
+                            switch (rand()%3)
+                            {
+                                case 0: mt->type = 3004; break; // Former Human
+                                case 1: mt->type = 9; break; // Former Human Sergeant
+                                case 2: mt->type = 3001; break; // Imp
+                            }
+                        }
+                        else if (rnd < ratios[0] + ratios[1])
+                        {
+                            switch (rand()%9)
+                            {
+                                case 0: mt->type = 3002; break; // Demon
+                                case 1: mt->type = 3002; break; // Demon
+                                case 2: mt->type = 3002; break; // Demon
+                                case 3: mt->type = 58; break; // SPECTRE
+                                case 4: mt->type = 58; break; // SPECTRE
+                                case 5: mt->type = 58; break; // SPECTRE
+                                case 6: mt->type = 3005; break; // Cacodemon
+                                case 7: mt->type = 3005; break; // Cacodemon
+                                case 8: mt->type = 3006; break; // Lost soul
+                            }
+                        }
+                        else
+                        {
+                            switch (rand()%7)
+                            {
+                                case 0: mt->type = 3003; break; // Baron of hell
+                                case 1: mt->type = 3003; break; // Baron of hell
+                                case 2: mt->type = 3003; break; // Baron of hell
+                                case 3: mt->type = 3003; break; // Baron of hell
+                                case 4: mt->type = 3003; break; // Baron of hell
+                                case 5: mt->type = 16; break; // Cyberdemon
+                                case 6: mt->type = 7; break; // Spiderdemon
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
 	
     mt = (mapthing_t *)data;
     for (i=0 ; i<numthings ; i++, mt++)

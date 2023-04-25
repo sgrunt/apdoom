@@ -100,6 +100,7 @@ typedef struct
     int ep; // Useful when reloading, to load directly where we left
     int map;
     int difficulty;
+    int random_monsters;
     
 } ap_state_t;
 
