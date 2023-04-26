@@ -169,6 +169,7 @@ void play_level(int ep, int lvl)
         // We load
         extern char savename[256];
         snprintf(savename, 256, "%s", filename);
+        ap_state.player_state.powers[pw_strength] = 0;
         gameaction = ga_loadgame;
         //G_DoLoadGame();
     }
