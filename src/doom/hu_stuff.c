@@ -120,6 +120,9 @@ static hu_stext_t   w_ap_messages[4];
 static boolean      ap_message_ons[4];
 static int		ap_message_counters[4];
 
+static char ap_message_buffer[HU_MAX_LINE_BUFFER][HU_MAXLINELENGTH + 1];
+static int ap_message_buffer_count = 0;
+
 
 static boolean		headsupactive = false;
 
@@ -990,37 +993,74 @@ void HU_InitAPMessages()
     // [AP] AP messages
     for (int i = 0; i < 4; ++i)
         HUlib_initSText(&w_ap_messages[i],
-                        HU_MSGX, i * 8, HU_MSGHEIGHT,
+                        HU_MSGX, 3 * 8 - i * 8, HU_MSGHEIGHT,
                         hu_font,
                         HU_FONTSTART, &ap_message_ons[i]);
 }
 
-void HU_AddAPMessage(const char* message)
+
+void HU_AddAPLine(const char* line, int len)
 {
+    char baked_line[HU_MAXLINELENGTH + 1];
+    memcpy(baked_line, line, len);
+    baked_line[len] = '\0';
+
     // Lazy init
     if (!w_ap_messages[0].on)
     {
-        // [AP] AP messages
-        for (int i = 0; i < 4; ++i)
-            HUlib_initSText(&w_ap_messages[i],
-                            HU_MSGX, i * 8, HU_MSGHEIGHT,
-                            hu_font,
-                            HU_FONTSTART, &ap_message_ons[i]);
+        HU_InitAPMessages();
     }
 
-    // Shift currents
-    for (int i = 3; i > 0; --i)
+    // Add to buffer
+    if (ap_message_buffer_count >= HU_MAX_LINE_BUFFER)
+        return; // No more room
+    memcpy(ap_message_buffer[ap_message_buffer_count], baked_line, len + 1);
+    ap_message_buffer_count++;
+}
+
+void HU_AddAPMessage(const char* message)
+{
+    int len = strlen(message);
+    if (len <= HU_MAXLINELENGTH)
     {
-        memcpy(&w_ap_messages[i], &w_ap_messages[i - 1], sizeof(hu_stext_t));
-        w_ap_messages[i].on = &ap_message_ons[i]; // Don't break that
-        ap_message_counters[i] = ap_message_counters[i - 1];
-        ap_message_ons[i] = ap_message_ons[i - 1];
-        w_ap_messages[i].l[0].y = i * 8;
+        // ez pz
+        HU_AddAPLine(message, len);
+        return;
     }
-
-	HUlib_addMessageToSText(&w_ap_messages[0], 0, message);
-	ap_message_ons[0] = true;
-	ap_message_counters[0] = HU_APMSGTIMEOUT;
+    // ~2Now that you are connected, you can use !help to list commands to run via the server. If your client supports it, you may have additional local commands you can list with /help.
+    //TODO: Word wrap
+    // ORIGWIDTH + WIDESCREENDELTA
+    int i = 0;
+    int j = 0;
+    char baked_line[HU_MAXLINELENGTH + 1];
+    baked_line[HU_MAXLINELENGTH] = '\0';
+    int word_start = 0;
+    while (i < len)
+    {
+        if (message[j] == ' ')
+        {
+            word_start = j;
+        }
+        int w = HULib_measureText(message + i, j - i);
+        if (w < ORIGWIDTH + WIDESCREENDELTA - 8 && (j - i) + 2 < HU_MAXLINELENGTH && j < len)
+        {
+            j++;
+            continue;
+        }
+        if (j < len)
+            j = word_start;
+        memcpy(baked_line + 2, message + i, j - i);
+        baked_line[0] = '~'; baked_line[1] = '2'; // Always make sure to use white
+        HU_AddAPLine(baked_line, (j - i) + 2);
+        i = j;
+        word_start = j;
+        while (message[i] == ' ')
+        {
+            i++;
+            j++;
+            word_start++;
+        }
+    }
 }
 
 void HU_DrawAPMessages()
@@ -1029,11 +1069,43 @@ void HU_DrawAPMessages()
         HUlib_drawSText(&w_ap_messages[i]);
 }
 
+boolean HU_HasAPMessageRoom()
+{
+    for (int i = 0; i < 4; ++i)
+        if (!ap_message_ons[i])
+            return true;
+    return false;
+}
+
 void HU_TickAPMessages()
 {
     for (int i = 0; i < 4; ++i)
         if (ap_message_counters[i] && !--ap_message_counters[i])
             ap_message_ons[i] = false;
+
+    while (HU_HasAPMessageRoom() && ap_message_buffer_count)
+    {
+        // Shift currents
+        for (int i = 3; i > 0; --i)
+        {
+            memcpy(&w_ap_messages[i], &w_ap_messages[i - 1], sizeof(hu_stext_t));
+            w_ap_messages[i].on = &ap_message_ons[i]; // Don't break that
+            ap_message_counters[i] = ap_message_counters[i - 1];
+            ap_message_ons[i] = ap_message_ons[i - 1];
+            w_ap_messages[i].l[0].y = 3 * 8 - i * 8;
+        }
+
+	    HUlib_addMessageToSText(&w_ap_messages[0], 0, ap_message_buffer[0]);
+	    ap_message_ons[0] = true;
+	    ap_message_counters[0] = HU_APMSGTIMEOUT;
+
+        // Shift buffers
+        for (int i = 1; i < ap_message_buffer_count; ++i)
+        {
+            memcpy(ap_message_buffer[i - 1], ap_message_buffer[i], HU_MAXLINELENGTH + 1);
+        }
+        ap_message_buffer_count--;
+    }
 }
 
 

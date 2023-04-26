@@ -29,6 +29,7 @@
 #include "r_local.h"
 #include "r_draw.h"
 #include "v_trans.h" // [crispy] colored HUlib_drawTextLine()
+#include "hu_stuff.h"
 
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
@@ -89,6 +90,39 @@ boolean HUlib_delCharFromTextLine(hu_textline_t* t)
 	return true;
     }
 
+}
+
+
+int HULib_measureText(const char* text, int len)
+{
+    int			i;
+    int			w;
+    int			x = 0;
+    unsigned char	c;
+	patch_t** f = hu_font;
+
+	for (i=0;i<len;i++)
+	{
+		c = toupper(text[i]);
+		if (c == cr_esc)
+		{
+			if (text[i+1] >= '0' && text[i+1] <= '0' + CRMAX - 1)
+			{
+				i++;
+			}
+		}
+		else if (c != ' ' && c <= '_')
+		{
+			w = SHORT(f[c - '!']->width);
+			x += w;
+		}
+		else
+		{
+			x += 4;
+		}
+	}
+
+	return x;
 }
 
 void
@@ -281,6 +315,7 @@ void HUlib_drawSText(hu_stext_t* s)
     }
 
 }
+
 
 void HUlib_eraseSText(hu_stext_t* s)
 {

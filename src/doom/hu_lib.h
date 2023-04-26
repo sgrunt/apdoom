@@ -26,6 +26,7 @@
 
 #define HU_MAXLINES		4
 #define HU_MAXLINELENGTH	80
+#define HU_MAX_LINE_BUFFER 50
 
 //
 // Typedefs of widgets
@@ -110,6 +111,8 @@ void	HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
 
 // erases text line
 void	HUlib_eraseTextLine(hu_textline_t *l); 
+
+int HULib_measureText(const char* text, int len);
 
 
 //
