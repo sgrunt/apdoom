@@ -513,14 +513,14 @@ void P_LoadThings (int lump)
     data = W_CacheLumpNum (lump,PU_STATIC);
     numthings = W_LumpLength (lump) / sizeof(mapthing_t);
 
+    // Generate unique random seed from ap seed + level
+    const char* ap_seed = apdoom_get_seed();
+    unsigned long long seed = strtoull(ap_seed, NULL, 10);
+    seed += gameepisode * 9 + gamemap;
+    srand(seed);
+
     if (ap_state.random_monsters > 0)
     {
-        // Generate unique random seed from ap seed + level
-        const char* ap_seed = apdoom_get_seed();
-        unsigned long long seed = strtoull(ap_seed, NULL, 10);
-        seed += gameepisode * 9 + gamemap;
-        srand(seed);
-
         // Make sure at the right difficulty level
         if (gameskill == sk_baby)
             bit = 1;
@@ -553,8 +553,8 @@ void P_LoadThings (int lump)
                     case 3006: // Lost soul
                     case 3005: // Cacodemon
                     case 3003: // Baron of hell
-                    case 16: // Cyberdemon
-                    case 7: // Spiderdemon
+                    //case 16: // Cyberdemon [Too big, keep them there]
+                    //case 7: // Spiderdemon [Too big, keep them there]
                     {
                         monsters[monster_count++] = mt->type;
                         indices[index_count++] = i;
@@ -608,8 +608,6 @@ void P_LoadThings (int lump)
                         break;
 
                     case 3003: // Baron of hell
-                    case 16: // Cyberdemon
-                    case 7: // Spiderdemon
                         ratios[2]++;
                         total++;
                         break;
@@ -630,8 +628,6 @@ void P_LoadThings (int lump)
                     case 3006: // Lost soul
                     case 3005: // Cacodemon
                     case 3003: // Baron of hell
-                    case 16: // Cyberdemon
-                    case 7: // Spiderdemon
                     {
                         int rnd = rand() % total;
                         if (rnd < ratios[0])
@@ -645,30 +641,183 @@ void P_LoadThings (int lump)
                         }
                         else if (rnd < ratios[0] + ratios[1])
                         {
-                            switch (rand()%9)
+                            switch (rand()%8)
                             {
                                 case 0: mt->type = 3002; break; // Demon
                                 case 1: mt->type = 3002; break; // Demon
                                 case 2: mt->type = 3002; break; // Demon
                                 case 3: mt->type = 58; break; // SPECTRE
                                 case 4: mt->type = 58; break; // SPECTRE
-                                case 5: mt->type = 58; break; // SPECTRE
+                                case 5: mt->type = 3005; break; // Cacodemon
                                 case 6: mt->type = 3005; break; // Cacodemon
-                                case 7: mt->type = 3005; break; // Cacodemon
-                                case 8: mt->type = 3006; break; // Lost soul
+                                case 7: mt->type = 3006; break; // Lost soul
                             }
                         }
                         else
                         {
-                            switch (rand()%7)
+                            mt->type = 3003; // Baron of hell
+                        }
+                        break;
+                    }
+                    case 16: // Cyberdemon
+                    case 7: // Spiderdemon
+                        if (rand()%2) mt->type = 16;
+                        else mt->type = 7;
+                        break;
+                }
+            }
+        }
+    }
+
+    if (ap_state.random_items > 0)
+    {
+        // Make sure at the right difficulty level
+        if (gameskill == sk_baby)
+            bit = 1;
+        else if (gameskill == sk_nightmare)
+            bit = 4;
+        else
+            bit = 1<<(gameskill-1);
+
+        if (ap_state.random_items == 1) // Shuffle
+        {
+            int items[1024];
+            int item_count = 0;
+            int indices[1024];
+            int index_count = 0;
+
+            // Collect all items
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (!(mt->options & bit))
+                    continue;
+
+                switch (mt->type)
+                {
+                    case 2008: // 4 shotgun shells
+                    case 2048: // box of bullets
+                    case 2046: // box of rockets
+                    case 2049: // box of shotgun shells
+                    case 2007: // clip
+                    case 2047: // energy cell
+                    case 17: // energy cell pack
+                    case 2010: // rocket
+                    case 2015: // armor bonus
+                    case 2014: // health bonus
+                    case 2012: // medikit
+                    case 2011: // Stimpack
+                    {
+                        items[item_count++] = mt->type;
+                        indices[index_count++] = i;
+                        break;
+                    }
+                }
+            }
+
+            // Randomly pick them until empty, and place them in different spots
+            mt = (mapthing_t *)data;
+            for (i = 0; i < index_count; i++)
+            {
+                int idx = rand() % item_count;
+                mt[indices[i]].type = items[idx];
+                items[idx] = items[item_count - 1];
+                item_count--;
+            }
+        }
+        else if (ap_state.random_items == 2) // Random balanced
+        {
+            int ratios[3] = {0, 0, 0};
+            int total = 0;
+
+            // Make sure at the right difficulty level
+            if (gameskill == sk_baby)
+                bit = 1;
+            else if (gameskill == sk_nightmare)
+                bit = 4;
+            else
+                bit = 1<<(gameskill-1);
+
+            // Calculate ratios
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                switch (mt->type)
+                {
+                    case 2015: // armor bonus
+                    case 2014: // health bonus
+                        ratios[0]++;
+                        total++;
+                        break;
+
+                    case 2011: // Stimpack
+                    case 2008: // 4 shotgun shells
+                    case 2007: // clip
+                    case 2047: // energy cell
+                    case 2010: // rocket
+                        ratios[1]++;
+                        total++;
+                        break;
+
+                    case 2048: // box of bullets
+                    case 2046: // box of rockets
+                    case 2049: // box of shotgun shells
+                    case 17: // energy cell pack
+                    case 2012: // medikit
+                        ratios[2]++;
+                        total++;
+                        break;
+                }
+            }
+
+            // Randomly pick items based on ratio
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                switch (mt->type)
+                {
+                    case 2008: // 4 shotgun shells
+                    case 2048: // box of bullets
+                    case 2046: // box of rockets
+                    case 2049: // box of shotgun shells
+                    case 2007: // clip
+                    case 2047: // energy cell
+                    case 17: // energy cell pack
+                    case 2010: // rocket
+                    case 2015: // armor bonus
+                    case 2014: // health bonus
+                    case 2012: // medikit
+                    case 2011: // Stimpack
+                    {
+                        int rnd = rand() % total;
+                        if (rnd < ratios[0])
+                        {
+                            switch (rand()%2)
                             {
-                                case 0: mt->type = 3003; break; // Baron of hell
-                                case 1: mt->type = 3003; break; // Baron of hell
-                                case 2: mt->type = 3003; break; // Baron of hell
-                                case 3: mt->type = 3003; break; // Baron of hell
-                                case 4: mt->type = 3003; break; // Baron of hell
-                                case 5: mt->type = 16; break; // Cyberdemon
-                                case 6: mt->type = 7; break; // Spiderdemon
+                                case 0: mt->type = 2015; break; // armor bonus
+                                case 1: mt->type = 2014; break; // health bonus
+                            }
+                        }
+                        else if (rnd < ratios[0] + ratios[1])
+                        {
+                            switch (rand()%5)
+                            {
+                                case 0: mt->type = 2011; break; // Stimpack
+                                case 1: mt->type = 2008; break; // 4 shotgun shells
+                                case 2: mt->type = 2007; break; // clip
+                                case 3: mt->type = 2047; break; // energy cell
+                                case 4: mt->type = 2010; break; // rocket
+                            }
+                        }
+                        else
+                        {
+                            switch (rand()%5)
+                            {
+                                case 0: mt->type = 2048; break; // box of bullets
+                                case 1: mt->type = 2046; break; // box of rockets
+                                case 2: mt->type = 2049; break; // box of shotgun shells
+                                case 3: mt->type = 17; break; // energy cell pack
+                                case 4: mt->type = 2012; break; // medikit
                             }
                         }
                         break;

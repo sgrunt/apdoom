@@ -101,6 +101,7 @@ typedef struct
     int map;
     int difficulty;
     int random_monsters;
+    int random_items;
     
 } ap_state_t;
 

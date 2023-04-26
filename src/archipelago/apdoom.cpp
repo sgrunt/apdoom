@@ -174,6 +174,7 @@ void f_itemrecv(int64_t item_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
 void f_difficulty(int);
 void f_random_monsters(int);
+void f_random_items(int);
 void load_state();
 void save_state();
 
@@ -205,6 +206,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetLocationCheckedCallback(f_locrecv);
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
+	AP_RegisterSlotDataIntCallback("random_items", f_random_items);
     AP_Start();
 
 	// Block DOOM until connection succeeded or failed
@@ -508,6 +510,12 @@ void f_difficulty(int difficulty)
 void f_random_monsters(int random_monsters)
 {
 	ap_state.random_monsters = random_monsters;
+}
+
+
+void f_random_items(int random_items)
+{
+	ap_state.random_items = random_items;
 }
 
 
