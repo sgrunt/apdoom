@@ -123,6 +123,8 @@ static int		ap_message_counters[4];
 static char ap_message_buffer[HU_MAX_LINE_BUFFER][HU_MAXLINELENGTH + 1];
 static int ap_message_buffer_count = 0;
 
+static int ap_message_anim = 0;
+
 
 static boolean		headsupactive = false;
 
@@ -1066,7 +1068,10 @@ void HU_AddAPMessage(const char* message)
 void HU_DrawAPMessages()
 {
     for (int i = 0; i < 4; ++i)
+    {
+        if (i == 0 && ap_message_anim > 0 && HU_GetActiveAPMessageCount() == 4) continue;
         HUlib_drawSText(&w_ap_messages[i]);
+    }
 }
 
 boolean HU_HasAPMessageRoom()
@@ -1077,13 +1082,47 @@ boolean HU_HasAPMessageRoom()
     return false;
 }
 
+int HU_GetActiveAPMessageCount()
+{
+    int active_count = 0;
+    for (int i = 0; i < 4; ++i)
+    {
+        if (ap_message_ons[i])
+            active_count++;
+    }
+    return active_count;
+}
+
+void HU_UpdateAPMessagePosition(int i)
+{
+    w_ap_messages[i].l[0].y = 3 * 8 - i * 8 - 4 * 8 + HU_GetActiveAPMessageCount() * 8 + ap_message_anim;
+}
+
 void HU_TickAPMessages()
 {
-    for (int i = 0; i < 4; ++i)
-        if (ap_message_counters[i] && !--ap_message_counters[i])
-            ap_message_ons[i] = false;
+#if 0
+    static int test = 0;
+    if (test <= 0)
+    {
+        test = rand()%(35 * 8);
+        switch (rand()%10)
+        {
+            case 0: HU_AddAPMessage("~0Test Line A"); break;
+            case 1: HU_AddAPMessage("~1Test Line B"); break;
+            case 2: HU_AddAPMessage("~2Test Line C"); break;
+            case 3: HU_AddAPMessage("~3Test Line D"); break;
+            case 4: HU_AddAPMessage("~4Test Line E"); break;
+            case 5: HU_AddAPMessage("~5Test Line F"); break;
+            case 6: HU_AddAPMessage("~6Test Line G"); break;
+            case 7: HU_AddAPMessage("~7Test Line H"); break;
+            case 8: HU_AddAPMessage("~8Test Line I"); break;
+            case 9: HU_AddAPMessage("~9Test Line J"); break;
+        }
+    }
+    test--;
+#endif
 
-    while (HU_HasAPMessageRoom() && ap_message_buffer_count)
+    while (HU_HasAPMessageRoom() && ap_message_buffer_count && ap_message_anim == 0)
     {
         // Shift currents
         for (int i = 3; i > 0; --i)
@@ -1092,9 +1131,7 @@ void HU_TickAPMessages()
             w_ap_messages[i].on = &ap_message_ons[i]; // Don't break that
             ap_message_counters[i] = ap_message_counters[i - 1];
             ap_message_ons[i] = ap_message_ons[i - 1];
-            w_ap_messages[i].l[0].y = 3 * 8 - i * 8;
         }
-
 	    HUlib_addMessageToSText(&w_ap_messages[0], 0, ap_message_buffer[0]);
 	    ap_message_ons[0] = true;
 	    ap_message_counters[0] = HU_APMSGTIMEOUT;
@@ -1106,6 +1143,26 @@ void HU_TickAPMessages()
         }
         ap_message_buffer_count--;
     }
+
+    if (ap_message_anim == 0)
+    {
+        for (int i = 3; i >= 0; --i)
+        {
+            if (ap_message_counters[i] && !--ap_message_counters[i])
+            {
+                ap_message_ons[i] = false;
+                ap_message_anim = 8;
+                break;
+            }
+        }
+    }
+
+    // Animate their position
+    for (int i = 0; i < 4; ++i)
+        HU_UpdateAPMessagePosition(i);
+
+    if (ap_message_anim > 0)
+        ap_message_anim--;
 }
 
 
