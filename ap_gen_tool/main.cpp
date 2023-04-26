@@ -858,7 +858,7 @@ int main(int argc, char** argv)
                 case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i, thing.x, thing.y); break;
                 case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i, thing.x, thing.y); break;
                 case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i, thing.x, thing.y); break;
-                case 2026: add_loc(lvl_prefix + "Map", thing, level, i, thing.x, thing.y); break;
+                case 2026: add_loc(lvl_prefix + "Computer area map", thing, level, i, thing.x, thing.y); break;
 
 #if 0
                 // Player spawn
@@ -880,7 +880,7 @@ int main(int argc, char** argv)
             ++i;
         }
 
-        add_item(lvl_prefix + "Map", 2026, 1, FILLER, "", 0, level);
+        add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
     }
 
     add_item("Armor", 2018, armor_count, FILLER, "Powerups");
