@@ -519,6 +519,14 @@ void P_LoadThings (int lump)
     seed += gameepisode * 9 + gamemap;
     srand(seed);
 
+    int things_type_remap[1024] = {0};
+
+    mt = (mapthing_t *)data;
+    for (i = 0; i < numthings; i++, mt++)
+    {
+        things_type_remap[i] = mt->type;
+    }
+
     if (ap_state.random_monsters > 0)
     {
         // Make sure at the right difficulty level
@@ -568,7 +576,7 @@ void P_LoadThings (int lump)
             for (i = 0; i < index_count; i++)
             {
                 int idx = rand() % monster_count;
-                mt[indices[i]].type = monsters[idx];
+                things_type_remap[indices[i]] = monsters[idx];
                 monsters[idx] = monsters[monster_count - 1];
                 monster_count--;
             }
@@ -634,35 +642,35 @@ void P_LoadThings (int lump)
                         {
                             switch (rand()%3)
                             {
-                                case 0: mt->type = 3004; break; // Former Human
-                                case 1: mt->type = 9; break; // Former Human Sergeant
-                                case 2: mt->type = 3001; break; // Imp
+                                case 0: things_type_remap[i] = 3004; break; // Former Human
+                                case 1: things_type_remap[i] = 9; break; // Former Human Sergeant
+                                case 2: things_type_remap[i] = 3001; break; // Imp
                             }
                         }
                         else if (rnd < ratios[0] + ratios[1])
                         {
                             switch (rand()%8)
                             {
-                                case 0: mt->type = 3002; break; // Demon
-                                case 1: mt->type = 3002; break; // Demon
-                                case 2: mt->type = 3002; break; // Demon
-                                case 3: mt->type = 58; break; // SPECTRE
-                                case 4: mt->type = 58; break; // SPECTRE
-                                case 5: mt->type = 3005; break; // Cacodemon
-                                case 6: mt->type = 3005; break; // Cacodemon
-                                case 7: mt->type = 3006; break; // Lost soul
+                                case 0: things_type_remap[i] = 3002; break; // Demon
+                                case 1: things_type_remap[i] = 3002; break; // Demon
+                                case 2: things_type_remap[i] = 3002; break; // Demon
+                                case 3: things_type_remap[i] = 58; break; // SPECTRE
+                                case 4: things_type_remap[i] = 58; break; // SPECTRE
+                                case 5: things_type_remap[i] = 3005; break; // Cacodemon
+                                case 6: things_type_remap[i] = 3005; break; // Cacodemon
+                                case 7: things_type_remap[i] = 3006; break; // Lost soul
                             }
                         }
                         else
                         {
-                            mt->type = 3003; // Baron of hell
+                            things_type_remap[i] = 3003; // Baron of hell
                         }
                         break;
                     }
                     case 16: // Cyberdemon
                     case 7: // Spiderdemon
-                        if (rand()%2) mt->type = 16;
-                        else mt->type = 7;
+                        if (rand()%2) things_type_remap[i] = 16;
+                        else things_type_remap[i] = 7;
                         break;
                 }
             }
@@ -794,30 +802,30 @@ void P_LoadThings (int lump)
                         {
                             switch (rand()%2)
                             {
-                                case 0: mt->type = 2015; break; // armor bonus
-                                case 1: mt->type = 2014; break; // health bonus
+                                case 0: things_type_remap[i] = 2015; break; // armor bonus
+                                case 1: things_type_remap[i] = 2014; break; // health bonus
                             }
                         }
                         else if (rnd < ratios[0] + ratios[1])
                         {
                             switch (rand()%5)
                             {
-                                case 0: mt->type = 2011; break; // Stimpack
-                                case 1: mt->type = 2008; break; // 4 shotgun shells
-                                case 2: mt->type = 2007; break; // clip
-                                case 3: mt->type = 2047; break; // energy cell
-                                case 4: mt->type = 2010; break; // rocket
+                                case 0: things_type_remap[i] = 2011; break; // Stimpack
+                                case 1: things_type_remap[i] = 2008; break; // 4 shotgun shells
+                                case 2: things_type_remap[i] = 2007; break; // clip
+                                case 3: things_type_remap[i] = 2047; break; // energy cell
+                                case 4: things_type_remap[i] = 2010; break; // rocket
                             }
                         }
                         else
                         {
                             switch (rand()%5)
                             {
-                                case 0: mt->type = 2048; break; // box of bullets
-                                case 1: mt->type = 2046; break; // box of rockets
-                                case 2: mt->type = 2049; break; // box of shotgun shells
-                                case 3: mt->type = 17; break; // energy cell pack
-                                case 4: mt->type = 2012; break; // medikit
+                                case 0: things_type_remap[i] = 2048; break; // box of bullets
+                                case 1: things_type_remap[i] = 2046; break; // box of rockets
+                                case 2: things_type_remap[i] = 2049; break; // box of shotgun shells
+                                case 3: things_type_remap[i] = 17; break; // energy cell pack
+                                case 4: things_type_remap[i] = 2012; break; // medikit
                             }
                         }
                         break;
@@ -858,7 +866,7 @@ void P_LoadThings (int lump)
 	spawnthing.x = SHORT(mt->x);
 	spawnthing.y = SHORT(mt->y);
 	spawnthing.angle = SHORT(mt->angle);
-	spawnthing.type = SHORT(mt->type);
+	spawnthing.type = SHORT(things_type_remap[i]);
 	spawnthing.options = SHORT(mt->options);
 
         // Replace AP locations with AP item

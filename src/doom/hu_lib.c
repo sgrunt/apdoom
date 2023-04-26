@@ -104,6 +104,7 @@ int HULib_measureText(const char* text, int len)
 	for (i=0;i<len;i++)
 	{
 		c = toupper(text[i]);
+		if (c == '\n') return x;
 		if (c == cr_esc)
 		{
 			if (text[i+1] >= '0' && text[i+1] <= '0' + CRMAX - 1)
