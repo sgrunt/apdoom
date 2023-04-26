@@ -63,5 +63,6 @@ GTAGS
 /.vscode/
 
 RunDir/
+RunDir2/
 Release/
 APDOOM.WAD.bak

@@ -1029,9 +1029,7 @@ void HU_AddAPMessage(const char* message)
         HU_AddAPLine(message, len);
         return;
     }
-    // ~2Now that you are connected, you can use !help to list commands to run via the server. If your client supports it, you may have additional local commands you can list with /help.
-    //TODO: Word wrap
-    // ORIGWIDTH + WIDESCREENDELTA
+
     int i = 0;
     int j = 0;
     char baked_line[HU_MAXLINELENGTH + 1];

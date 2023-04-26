@@ -785,6 +785,7 @@ P_KillMobj
 			
 	target->flags &= ~MF_SOLID;
 	target->player->playerstate = PST_DEAD;
+	apdoom_on_death();
 	P_DropWeapon (target->player);
 	// [crispy] center view when dying
 	target->player->centering = true;

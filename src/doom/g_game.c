@@ -83,6 +83,8 @@
 #include "level_select.h" // [ap]
 #include "apdoom.h"
 
+#include "p_inter.h"
+
 #define SAVEGAMESIZE	0x2c000
 
 void	G_ReadDemoTiccmd (ticcmd_t* cmd); 
@@ -1437,6 +1439,15 @@ void G_Ticker (void)
 	AM_Ticker (); 
 	HU_Ticker ();
         ap_is_in_game = (players[consoleplayer].playerstate == PST_LIVE && !paused) ? 1 : 0;
+
+        if (ap_is_in_game)
+        {
+            if (apdoom_should_die() && players[consoleplayer].mo)
+            {
+                HU_AddAPMessage("Death by Deathlink");
+                P_KillMobj(NULL, players[consoleplayer].mo);
+            }
+        }
 	break; 
 	 
       case GS_INTERMISSION: 

@@ -201,6 +201,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_NetworkVersion version = {0, 4, 0};
 	AP_SetClientVersion(&version);
     AP_Init(ap_settings.ip, ap_settings.game, ap_settings.player_name, ap_settings.passwd);
+	AP_SetDeathLinkSupported(true);
 	AP_SetItemClearCallback(f_itemclr);
 	AP_SetItemRecvCallback(f_itemrecv);
 	AP_SetLocationCheckedCallback(f_locrecv);
@@ -569,6 +570,24 @@ void apdoom_send_message(const char* msg)
 	say_packet[0]["text"] = msg;
 	Json::FastWriter writer;
 	APSend(writer.write(say_packet));
+}
+
+
+void apdoom_on_death()
+{
+	AP_DeathLinkSend();
+}
+
+
+void apdoom_clear_death()
+{
+	AP_DeathLinkClear();
+}
+
+
+int apdoom_should_die()
+{
+	return AP_DeathLinkPending() ? 1 : 0;
 }
 
 

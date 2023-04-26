@@ -102,6 +102,7 @@ typedef struct
     int difficulty;
     int random_monsters;
     int random_items;
+    int death_link;
     
 } ap_state_t;
 
@@ -136,6 +137,11 @@ void apdoom_update();
 int ap_is_doomtype_location(int doomtype);
 const char* apdoom_get_seed();
 void apdoom_send_message(const char* msg);
+
+// Deathlink stuff
+void apdoom_on_death();
+void apdoom_clear_death();
+int apdoom_should_die();
 
 #ifdef __cplusplus
 }
