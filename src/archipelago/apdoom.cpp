@@ -36,6 +36,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <set>
 
 
 #if defined(_WIN32)
@@ -167,16 +168,21 @@ static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
 static std::vector<int64_t> ap_item_queue; // We queue when we're in the menu.
 static bool ap_was_connected = false; // Got connected at least once. That means the state is valid
+static std::set<int64_t> ap_progressive_locations;
+static bool ap_initialized = false;
+static std::vector<std::string> ap_cached_messages;
 
 
 void f_itemclr();
 void f_itemrecv(int64_t item_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
+void f_locprog(int64_t loc_id);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
 void load_state();
 void save_state();
+void APSend(std::string msg);
 
 
 int apdoom_init(ap_settings_t* settings)
@@ -205,6 +211,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetItemClearCallback(f_itemclr);
 	AP_SetItemRecvCallback(f_itemrecv);
 	AP_SetLocationCheckedCallback(f_locrecv);
+	AP_SetLocationIsProgressionCallback(f_locprog);
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_items", f_random_items);
@@ -214,9 +221,11 @@ int apdoom_init(ap_settings_t* settings)
 	auto start_time = std::chrono::steady_clock::now();
 	while (true)
 	{
+		bool should_break = false;
 		switch (AP_GetConnectionStatus())
 		{
 			case AP_ConnectionStatus::Authenticated:
+			{
 				printf("AP: Authenticated\n");
 				AP_GetRoomInfo(&ap_room_info);
 
@@ -227,11 +236,36 @@ int apdoom_init(ap_settings_t* settings)
 					AP_MakeDirectory(("AP_" + ap_room_info.seed_name).c_str());
 
 				load_state();
-				return 1;
+
+				// If we don't have information about scouts, load them (We need this to display the proper icon for progressive vs non-progressive
+				if (ap_progressive_locations.empty())
+				{
+					Json::Value packet;
+					packet[0]["cmd"] = "LocationScouts";
+
+					// const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {
+					for (const auto& kv1 : location_table)
+					{
+						for (const auto& kv2 : kv1.second)
+						{
+							for (const auto& kv3 : kv2.second)
+							{
+								packet[0]["locations"].append(kv3.second);
+							}
+						}
+					}
+
+					Json::FastWriter writer;
+					APSend(writer.write(packet));
+				}
+				should_break = true;
+				break;
+			}
 			case AP_ConnectionStatus::ConnectionRefused:
 				printf("AP: Failed to connect\n");
 				return 0;
 		}
+		if (should_break) break;
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
 		{
@@ -240,7 +274,23 @@ int apdoom_init(ap_settings_t* settings)
 		}
 	}
 
-	return 0;
+	// Wait for location infos
+	start_time = std::chrono::steady_clock::now();
+	while (ap_progressive_locations.empty())
+	{
+		apdoom_update();
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
+		{
+			printf("AP: Failed to connect\n");
+			return 0;
+		}
+	}
+
+	ap_initialized = true;
+
+	return 1;
 }
 
 
@@ -322,6 +372,11 @@ void load_state()
 
 	json_get_int(json["ep"], ap_state.ep);
 	json_get_int(json["map"], ap_state.map);
+
+	for (const auto& prog_json : json["progressive_locations"])
+	{
+		ap_progressive_locations.insert(prog_json.asInt64());
+	}
 }
 
 
@@ -411,6 +466,12 @@ void save_state()
 
 	json["ep"] = ap_state.ep;
 	json["map"] = ap_state.map;
+
+	// Progression items (So we don't scout everytime we connect)
+	for (auto loc_id : ap_progressive_locations)
+	{
+		json["progressive_locations"].append(loc_id);
+	}
 
 	f << json;
 }
@@ -502,6 +563,12 @@ void f_locrecv(int64_t loc_id)
 }
 
 
+void f_locprog(int64_t loc_id)
+{
+	ap_progressive_locations.insert(loc_id);
+}
+
+
 void f_difficulty(int difficulty)
 {
 	ap_state.difficulty = difficulty;
@@ -546,6 +613,23 @@ void apdoom_check_location(int ep, int map, int index)
 }
 
 
+int apdoom_is_location_progression(int ep, int map, int index)
+{
+	auto it1 = location_table.find(ep);
+	if (it1 == location_table.end()) return 0;
+
+	auto it2 = it1->second.find(map);
+	if (it2 == it1->second.end()) return 0;
+
+	auto it3 = it2->second.find(index);
+	if (it3 == it2->second.end()) return 0;
+
+	int64_t id = it3->second;
+
+	return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
+}
+
+
 void apdoom_check_victory()
 {
 	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
@@ -562,7 +646,6 @@ void apdoom_check_victory()
 }
 
 
-void APSend(std::string msg);
 void apdoom_send_message(const char* msg)
 {
 	Json::Value say_packet;
@@ -616,6 +699,16 @@ int apdoom_should_die()
 */
 void apdoom_update()
 {
+	if (ap_initialized)
+	{
+		if (!ap_cached_messages.empty())
+		{
+			for (const auto& cached_msg : ap_cached_messages)
+				ap_settings.message_callback(cached_msg.c_str());
+			ap_cached_messages.clear();
+		}
+	}
+
 	while (AP_IsMessagePending())
 	{
 		AP_Message* msg = AP_GetLatestMessage();
@@ -650,7 +743,10 @@ void apdoom_update()
 
 		printf("AP: %s\n", msg->text.c_str());
 
-		ap_settings.message_callback(colored_msg.c_str());
+		if (ap_initialized)
+			ap_settings.message_callback(colored_msg.c_str());
+		else
+			ap_cached_messages.push_back(colored_msg);
 
 		//switch (msg->type)
 		//{

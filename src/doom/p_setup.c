@@ -877,7 +877,10 @@ void P_LoadThings (int lump)
             {
                 I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD from the steam release.");
             }
-            spawnthing.type = 20000;
+            if (apdoom_is_location_progression(gameepisode, gamemap, i))
+                spawnthing.type = 20001;
+            else
+                spawnthing.type = 20000;
             int skip = 0;
             for (j = 0; j < ap_state.level_states[gameepisode - 1][gamemap - 1].check_count; ++j)
             {

@@ -1012,7 +1012,7 @@ void P_SpawnMapThing (mapthing_t* mthing, int index)
 
     if (!(mthing->options & bit) )
     {
-        if (mthing->type != 20000)
+        if (mthing->type != 20000 && mthing->type != 20001)
 	        return;
     }
 	

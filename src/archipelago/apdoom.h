@@ -132,6 +132,7 @@ int apdoom_init(ap_settings_t* settings);
 void apdoom_shutdown();
 void apdoom_save_state();
 void apdoom_check_location(int ep, int map, int index);
+int apdoom_is_location_progression(int ep, int map, int index);
 void apdoom_check_victory();
 void apdoom_update();
 int ap_is_doomtype_location(int doomtype);

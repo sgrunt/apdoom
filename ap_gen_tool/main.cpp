@@ -1227,6 +1227,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    }\n\n");
         fprintf(fout, "    return 0;\n");
         fprintf(fout, "}\n\n");
+
         fprintf(fout, "#endif\n");
         fclose(fout);
     }

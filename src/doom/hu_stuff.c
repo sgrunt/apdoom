@@ -410,6 +410,8 @@ const char *mapnames_commercial[] =
     MHUSTR_21
 };
 
+void HU_InitAPMessages();
+
 static void CrispyReplaceColor (const char *str, const int cr, const char *col)
 {
     char *str_replace, col_replace[16];
@@ -517,6 +519,8 @@ void HU_Init(void)
 	CrispyReplaceColor(HUSTR_PLRBROWN,  CR_GOLD,  "Brown: ");
 	CrispyReplaceColor(HUSTR_PLRRED,    CR_RED,   "Red: ");
     }
+
+    HU_InitAPMessages();
 }
 
 void HU_Stop(void)
@@ -1006,12 +1010,6 @@ void HU_AddAPLine(const char* line, int len)
     char baked_line[HU_MAXLINELENGTH + 1];
     memcpy(baked_line, line, len);
     baked_line[len] = '\0';
-
-    // Lazy init
-    if (!w_ap_messages[0].on)
-    {
-        HU_InitAPMessages();
-    }
 
     // Add to buffer
     if (ap_message_buffer_count >= HU_MAX_LINE_BUFFER)
