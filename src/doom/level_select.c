@@ -104,6 +104,8 @@ extern int bcnt;
 
 int selected_level[AP_EPISODE_COUNT] = {0};
 int selected_ep = 0;
+int prev_ep = 0;
+int ep_anim = 0;
 int urh_anim = 0;
 
 static const char* YELLOW_DIGIT_LUMP_NAMES[] = {
@@ -185,6 +187,8 @@ void play_level(int ep, int lvl)
 
 boolean LevelSelectResponder(event_t* ev)
 {
+    if (ep_anim) return true;
+
     switch (ev->type)
     {
         case ev_keydown:
@@ -195,6 +199,8 @@ boolean LevelSelectResponder(event_t* ev)
                 case KEY_LEFTARROW:
                     if (gamemode != shareware)
                     {
+                        prev_ep = selected_ep;
+                        ep_anim = -10;
                         selected_ep--;
                         if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
                         restart_wi_anims();
@@ -205,6 +211,8 @@ boolean LevelSelectResponder(event_t* ev)
                 case KEY_RIGHTARROW:
                     if (gamemode != shareware)
                     {
+                        prev_ep = selected_ep;
+                        ep_anim = 10;
                         selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
                         restart_wi_anims();
                         urh_anim = 0;
@@ -288,6 +296,10 @@ void ShowLevelSelect()
 
 void TickLevelSelect()
 {
+    if (ep_anim > 0)
+        ep_anim -= 1;
+    else if (ep_anim < 0)
+        ep_anim += 1;
     bcnt++;
     urh_anim = (urh_anim + 1) % 35;
     WI_updateAnimatedBack();
@@ -399,10 +411,31 @@ void DrawLevelSelectStats()
 
 void DrawLevelSelect()
 {
+    int x_offset = ep_anim * 32;
+
     char lump_name[9];
     snprintf(lump_name, 9, "WIMAP%d", selected_ep);
-    V_DrawPatchFullScreen(W_CacheLumpName(lump_name, PU_CACHE), false);
-    WI_drawAnimatedBack();
+    
+    // [crispy] fill pillarboxes in widescreen mode
+    if (SCREENWIDTH != NONWIDEWIDTH)
+    {
+        V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
+    }
 
-    DrawLevelSelectStats();
+    V_DrawPatch(x_offset, 0, W_CacheLumpName(lump_name, PU_CACHE));
+    if (ep_anim == 0)
+    {
+        WI_drawAnimatedBack();
+
+        DrawLevelSelectStats();
+    }
+    else
+    {
+        snprintf(lump_name, 9, "WIMAP%d", prev_ep);
+        if (ep_anim > 0)
+            x_offset = -(10 - ep_anim) * 32;
+        else
+            x_offset = (10 + ep_anim) * 32;
+        V_DrawPatch(x_offset, 0, W_CacheLumpName(lump_name, PU_CACHE));
+    }
 }
