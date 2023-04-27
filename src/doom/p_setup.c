@@ -752,6 +752,9 @@ void P_LoadThings (int lump)
             mt = (mapthing_t *)data;
             for (i = 0; i < numthings; i++, mt++)
             {
+                if (mt->options & 16)
+                    continue; // Multiplayer item
+
                 switch (mt->type)
                 {
                     case 2015: // armor bonus
