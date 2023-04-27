@@ -698,6 +698,8 @@ void P_LoadThings (int lump)
             mt = (mapthing_t *)data;
             for (i = 0; i < numthings; i++, mt++)
             {
+                if (mt->options & 16)
+                    continue; // Multiplayer item
                 if (!(mt->options & bit))
                     continue;
 
@@ -728,7 +730,7 @@ void P_LoadThings (int lump)
             for (i = 0; i < index_count; i++)
             {
                 int idx = rand() % item_count;
-                mt[indices[i]].type = items[idx];
+                things_type_remap[indices[i]] = items[idx];
                 items[idx] = items[item_count - 1];
                 item_count--;
             }
