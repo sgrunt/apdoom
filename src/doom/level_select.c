@@ -243,15 +243,15 @@ boolean LevelSelectResponder(event_t* ev)
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_ENTER:
-                    //if (ap_state.level_states[selected_ep][selected_level[selected_ep]].unlocked)
+                    if (ap_state.level_states[selected_ep][selected_level[selected_ep]].unlocked)
                     {
                         S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
                         play_level(selected_ep, selected_level[selected_ep]);
                     }
-                    //else
-                    //{
-                    //    S_StartSoundOptional(NULL, sfx_mnusli, sfx_noway);
-                    //}
+                    else
+                    {
+                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_noway);
+                    }
                     break;
             }
             break;
