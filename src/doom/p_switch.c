@@ -268,7 +268,7 @@ P_ChangeSwitchTexture
     int     sound;
     boolean playsound = false;
 	
-    if (!useAgain)
+    if (!useAgain && line->special != 11) // [AP] Exit switch can be used again
 	line->special = 0;
 
     texTop = sides[line->sidenum[0]].toptexture;

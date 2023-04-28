@@ -527,6 +527,8 @@ void P_LoadThings (int lump)
         things_type_remap[i] = mt->type;
     }
 
+#define E1M8_CUTOFF_OFFSET 6176
+
     if (ap_state.random_monsters > 0)
     {
         // Make sure at the right difficulty level
@@ -551,6 +553,10 @@ void P_LoadThings (int lump)
                 if (!(mt->options & bit))
                     continue;
 
+                if (gameepisode == 1 && gamemap == 8)
+                    if (mt->y > E1M8_CUTOFF_OFFSET)
+                        continue;
+
                 switch (mt->type)
                 {
                     case 3004: // Former Human
@@ -572,7 +578,6 @@ void P_LoadThings (int lump)
             }
 
             // Randomly pick them until empty, and place them in different spots
-            mt = (mapthing_t *)data;
             for (i = 0; i < index_count; i++)
             {
                 int idx = rand() % monster_count;
@@ -585,6 +590,8 @@ void P_LoadThings (int lump)
         {
             int ratios[3] = {0, 0, 0};
             int total = 0;
+            int indices[1024];
+            int index_count = 0;
 
             // Make sure at the right difficulty level
             if (gameskill == sk_baby)
@@ -598,6 +605,13 @@ void P_LoadThings (int lump)
             mt = (mapthing_t *)data;
             for (i = 0; i < numthings; i++, mt++)
             {
+                if (!(mt->options & bit))
+                    continue;
+
+                if (gameepisode == 1 && gamemap == 8)
+                    if (mt->y > E1M8_CUTOFF_OFFSET)
+                        continue;
+
                 switch (mt->type)
                 {
                     case 3004: // Former Human
@@ -605,6 +619,7 @@ void P_LoadThings (int lump)
                     case 3001: // Imp
                         ratios[0]++;
                         total++;
+                        indices[index_count++] = i;
                         break;
 
                     case 3002: // Demon
@@ -613,19 +628,31 @@ void P_LoadThings (int lump)
                     case 3005: // Cacodemon
                         ratios[1]++;
                         total++;
+                        indices[index_count++] = i;
                         break;
 
                     case 3003: // Baron of hell
                         ratios[2]++;
                         total++;
+                        indices[index_count++] = i;
                         break;
                 }
             }
 
             // Randomly pick monsters based on ratio
-            mt = (mapthing_t *)data;
-            for (i = 0; i < numthings; i++, mt++)
+            int barron_count = 0;
+            for (i = 0; i < index_count; i++)
             {
+                mt = &((mapthing_t*)data)[indices[i]];
+                if (gameepisode == 1 && gamemap == 8)
+                {
+                    if (index_count - i <= 2 - barron_count)
+                    {
+                        barron_count++;
+                        things_type_remap[indices[i]] = 3003; // Baron of hell
+                        continue;
+                    }
+                }
                 switch (mt->type)
                 {
                     case 3004: // Former Human
@@ -642,35 +669,36 @@ void P_LoadThings (int lump)
                         {
                             switch (rand()%3)
                             {
-                                case 0: things_type_remap[i] = 3004; break; // Former Human
-                                case 1: things_type_remap[i] = 9; break; // Former Human Sergeant
-                                case 2: things_type_remap[i] = 3001; break; // Imp
+                                case 0: things_type_remap[indices[i]] = 3004; break; // Former Human
+                                case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
+                                case 2: things_type_remap[indices[i]] = 3001; break; // Imp
                             }
                         }
                         else if (rnd < ratios[0] + ratios[1])
                         {
                             switch (rand()%8)
                             {
-                                case 0: things_type_remap[i] = 3002; break; // Demon
-                                case 1: things_type_remap[i] = 3002; break; // Demon
-                                case 2: things_type_remap[i] = 3002; break; // Demon
-                                case 3: things_type_remap[i] = 58; break; // SPECTRE
-                                case 4: things_type_remap[i] = 58; break; // SPECTRE
-                                case 5: things_type_remap[i] = 3005; break; // Cacodemon
-                                case 6: things_type_remap[i] = 3005; break; // Cacodemon
-                                case 7: things_type_remap[i] = 3006; break; // Lost soul
+                                case 0: things_type_remap[indices[i]] = 3002; break; // Demon
+                                case 1: things_type_remap[indices[i]] = 3002; break; // Demon
+                                case 2: things_type_remap[indices[i]] = 3002; break; // Demon
+                                case 3: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                case 4: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                case 5: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                case 6: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                case 7: things_type_remap[indices[i]] = 3006; break; // Lost soul
                             }
                         }
                         else
                         {
-                            things_type_remap[i] = 3003; // Baron of hell
+                            barron_count++;
+                            things_type_remap[indices[i]] = 3003; // Baron of hell
                         }
                         break;
                     }
                     case 16: // Cyberdemon
                     case 7: // Spiderdemon
-                        if (rand()%2) things_type_remap[i] = 16;
-                        else things_type_remap[i] = 7;
+                        if (rand()%2) things_type_remap[indices[i]] = 16;
+                        else things_type_remap[indices[i]] = 7;
                         break;
                 }
             }

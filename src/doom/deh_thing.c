@@ -125,7 +125,7 @@ static void DEH_InitThingProperties (void)
 			break;
 
 			case MT_SHOTGUY:
-			mobjinfo[i].droppeditem = MT_SHOTGUN;
+			mobjinfo[i].droppeditem = MT_MISC22; // [AP] We don't drop weapon, but drop the ammo // MT_SHOTGUN;
 			break;
 
 			case MT_CHAINGUY:
