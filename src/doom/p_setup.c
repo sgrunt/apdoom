@@ -979,6 +979,19 @@ void P_LoadLineDefs (int lump)
     warn = warn2 = 0; // [crispy] warn about invalid linedefs
     for (i=0 ; i<numlines ; i++, mld++, ld++)
     {
+        // [AP] Can be softlocked if coming back to that level after boss is dead, make sure to disable it's triggers that closes the doors
+        if (gameepisode == 2 && gamemap == 8)
+        {
+            //if (ap_state.level_states[gameepisode - 1][gamemap - 1].completed)
+            {
+                if (i >= 140 && i <= 143)
+                {
+                    mld->special = 0;
+                    mld->tag = 0;
+                }
+            }
+        }
+
 	ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
 	ld->special = SHORT(mld->special);
 	// [crispy] warn about unknown linedef types

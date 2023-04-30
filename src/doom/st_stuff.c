@@ -1218,7 +1218,7 @@ ST_Responder (event_t* ev)
     }
     
     // 'clev' change-level cheat
-#ifndef _DEBUG // [AP] only disallow idclev cheat because it can mess with the progress.
+#ifdef _DEBUG // [AP] only disallow idclev cheat because it can mess with the progress.
     if (!netgame && cht_CheckCheat(&cheat_clev, ev->data2) && !menuactive) // [crispy] prevent only half the screen being updated
     {
       char		buf[3];
