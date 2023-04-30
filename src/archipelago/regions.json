@@ -67,10 +67,10 @@
                 "connects_to_hub": true,
                 "required_items_or": []
             },
-            "Blue": {
+            "Blue Yellow": {
                 "locations": [],
                 "connects_to_exit": true,
-                "required_items_or": ["Blue keycard"]
+                "required_items_or": ["Yellow keycard", "Blue keycard"]
             },
             "Yellow": {
                 "locations": ["Blue keycard", "Mega Armor 2", "Chainsaw", "Supercharge", "Chaingun", "Computer area map", "Partial invisibility", "Armor 2"],
