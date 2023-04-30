@@ -180,6 +180,9 @@ void f_locprog(int64_t loc_id);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
+void f_episode1(int);
+void f_episode2(int);
+void f_episode3(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
@@ -215,6 +218,9 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_items", f_random_items);
+	AP_RegisterSlotDataIntCallback("episode1", f_episode1);
+	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
+	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
     AP_Start();
 
 	// Block DOOM until connection succeeded or failed
@@ -246,10 +252,13 @@ int apdoom_init(ap_settings_t* settings)
 					// const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {
 					for (const auto& kv1 : location_table)
 					{
+						if (!ap_state.episodes[kv1.first - 1])
+							continue;
 						for (const auto& kv2 : kv1.second)
 						{
 							for (const auto& kv3 : kv2.second)
 							{
+								if (kv3.first == -1) continue;
 								packet[0]["locations"].append(kv3.second);
 							}
 						}
@@ -372,6 +381,9 @@ void load_state()
 
 	json_get_int(json["ep"], ap_state.ep);
 	json_get_int(json["map"], ap_state.map);
+	int i = 0;
+	for (auto& ep : ap_state.episodes)
+		json_get_int(json["enabled_episodes"][i++], ep);
 
 	for (const auto& prog_json : json["progressive_locations"])
 	{
@@ -466,6 +478,10 @@ void save_state()
 
 	json["ep"] = ap_state.ep;
 	json["map"] = ap_state.map;
+
+	int i = 0;
+	for (auto ep : ap_state.episodes)
+		json["enabled_episodes"][i++] = ep ? true : false;
 
 	// Progression items (So we don't scout everytime we connect)
 	for (auto loc_id : ap_progressive_locations)
@@ -587,6 +603,24 @@ void f_random_items(int random_items)
 }
 
 
+void f_episode1(int ep)
+{
+	ap_state.episodes[0] = ep;
+}
+
+
+void f_episode2(int ep)
+{
+	ap_state.episodes[1] = ep;
+}
+
+
+void f_episode3(int ep)
+{
+	ap_state.episodes[2] = ep;
+}
+
+
 const char* apdoom_get_seed()
 {
 	return ap_room_info.seed_name.c_str();
@@ -634,6 +668,7 @@ void apdoom_check_victory()
 {
 	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
 	{
+		if (!ap_state.episodes[ep]) continue;
 		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
 		{
 			if (!ap_state.level_states[ep][map].completed) return;

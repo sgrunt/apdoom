@@ -189,6 +189,11 @@ boolean LevelSelectResponder(event_t* ev)
 {
     if (ep_anim) return true;
 
+    int ep_count = 0;
+    for (int i = 0; i < AP_EPISODE_COUNT; ++i)
+        if (ap_state.episodes[i])
+            ep_count++;
+
     switch (ev->type)
     {
         case ev_keydown:
@@ -197,23 +202,36 @@ boolean LevelSelectResponder(event_t* ev)
             {
 #ifndef FIRST_EP_ONLY
                 case KEY_LEFTARROW:
-                    if (gamemode != shareware)
+                    if (gamemode != shareware && ep_count > 1)
                     {
                         prev_ep = selected_ep;
                         ep_anim = -10;
                         selected_ep--;
                         if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
+                        while (!ap_state.episodes[selected_ep])
+                        {
+                            selected_ep--;
+                            if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
+                            if (selected_ep == prev_ep) // oops;
+                                break;
+                        }
                         restart_wi_anims();
                         urh_anim = 0;
                         S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
                     }
                     break;
                 case KEY_RIGHTARROW:
-                    if (gamemode != shareware)
+                    if (gamemode != shareware && ep_count > 1)
                     {
                         prev_ep = selected_ep;
                         ep_anim = 10;
                         selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+                        while (!ap_state.episodes[selected_ep])
+                        {
+                            selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+                            if (selected_ep == prev_ep) // oops;
+                                break;
+                        }
                         restart_wi_anims();
                         urh_anim = 0;
                         S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
@@ -277,6 +295,13 @@ void ShowLevelSelect()
 
     ap_state.ep = 0;
     ap_state.map = 0;
+
+    while (!ap_state.episodes[selected_ep])
+    {
+        selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+        if (selected_ep == 0) // oops;
+            break;
+    }
 
     wiinfo.epsd = selected_ep;
     wiinfo.didsecret = false;

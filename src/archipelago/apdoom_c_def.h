@@ -6,6 +6,7 @@ static int is_doom_type_ap_location(int doom_type)
 {
     switch (doom_type)
     {
+        case -1:
         case 5:
         case 6:
         case 8:

@@ -103,6 +103,7 @@ typedef struct
     int random_monsters;
     int random_items;
     int death_link;
+    int episodes[3];
     
 } ap_state_t;
 

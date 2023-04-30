@@ -360,6 +360,7 @@ struct ap_location_t
     std::vector<int64_t> required_items;
     int sector;
     int region = -1;
+    std::string region_name;
 };
 
 
@@ -617,6 +618,7 @@ int64_t add_unique(const std::string& name, const map_thing_t& thing, level_t* l
         total_item_count++;
         item.is_key = is_key;
         item.classification = classification;
+        item.progression_count = 0;
         ap_items.push_back(item);
         if (!group_name.empty())
         {
@@ -883,12 +885,19 @@ int main(int argc, char** argv)
         add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
     }
 
-    add_item("Armor", 2018, armor_count, FILLER, "Powerups");
-    add_item("Mega Armor", 2019, megaarmor_count, FILLER, "Powerups");
-    add_item("Berserk", 2023, berserk_count, FILLER, "Powerups");
-    add_item("Invulnerability", 2022, invulnerability_count, FILLER, "Powerups");
-    add_item("Partial invisibility", 2024, partial_invisibility_count, FILLER, "Powerups");
-    add_item("Supercharge", 2013, supercharge_count, FILLER, "Powerups");
+    printf("Armor: %i\n", armor_count);
+    printf("Mega Armor: %i\n", megaarmor_count);
+    printf("Berserk: %i\n", berserk_count);
+    printf("Invulnerability: %i\n", invulnerability_count);
+    printf("Partial invisibility: %i\n", partial_invisibility_count);
+    printf("Supercharge: %i\n", supercharge_count);
+
+    add_item("Armor", 2018, 0, FILLER, "Powerups");
+    add_item("Mega Armor", 2019, 0, FILLER, "Powerups");
+    add_item("Berserk", 2023, 0, FILLER, "Powerups");
+    add_item("Invulnerability", 2022, 0, FILLER, "Powerups");
+    add_item("Partial invisibility", 2024, 0, FILLER, "Powerups");
+    add_item("Supercharge", 2013, 0, FILLER, "Powerups");
 
     // Make backpack progression item (Idea, gives more than one, with less increase each time)
     add_item("Backpack", 8, 1, PROGRESSION, "");
@@ -909,23 +918,22 @@ int main(int argc, char** argv)
     printf("%i locations\n%i items\n", total_loc_count, total_item_count - 1 /* Early items */);
 #else
     // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    add_item("Shotgun", 2001, 10, USEFUL, "Weapons", 1);
-    add_item("Rocket launcher", 2003, 3, USEFUL, "Weapons", 1);
-    add_item("Plasma gun", 2004, 2, USEFUL, "Weapons", 1);
-    add_item("Chainsaw", 2005, 5, USEFUL, "Weapons");
-    add_item("Chaingun", 2002, 4, USEFUL, "Weapons", 1);
-    add_item("BFG9000", 2006, 1, USEFUL, "Weapons");
+    add_item("Shotgun", 2001, 0, USEFUL, "Weapons", 1);
+    add_item("Rocket launcher", 2003, 0, USEFUL, "Weapons", 1);
+    add_item("Plasma gun", 2004, 0, USEFUL, "Weapons", 1);
+    add_item("Chainsaw", 2005, 0, USEFUL, "Weapons");
+    add_item("Chaingun", 2002, 0, USEFUL, "Weapons", 1);
+    add_item("BFG9000", 2006, 0, USEFUL, "Weapons");
 
     // Junk items
-    add_item("Medikit", 2012, 15, FILLER, "");
-    add_item("Box of bullets", 2048, 13, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 13, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 13, FILLER, "Ammos");
-    add_item("Energy cell pack", 10, 10, FILLER, "Ammos");
+    add_item("Medikit", 2012, 0, FILLER, "");
+    add_item("Box of bullets", 2048, 0, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 0, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 0, FILLER, "Ammos");
+    add_item("Energy cell pack", 17, 0, FILLER, "Ammos");
 
     printf("%i locations\n%i items\n", total_loc_count, total_item_count - 3 /* Early items */);
 #endif
-
 
 #if 0
     // Fill in locations into level's sectors
@@ -1020,6 +1028,100 @@ class ItemDict(TypedDict, total=False): \n\
 
         fclose(fout);
     }
+
+#if 1 // Regions.py
+    // Generate Regions.py from regions.json (Manually entered data)
+    {
+        std::ifstream fregions(cpp_out_dir + "regions.json");
+        Json::Value levels_json;
+        fregions >> levels_json;
+        fregions.close();
+
+        FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
+        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
+        fprintf(fout, "from typing import TYPE_CHECKING, List\n");
+        fprintf(fout, "from BaseClasses import Region, Entrance\n\n");
+        
+        fprintf(fout, "if TYPE_CHECKING:\n");
+        fprintf(fout, "    from . import DOOM1993World\n\n\n");
+
+        fprintf(fout, "regions:List[Region] = {\n");
+
+        // Regions
+        auto level_names = levels_json.getMemberNames();
+        for (const auto& level_name : level_names)
+        {
+            const auto& level_json = levels_json[level_name];
+            auto region_names = level_json["Regions"].getMemberNames();
+            for (const auto& region_name : region_names)
+            {
+                fprintf(fout, "    \"%s %s\",\n", level_name.c_str(), region_name.c_str());
+                const auto& region_json = level_json["Regions"][region_name];
+                const auto& locs_json = level_json["Regions"][region_name]["locations"];
+                for (const auto& loc_json : locs_json)
+                {
+                    bool found = false;
+                    for (auto& loc : ap_locations)
+                    {
+                        if (loc.name == level_name + " - " + loc_json.asString())
+                        {
+                            loc.region_name = level_name + " " + region_name;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        printf("Location not found: %s\n", (level_name + " - " + loc_json.asString()).c_str());
+                }
+                if (region_json["connects_to_exit"].asBool())
+                {
+                    ap_location_t complete_loc;
+                    complete_loc.doom_thing_index = -1;
+                    complete_loc.doom_type = -1;
+                    complete_loc.ep = level_json["episode"].asInt();
+                    complete_loc.lvl = level_json["map"].asInt();
+                    complete_loc.x = -1;
+                    complete_loc.y = -1;
+                    complete_loc.name = level_name + " - Complete";
+                    complete_loc.region_name = level_name + " " + region_name;
+                    complete_loc.id = location_next_id++;
+                    ap_locations.push_back(complete_loc);
+                }
+            }
+        }
+        fprintf(fout, "}\n\n\n");
+
+        //--- create exits
+        fprintf(fout, "def create_2way_exit(doom_1993_world: \"DOOM1993World\", region1_name, region2_name):\n");
+        fprintf(fout, "    player = doom_1993_world.player\n");
+        fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
+        fprintf(fout, "    region1 = world.get_region(region1_name, player)\n");
+        fprintf(fout, "    region2 = world.get_region(region2_name, player)\n\n");
+        fprintf(fout, "    entrance1 = Entrance(player, region1_name + \" -> \" + region2_name, region1)\n");
+        fprintf(fout, "    entrance2 = Entrance(player, region2_name + \" -> \" + region1_name, region2)\n\n");
+        fprintf(fout, "    region1.exits.append(entrance1)\n");
+        fprintf(fout, "    region2.exits.append(entrance2)\n\n");
+        fprintf(fout, "    entrance1.connect(region2)\n");
+        fprintf(fout, "    entrance2.connect(region1)\n\n\n");
+
+        fprintf(fout, "def create_exits(doom_1993_world: \"DOOM1993World\"):\n");
+
+        // Add exits from level regions to Mars, and vice versa (All level regions are connected to Mars for now)
+        for (const auto& level_name : level_names)
+        {
+            const auto& level_json = levels_json[level_name];
+            auto region_names = level_json["Regions"].getMemberNames();
+            for (const auto& region_name : region_names)
+            {
+                const auto& region_json = level_json["Regions"][region_name];
+                fprintf(fout, "    create_2way_exit(doom_1993_world, \"Mars\", \"%s\")\n", (level_name + " " + region_name).c_str());
+            }
+        }
+
+
+        fclose(fout);
+    }
+#endif
     
     // Locations
     {
@@ -1035,7 +1137,7 @@ class LocationDict(TypedDict, total=False): \n\
     map: int \n\
     index: int # Thing index as it is stored in the wad file. \n\
     doom_type: int # In case index end up unreliable, we can use doom type. Maps have often only one of each important things. \n\
-    required_items: list \n\
+    region: str \n\
 \n\
 \n\
 ");
@@ -1049,12 +1151,7 @@ class LocationDict(TypedDict, total=False): \n\
             fprintf(fout, ",\n             'map': %i", loc.lvl);
             fprintf(fout, ",\n             'index': %i", loc.doom_thing_index);
             fprintf(fout, ",\n             'doom_type': %i", loc.doom_type);
-            fprintf(fout, ",\n             'required_items': [");
-            for (auto item_id : loc.required_items)
-            {
-                fprintf(fout, "%llu,", item_id);
-            }
-            fprintf(fout, "]");
+            fprintf(fout, ",\n             'region': \"%s\"", loc.region_name.c_str());
             fprintf(fout, "},\n");
         }
         fprintf(fout, "}\n\n\n");
@@ -1084,9 +1181,9 @@ class LocationDict(TypedDict, total=False): \n\
         FILE* fout = fopen((py_out_dir + "Events.py").c_str(), "w");
 
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
-        fprintf(fout, "from typing import List\n\n\n");
+        fprintf(fout, "from typing import Set\n\n\n");
 
-        fprintf(fout, "events: List[str] = [");
+        fprintf(fout, "events: Set[str] = [");
         for (auto level : levels)
         {
             fprintf(fout, "\n    '%s - Complete',", level_names[level->ep - 1][level->lvl - 1]);
@@ -1307,54 +1404,7 @@ class LocationDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 #else
-#if 0 // Regions.py
-    // Generate Regions.py from regions.json (Manually entered data)
-    {
-        std::ifstream fregions(cpp_out_dir + "regions.json");
-        Json::Value levels_json;
-        fregions >> levels_json;
-        fregions.close();
 
-        FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
-        fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
-        fprintf(fout, "from typing import TypedDict, List\n\n\n");
-
-        fprintf(fout, "class RegionDict(TypedDict, total=False):\n");
-        fprintf(fout, "    name: str\n");
-        fprintf(fout, "    locations: list\n\n\n");
-
-        // Regions
-        fprintf(fout, "regions: List[RegionDict] = [\n");
-        auto level_names = levels_json.getMemberNames();
-        for (const auto& level_name : level_names)
-        {
-            const auto& level_json = levels_json[level_name];
-            auto region_names = level_json["Regions"].getMemberNames();
-            for (const auto& region_name : region_names)
-            {
-                const auto& region_json = level_json["Regions"][region_name];
-                fprintf(fout, "    {'%s %s Region', [\n", level_name.c_str(), region_name.c_str());
-                const auto& locs_json = level_json["Regions"][region_name]["locations"];
-                for (const auto& loc_json : locs_json)
-                {
-                    fprintf(fout, "        '%s - %s',\n", level_name.c_str(), loc_json.asCString());
-                }
-                fprintf(fout, "    ]},\n");
-            }
-
-            // Exit region
-            fprintf(fout, "    {'%s %s', [\n", level_name.c_str(), "Exit");
-            fprintf(fout, "        '%s %s',\n", level_name.c_str(), "Complete");
-            fprintf(fout, "    ]},\n");
-        }
-        fprintf(fout, "]\n");
-
-        // Connections
-
-
-        fclose(fout);
-    }
-#else // else, Rules.py
     // Generate Rules.py from regions.json (Manually entered data)
     {
         std::ifstream fregions(cpp_out_dir + "regions.json");
@@ -1364,15 +1414,12 @@ class LocationDict(TypedDict, total=False): \n\
 
         FILE* fout = fopen((py_out_dir + "Rules.py").c_str(), "w");
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
-        fprintf(fout, "from typing import TYPE_CHECKING, Dict, Callable, Optional\n\n");
+        fprintf(fout, "from typing import TYPE_CHECKING\n");
 
-        fprintf(fout, "from worlds.generic.Rules import set_rule, add_rule, forbid_items\n");
-        fprintf(fout, "from .Locations import location_table, LocationDict\n");
-        fprintf(fout, "import math\n\n");
+        fprintf(fout, "from worlds.generic.Rules import set_rule\n\n");
         
         fprintf(fout, "if TYPE_CHECKING:\n");
-        fprintf(fout, "    from . import DOOM1993World\n");
-        fprintf(fout, "    from BaseClasses import CollectionState, Location\n\n\n");
+        fprintf(fout, "    from . import DOOM1993World\n\n\n");
 
         fprintf(fout, "def set_rules(doom_1993_world: \"DOOM1993World\"):\n");
         fprintf(fout, "    player = doom_1993_world.player\n");
@@ -1426,7 +1473,7 @@ class LocationDict(TypedDict, total=False): \n\
                 {
                     required_items_and.push_back(required_item_json.asString());
                 }
-
+#if 0 // Rules by locations
                 for (const auto& loc_json : locs_json)
                 {
                     // We guarantee shotgun for any level that is not first of each episode
@@ -1505,13 +1552,45 @@ class LocationDict(TypedDict, total=False): \n\
                     }
                     fprintf(fout, ")\n");
                 }
+#else // Rules by regions
+                fprintf(fout, "    set_rule(world.get_entrance(\"Mars -> %s %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, region_name.c_str(), level_name);
+                if (level->lvl > 1)
+                    fprintf(fout, " and state.has(\"Shotgun\", player, 1)");
+                if (level->lvl > 3)
+                    fprintf(fout, " and state.has(\"Chaingun\", player, 1)");
+                for (const auto& required_item_and : required_items_and)
+                {
+                    if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
+                        fprintf(fout, "and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                    else
+                        fprintf(fout, "and state.has(\"%s\", player, 1)", required_item_and.c_str());
+                }
+                if (!required_items_or.empty())
+                {
+                    fprintf(fout, " and (");
+                }
+                bool first = true;
+                for (const auto& required_item_or : required_items_or)
+                {
+                    if (!first) fprintf(fout, " or ");
+                    first = false;
+                    if (std::find(map_items.begin(), map_items.end(), required_item_or) != map_items.end())
+                        fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
+                    else
+                        fprintf(fout, "state.has(\"%s\", player, 1)", required_item_or.c_str());
+                }
+                if (!required_items_or.empty())
+                {
+                    fprintf(fout, ")");
+                }
+                fprintf(fout, ")\n");
+#endif
             }
             fprintf(fout, "\n");
         }
 
         fclose(fout);
     }
-#endif
 #endif
 
     // Clean up

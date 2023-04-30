@@ -19,7 +19,7 @@
                 "required_items_or": []
             },
             "Red": {
-                "locations": ["Chainsaw", "Armor 3", "Mega Armor", "Backpack 2", "Complete"],
+                "locations": ["Chainsaw", "Armor 3", "Mega Armor", "Backpack 2"],
                 "connects_to_exit": true,
                 "required_items_or": ["Red keycard"]
             }
@@ -135,7 +135,7 @@
                 "locations": ["Supercharge", "Shotgun", "Shotgun 2", "Armor", "Chaingun", "Partial invisibility", "Computer area map"],
                 "connects_to_hub": true,
                 "connects_to_exit": true,
-                "required_items_or": ["Chaingun", "Rocket launcher", "Plasma gun", "BFG9000"]
+                "required_items_or": ["Rocket launcher", "Plasma gun", "BFG9000"]
             }
         }
     },
