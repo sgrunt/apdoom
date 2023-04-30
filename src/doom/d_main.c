@@ -312,6 +312,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
 
         // Junk
         case 2012: // Medikit
+	        if (!P_GiveBody(player, 25))
+	            return;
             break;
         case 2048: // Box of bullets
             if (!P_GiveAmmo(player, am_clip, 5, false))
