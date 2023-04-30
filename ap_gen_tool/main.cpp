@@ -1181,9 +1181,9 @@ class LocationDict(TypedDict, total=False): \n\
         FILE* fout = fopen((py_out_dir + "Events.py").c_str(), "w");
 
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
-        fprintf(fout, "from typing import Set\n\n\n");
+        fprintf(fout, "from typing import List\n\n\n");
 
-        fprintf(fout, "events: Set[str] = [");
+        fprintf(fout, "events: List[str] = [");
         for (auto level : levels)
         {
             fprintf(fout, "\n    '%s - Complete',", level_names[level->ep - 1][level->lvl - 1]);
