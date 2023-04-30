@@ -99,7 +99,7 @@ P_GiveAmmo
     }
     
 	// [NS] Halve if needed.
-	if (dropped)
+	if (dropped && ammo != am_shell)
 	{
 		num >>= 1;
 		// Don't round down to 0.
