@@ -182,8 +182,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
             {
                 if (!player->cards[it_bluecard] && !player->cards[it_blueskull])
                 {
-                    player->cards[it_bluecard] = true;
-                    player->cards[it_blueskull] = true;
+                    player->cards[it_bluecard] = !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
+                    player->cards[it_blueskull] = ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
                     player->message = DEH_String(GOTBLUECARD);
                     sound = sfx_keyup;
                 }
@@ -195,8 +195,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
             {
                 if (!player->cards[it_yellowcard] && !player->cards[it_yellowskull])
                 {
-                    player->cards[it_yellowcard] = true;
-                    player->cards[it_yellowskull] = true;
+                    player->cards[it_yellowcard] = !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
+                    player->cards[it_yellowskull] = ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
 	                player->message = DEH_String(GOTYELWCARD);
                     sound = sfx_keyup;
                 }
@@ -208,8 +208,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
             {
                 if (!player->cards[it_redcard] && !player->cards[it_redskull])
                 {
-                    player->cards[it_redcard] = true;
-                    player->cards[it_redskull] = true;
+                    player->cards[it_redcard] = !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
+                    player->cards[it_redskull] = ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
 	                player->message = DEH_String(GOTREDCARD);
                     sound = sfx_keyup;
                 }

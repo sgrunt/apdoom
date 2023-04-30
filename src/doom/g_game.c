@@ -1248,6 +1248,22 @@ void G_Ticker (void)
 	  case ga_loadlevel: 
 	    G_DoLoadLevel (); 
         set_ap_player_states();
+        player_t* p = &players[consoleplayer];
+        for (i = 0; i < AP_NUM_WEAPONS; ++i)
+        {
+            p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+            if (p->weaponowned[i])
+            {
+                switch (i)
+                {
+                    case wp_pistol: p->ammo[am_clip] = max(p->ammo[am_clip], deh_initial_bullets); break;
+                    case wp_shotgun: p->ammo[am_shell] = max(p->ammo[am_shell], 30); break;
+                    case wp_missile: p->ammo[am_misl] = max(p->ammo[am_misl], 10); break;
+                    case wp_plasma: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
+                    case wp_bfg: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
+                }
+            }
+        }
 	    break; 
 	  case ga_newgame: 
 	    // [crispy] re-read game parameters from command line
@@ -1557,8 +1573,6 @@ void G_PlayerReborn (int player)
 	
     // Re-apply some AP states that we want to be persistent even after death
     p->backpack = ap_state.player_state.backpack ? true : false;
-    for (int i = 0; i < AP_NUM_WEAPONS; ++i)
-        p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
     for (int i = 0; i < AP_NUM_AMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 }
