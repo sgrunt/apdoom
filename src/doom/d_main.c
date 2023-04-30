@@ -157,7 +157,7 @@ void on_ap_victory()
 {
     extern const char* finaletext;
     extern const char* finaleflat;
-    finaletext = "Congratulation, you have beaten Archipelago DOOM!";
+    finaletext = "Congratulations, you have beaten Archipelago DOOM!";
     finaleflat = "AP_FLAT";
     F_StartFinale();
 }

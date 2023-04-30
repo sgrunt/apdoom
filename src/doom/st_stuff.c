@@ -463,10 +463,6 @@ static inline int cht_CheckCheatSP (cheatseq_t *cht, char key)
 	}
 	else
 	{
-#ifndef _DEBUG // [AP] Never allow cheats in AP, except in Debug
-		plyr->message = "Cheats not allowed in AP";
-		return false;
-#endif
 		if (!crispy->singleplayer)
 		{
 			plyr->message = "Cheater!";
@@ -1222,6 +1218,7 @@ ST_Responder (event_t* ev)
     }
     
     // 'clev' change-level cheat
+#ifndef _DEBUG // [AP] only disallow idclev cheat because it can mess with the progress.
     if (!netgame && cht_CheckCheat(&cheat_clev, ev->data2) && !menuactive) // [crispy] prevent only half the screen being updated
     {
       char		buf[3];
@@ -1368,6 +1365,7 @@ ST_Responder (event_t* ev)
 
 	return isdigit(buf[0]);
     }
+#endif
   }
   return false;
 }
