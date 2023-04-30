@@ -299,6 +299,13 @@ int apdoom_init(ap_settings_t* settings)
 
 	ap_initialized = true;
 
+	int ep_count = 0;
+	for (int i = 0; i < AP_EPISODE_COUNT; ++i)
+		if (ap_state.episodes[i])
+			ep_count++;
+	if (!ep_count)
+		ap_state.episodes[0] = 1;
+
 	return 1;
 }
 
