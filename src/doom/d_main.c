@@ -157,8 +157,10 @@ void on_ap_victory()
 {
     extern const char* finaletext;
     extern const char* finaleflat;
-    finaletext = "Congratulations, you have beaten Archipelago DOOM!";
-    finaleflat = "AP_FLAT";
+    extern boolean finalfullscreenbg;
+    finalfullscreenbg = true;
+    finaletext = "You've done it, you've saved the multiworld. Completely out of logic, the mighty RNG has bestowed you the gift of bringing Daisy back to life in this reality and in the next. Clearing the remaining evil forces on Mars can wait for now, you must make up the lost time with your pet rabbit.";
+    finaleflat = "PFUB1";
     F_StartFinale();
 }
 

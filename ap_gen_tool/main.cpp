@@ -1045,7 +1045,7 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "if TYPE_CHECKING:\n");
         fprintf(fout, "    from . import DOOM1993World\n\n\n");
 
-        fprintf(fout, "regions:List[Region] = {\n");
+        fprintf(fout, "regions:List[Region] = [\n");
 
         // Regions
         auto level_names = levels_json.getMemberNames();
@@ -1089,7 +1089,7 @@ class ItemDict(TypedDict, total=False): \n\
                 }
             }
         }
-        fprintf(fout, "}\n\n\n");
+        fprintf(fout, "]\n\n\n");
 
         //--- create exits
         fprintf(fout, "def create_2way_exit(doom_1993_world: \"DOOM1993World\", region1_name, region2_name):\n");
