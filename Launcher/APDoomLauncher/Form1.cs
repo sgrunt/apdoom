@@ -38,6 +38,10 @@ namespace APDoomLauncher
             Settings.Default.Save();
 
             string command_line = $"-apserver {txtServer.Text} -applayer {txtPlayer.Text}";
+            if (txtPassword.Text.Count() > 0)
+            {
+                command_line += $" -password {txtPassword.Text}";
+            }
             if (chkFullscreen.Checked)
             {
                 command_line += " -fullscreen";
