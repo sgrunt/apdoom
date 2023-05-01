@@ -673,14 +673,14 @@ int apdoom_is_location_progression(int ep, int map, int index)
 
 void apdoom_check_victory()
 {
-	//for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
-	//{
-	//	if (!ap_state.episodes[ep]) continue;
-	//	for (int map = 0; map < AP_LEVEL_COUNT; ++map)
-	//	{
-	//		if (!ap_state.level_states[ep][map].completed) return;
-	//	}
-	//}
+	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
+	{
+		if (!ap_state.episodes[ep]) continue;
+		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
+		{
+			if (!ap_state.level_states[ep][map].completed) return;
+		}
+	}
 
 	AP_StoryComplete();
 
