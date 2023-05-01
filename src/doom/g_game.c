@@ -1264,6 +1264,7 @@ void G_Ticker (void)
                 }
             }
         }
+        p->health = deh_initial_health;
 	    break; 
 	  case ga_newgame: 
 	    // [crispy] re-read game parameters from command line

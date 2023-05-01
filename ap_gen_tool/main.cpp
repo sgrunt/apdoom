@@ -26,9 +26,6 @@
 #include <json/json.h>
 
 
-//#define FIRST_EP_ONLY 1
-
-
 //---- LINE TYPES ----
 #define LT_NONE 0
 
@@ -716,11 +713,7 @@ int main(int argc, char** argv)
             level_t* level = new level_t();
             level->ep = dir_entry.name[1] - '0';
             level->lvl = dir_entry.name[3] - '0';
-#if FIRST_EP_ONLY
-            if (level->ep < 1 || level->ep > 1 || level->lvl < 1 || level->lvl > 9)
-#else
             if (level->ep < 1 || level->ep > 3 || level->lvl < 1 || level->lvl > 9)
-#endif
             {
                 // ok.. not a level
                 delete level;
@@ -885,6 +878,18 @@ int main(int argc, char** argv)
         add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
     }
 
+    // Guns.
+    add_item("Shotgun", 2001, 1, PROGRESSION, "Weapons");
+    add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
+    add_item("Plasma gun", 2004, 1, PROGRESSION, "Weapons");
+    add_item("Chainsaw", 2005, 1, PROGRESSION, "Weapons");
+    add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
+    add_item("BFG9000", 2006, 1, PROGRESSION, "Weapons");
+
+    // Make backpack progression item (Idea, gives more than one, with less increase each time)
+    add_item("Backpack", 8, 1, PROGRESSION, "");
+
+    // Fillers
     printf("Armor: %i\n", armor_count);
     printf("Mega Armor: %i\n", megaarmor_count);
     printf("Berserk: %i\n", berserk_count);
@@ -899,32 +904,6 @@ int main(int argc, char** argv)
     add_item("Partial invisibility", 2024, 0, FILLER, "Powerups");
     add_item("Supercharge", 2013, 0, FILLER, "Powerups");
 
-    // Make backpack progression item (Idea, gives more than one, with less increase each time)
-    add_item("Backpack", 8, 1, PROGRESSION, "");
-
-#if FIRST_EP_ONLY
-    // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    add_item("Shotgun", 2001, 4, USEFUL, "Weapons");
-    add_item("Rocket launcher", 2003, 1, USEFUL, "Weapons", 1);
-    add_item("Chainsaw", 2005, 1, USEFUL, "Weapons", 1);
-    add_item("Chaingun", 2002, 1, USEFUL, "Weapons");
-
-    // Junk items
-    add_item("Medikit", 2012, 6, FILLER, "");
-    add_item("Box of bullets", 2048, 5, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 5, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 6, FILLER, "Ammos");
-
-    printf("%i locations\n%i items\n", total_loc_count, total_item_count - 1 /* Early items */);
-#else
-    // Guns. Fixed count. More chance to receive lower tier. Receiving twice the same weapon, gives you ammo
-    add_item("Shotgun", 2001, 0, USEFUL, "Weapons", 1);
-    add_item("Rocket launcher", 2003, 0, USEFUL, "Weapons", 1);
-    add_item("Plasma gun", 2004, 0, USEFUL, "Weapons", 1);
-    add_item("Chainsaw", 2005, 0, USEFUL, "Weapons");
-    add_item("Chaingun", 2002, 0, USEFUL, "Weapons", 1);
-    add_item("BFG9000", 2006, 0, USEFUL, "Weapons");
-
     // Junk items
     add_item("Medikit", 2012, 0, FILLER, "");
     add_item("Box of bullets", 2048, 0, FILLER, "Ammos");
@@ -933,7 +912,6 @@ int main(int argc, char** argv)
     add_item("Energy cell pack", 17, 0, FILLER, "Ammos");
 
     printf("%i locations\n%i items\n", total_loc_count, total_item_count - 3 /* Early items */);
-#endif
 
 #if 0
     // Fill in locations into level's sectors
@@ -1242,15 +1220,9 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "};\n\n\n");
 
         // Level infos
-#ifdef FIRST_EP_ONLY
-        fprintf(fout, "ap_level_info_t ap_level_infos[1][AP_LEVEL_COUNT] = \n");
-        fprintf(fout, "{\n");
-        for (int ep = 0; ep < 1; ++ep)
-#else
         fprintf(fout, "ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n");
         fprintf(fout, "{\n");
         for (int ep = 0; ep < EP_COUNT; ++ep)
-#endif
         {
             fprintf(fout, "    {\n");
             for (int map = 0; map < MAP_COUNT; ++map)

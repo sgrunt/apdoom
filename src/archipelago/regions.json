@@ -306,7 +306,7 @@
         "episode": 2, "map": 9,
         "Regions": {
             "Main": {
-                "locations": ["Supercharge", "Blue skull key", "Red skull key", "Yellow skull key", "Backpack", "Chaingun", "Plasma gun", "Rocket launcher", "Shotgun", "Chainsaw", "Computer area map", "Mega Armor"],
+                "locations": ["Supercharge", "Blue skull key", "Backpack", "Chaingun", "Plasma gun", "Rocket launcher", "Shotgun", "Chainsaw", "Computer area map", "Mega Armor"],
                 "connects_to_hub": true,
                 "required_items_or": []
             },
