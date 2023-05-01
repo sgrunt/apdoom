@@ -41,6 +41,9 @@
 #include "m_misc.h" // [crispy] M_StringDuplicate()
 #include "m_random.h" // [crispy] Crispy_Random()
 
+#include "doomkeys.h"
+#include "level_select.h"
+
 typedef enum
 {
     F_STAGE_TEXT,
@@ -181,7 +184,25 @@ boolean F_Responder (event_t *event)
 {
     if (finalestage == F_STAGE_CAST)
 	return F_CastResponder (event);
-	
+
+    if (finalecount < 35 * 3)
+        return false;
+
+    switch (event->type)
+    {
+        case ev_keydown:
+        {
+            switch (event->data1)
+            {
+                case KEY_ENTER:
+                case 'e':
+                case ' ':
+                    ShowLevelSelect();
+                    return true;
+            }
+        }
+    }
+
     return false;
 }
 
