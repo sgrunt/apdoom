@@ -57,7 +57,8 @@
                 "locations": ["Armor", "Mega Armor", "Yellow keycard"],
                 "required_items_or": ["Blue keycard", "Yellow keycard"]
             }
-        }
+        },
+        "death_logic_locations": ["Supercharge", "Mega Armor"]
     },
     "Phobos Lab (E1M5)": {
         "episode": 1, "map": 5,
@@ -202,7 +203,8 @@
                 "connects_to_exit": true,
                 "required_items_or": ["Red keycard"]
             }
-        }
+        },
+        "death_logic_locations": ["Supercharge"]
     },
     "Refinery (E2M3)": {
         "episode": 2, "map": 3,
@@ -329,10 +331,14 @@
         "episode": 3, "map": 1,
         "Regions": {
             "Main": {
-                "locations": ["Shotgun", "Rocket launcher"],
+                "locations": ["Shotgun"],
                 "connects_to_hub": true,
-                "connects_to_exit": true,
                 "required_items_or": []
+            },
+            "Narrow": {
+                "locations": ["Rocket launcher"],
+                "connects_to_exit": true,
+                "required_items_or": ["Shotgun", "Chaingun"]
             }
         }
     },
@@ -364,7 +370,8 @@
                 "connects_to_exit": true,
                 "required_items_or": ["Blue skull key"]
             }
-        }
+        },
+        "death_logic_locations": ["Mega Armor"]
     },
     "House of Pain (E3M4)": {
         "episode": 3, "map": 4,
@@ -387,7 +394,8 @@
                 "connects_to_exit": true,
                 "required_items_and": ["Red skull key", "Blue skull key"]
             }
-        }
+        },
+        "death_logic_locations": ["Chaingun", "Invulnerability"]
     },
     "Unholy Cathedral (E3M5)": {
         "episode": 3, "map": 5,
@@ -406,7 +414,8 @@
                 "locations": ["Chainsaw", "Supercharge 2"],
                 "required_items_or": ["Yellow skull key"]
             }
-        }
+        },
+        "death_logic_locations": ["BFG9000"]
     },
     "Mt. Erebus (E3M6)": {
         "episode": 3, "map": 6,

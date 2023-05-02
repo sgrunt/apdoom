@@ -947,6 +947,10 @@ int main(int argc, char** argv)
 #endif
 
     //--- Generate the python files
+    std::ifstream fregions(cpp_out_dir + "regions.json");
+    Json::Value levels_json;
+    fregions >> levels_json;
+    fregions.close();
 
     // Items
     {
@@ -1017,11 +1021,8 @@ class ItemDict(TypedDict, total=False): \n\
 
         FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
-        fprintf(fout, "from typing import TYPE_CHECKING, List\n");
+        fprintf(fout, "from typing import List\n");
         fprintf(fout, "from BaseClasses import Region, Entrance\n\n");
-        
-        fprintf(fout, "if TYPE_CHECKING:\n");
-        fprintf(fout, "    from . import DOOM1993World\n\n\n");
 
         fprintf(fout, "regions:List[Region] = [\n");
 
@@ -1067,35 +1068,7 @@ class ItemDict(TypedDict, total=False): \n\
                 }
             }
         }
-        fprintf(fout, "]\n\n\n");
-
-        //--- create exits
-        fprintf(fout, "def create_2way_exit(doom_1993_world: \"DOOM1993World\", region1_name, region2_name):\n");
-        fprintf(fout, "    player = doom_1993_world.player\n");
-        fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
-        fprintf(fout, "    region1 = world.get_region(region1_name, player)\n");
-        fprintf(fout, "    region2 = world.get_region(region2_name, player)\n\n");
-        fprintf(fout, "    entrance1 = Entrance(player, region1_name + \" -> \" + region2_name, region1)\n");
-        fprintf(fout, "    entrance2 = Entrance(player, region2_name + \" -> \" + region1_name, region2)\n\n");
-        fprintf(fout, "    region1.exits.append(entrance1)\n");
-        fprintf(fout, "    region2.exits.append(entrance2)\n\n");
-        fprintf(fout, "    entrance1.connect(region2)\n");
-        fprintf(fout, "    entrance2.connect(region1)\n\n\n");
-
-        fprintf(fout, "def create_exits(doom_1993_world: \"DOOM1993World\"):\n");
-
-        // Add exits from level regions to Mars, and vice versa (All level regions are connected to Mars for now)
-        for (const auto& level_name : level_names)
-        {
-            const auto& level_json = levels_json[level_name];
-            auto region_names = level_json["Regions"].getMemberNames();
-            for (const auto& region_name : region_names)
-            {
-                const auto& region_json = level_json["Regions"][region_name];
-                fprintf(fout, "    create_2way_exit(doom_1993_world, \"Mars\", \"%s\")\n", (level_name + " " + region_name).c_str());
-            }
-        }
-
+        fprintf(fout, "]\n");
 
         fclose(fout);
     }
@@ -1120,6 +1093,7 @@ class LocationDict(TypedDict, total=False): \n\
 \n\
 ");
 
+        // Location table
         fprintf(fout, "location_table: Dict[int, LocationDict] = {\n");
         for (const auto& loc : ap_locations)
         {
@@ -1134,6 +1108,7 @@ class LocationDict(TypedDict, total=False): \n\
         }
         fprintf(fout, "}\n\n\n");
 
+        // name groups
         fprintf(fout, "location_name_groups: Dict[str, Set[str]] = {\n");
         std::map<std::string, std::set<std::string>> location_name_groups;
         for (const auto& loc : ap_locations)
@@ -1149,7 +1124,20 @@ class LocationDict(TypedDict, total=False): \n\
             }
             fprintf(fout, "\n    },\n");
         }
-        fprintf(fout, "}\n");
+        fprintf(fout, "}\n\n\n");
+
+        // Death logic locations
+        fprintf(fout, "death_logic_locations = [\n");
+        for (const auto& level_json : levels_json)
+        {
+            auto level_name = level_names[level_json["episode"].asInt() - 1][level_json["map"].asInt() - 1];
+            for (const auto& loc_json : level_json["death_logic_locations"])
+            {
+                fprintf(fout, "    \"%s - %s\",\n", level_name, loc_json.asCString());
+            }
+        }
+        fprintf(fout, "]\n");
+        //death_logic_locations
 
         fclose(fout);
     }
@@ -1379,11 +1367,6 @@ class LocationDict(TypedDict, total=False): \n\
 
     // Generate Rules.py from regions.json (Manually entered data)
     {
-        std::ifstream fregions(cpp_out_dir + "regions.json");
-        Json::Value levels_json;
-        fregions >> levels_json;
-        fregions.close();
-
         FILE* fout = fopen((py_out_dir + "Rules.py").c_str(), "w");
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import TYPE_CHECKING\n");
