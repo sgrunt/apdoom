@@ -687,6 +687,7 @@ void apdoom_check_victory()
 			if (!ap_state.level_states[ep][map].completed) return;
 		}
 	}
+	ap_state.victory = 1;
 
 	AP_StoryComplete();
 	ap_settings.victory_callback();
