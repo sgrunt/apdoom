@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.0.0)
+
 # Some compiler flags
 set(CMAKE_CXX_STANDARD 17) # C++17
 if (MSVC)
@@ -27,6 +29,9 @@ add_executable(${PROJECT_NAME} WIN32
     maps.cpp
     defs.h
 )
+
+# Work dir
+set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${includes})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${libs})
