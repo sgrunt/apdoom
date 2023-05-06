@@ -6,6 +6,11 @@
 #include <stdio.h>
 
 
+#define	NF_SUBSECTOR_VANILLA	0x8000
+#define	NF_SUBSECTOR	0x80000000 // [crispy] extended nodes
+#define	NO_INDEX	((unsigned short)-1) // [crispy] extended nodes
+
+
 struct map_header_t
 {
     char identification[4];
@@ -59,14 +64,14 @@ int point_on_side(int x, int y, node_t* node)
     if (!node->dx)
     {
         if (x <= node->x)
-        return node->dy > 0;
+            return node->dy > 0;
 	
         return node->dy < 0;
     }
     if (!node->dy)
     {
         if (y <= node->y)
-        return node->dx < 0;
+            return node->dx < 0;
 	
         return node->dx > 0;
     }
@@ -111,14 +116,14 @@ subsector_t* point_in_subsector(int x, int y, map_t* map)
 		
     nodenum = (int)map->nodes.size() - 1;
 
-    while (!(nodenum & 0x80000000))
+    while (!(nodenum & NF_SUBSECTOR))
     {
         node = &map->nodes[nodenum];
         side = point_on_side(x, y, node);
         nodenum = node->children[side];
     }
 	
-    return &map->subsectors[nodenum & ~0x80000000];
+    return &map->subsectors[nodenum & ~NF_SUBSECTOR];
 }
 
 
@@ -185,32 +190,43 @@ void init_maps()
             map->nodes.resize(map->map_nodes.size());
             for (int j = 0, len = (int)map->map_nodes.size(); j < len; ++j)
             {
-                map->nodes[j].x = (int)map->map_nodes[j].x << 16;
-                map->nodes[j].y = (int)map->map_nodes[j].y << 16;
-                map->nodes[j].dx = (int)map->map_nodes[j].dx << 16;
-                map->nodes[j].dy = (int)map->map_nodes[j].dy << 16;
+                map->nodes[j].x = (int16_t)map->map_nodes[j].x << 16;
+                map->nodes[j].y = (int16_t)map->map_nodes[j].y << 16;
+                map->nodes[j].dx = (int16_t)map->map_nodes[j].dx << 16;
+                map->nodes[j].dy = (int16_t)map->map_nodes[j].dy << 16;
                 for (int jj = 0; jj < 2; ++jj)
                 {
                     map->nodes[j].children[jj] = (uint16_t)(int16_t)map->map_nodes[j].children[jj];
-                    if (map->nodes[j].children[jj] == (uint16_t)-1)
+                    if (map->nodes[j].children[jj] == NO_INDEX)
                         map->nodes[j].children[jj] = -1;
-                    else if (map->nodes[j].children[jj] & 0x8000)
+                    else if (map->nodes[j].children[jj] & NF_SUBSECTOR_VANILLA)
                     {
-                        map->nodes[j].children[jj] &= ~0x8000;
+                        map->nodes[j].children[jj] &= ~NF_SUBSECTOR_VANILLA;
                         if (map->nodes[j].children[jj] >= (int)map->map_subsectors.size())
                             map->nodes[j].children[jj] = 0;
-                        map->nodes[j].children[jj] |= 0x80000000;
+                        map->nodes[j].children[jj] |= NF_SUBSECTOR;
                     }
                     for (int k = 0; k < 4; ++k)
-                        map->nodes[j].bbox[jj][k] = (int)map->map_nodes[j].bbox[jj][k] << 16;
+                        map->nodes[j].bbox[jj][k] = (int16_t)map->map_nodes[j].bbox[jj][k] << 16;
                 }
             }
 
+            map->segs.resize(map->map_segs.size());
+            for (int j = 0, len = (int)map->map_segs.size(); j < len; ++j)
+            {
+                const auto& map_seg = map->map_segs[j];
+                auto& seg = map->segs[j];
+                int side = map_seg.side;
+                seg.sidedef = (&(map->linedefs[map_seg.linedef].front_sidedef))[side];
+                seg.front_sector = map->sidedefs[seg.sidedef].sector;
+            }
+
+            // Assign sector to subsector
             for (int j = 0, len = (int)map->map_subsectors.size(); j < len; ++j)
             {
-                const auto& map_seg = map->map_segs[map->map_subsectors[j].firstseg];
-                const auto& map_sidedef = map->sidedefs[map_seg.linedef];
-                map->subsectors[j].sector = map_sidedef.sector;
+                const auto& seg = map->segs[map->map_subsectors[j].firstseg];
+                //const auto& map_sidedef = map->sidedefs[seg.sidedef];
+                map->subsectors[j].sector = seg.front_sector;
             }
 
             map->bb[0] = map->vertexes[0].x;
@@ -229,4 +245,14 @@ void init_maps()
 
     // close file
     fclose(f);
+}
+
+
+int sector_at(int x, int y, map_t* map)
+{
+    x = (int)((int16_t)x << 16);
+    y = (int)((int16_t)y << 16);
+
+    auto subsector = point_in_subsector(x, y, map);
+    return subsector->sector;
 }

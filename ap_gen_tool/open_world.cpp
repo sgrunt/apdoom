@@ -30,6 +30,13 @@ enum class state_t
 };
 
 
+enum class tool_t : int
+{
+    bb,
+    region
+};
+
+
 struct bb_t
 {
     int x1, y1, x2, y2;
@@ -79,12 +86,35 @@ struct bb_t
 };
 
 
+struct region_t
+{
+    std::string name;
+    bool connects_to_exit = false;
+    bool connects_to_hub = false;
+    std::vector<int> sectors;
+    std::vector<std::string> required_items_or;
+    std::vector<std::string> required_items_and;
+    Color tint = Color::White;
+    int selected_item_or = -1;
+    int selected_item_and = -1;
+};
+
+
+struct item_t
+{
+    bool death_logic = false;
+};
+
+
 struct map_state_t
 {
     Vector2 pos;
     float angle = 0.0f;
-    std::vector<bb_t> bbs;
     int selected_bb = -1;
+    int selected_region = -1;
+    std::vector<bb_t> bbs;
+    std::vector<region_t> regions;
+    std::vector<item_t> items;
 };
 
 
@@ -108,6 +138,7 @@ static map_state_t map_states[EP_COUNT][MAP_COUNT];
 static map_view_t map_views[EP_COUNT][MAP_COUNT];
 static map_history_t map_histories[EP_COUNT][MAP_COUNT];
 static state_t state = state_t::idle;
+static tool_t tool = tool_t::bb;
 static Vector2 mouse_pos;
 static Vector2 mouse_pos_on_down;
 static Vector2 cam_pos_on_down;
@@ -117,6 +148,7 @@ static map_view_t* map_view = nullptr;
 static map_history_t* map_history = nullptr;
 static OTextureRef ap_icon;
 static int mouse_hover_bb = -1;
+static int mouse_hover_sector = -1;
 static int moving_edge = -1;
 static HCURSOR arrow_cursor = 0;
 static HCURSOR we_cursor = 0;
@@ -168,16 +200,29 @@ void load()
     {
         for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
         {
+            auto& _map_state = map_states[ep][lvl];
             auto& _map_json = json[level_names[ep][lvl]];
             const auto& bbs_json = _map_json["bbs"];
             for (const auto& bb_json : bbs_json)
             {
-                map_states[ep][lvl].bbs.push_back({
+                _map_state.bbs.push_back({
                     bb_json[0].asInt(),
                     bb_json[1].asInt(),
                     bb_json[2].asInt(),
                     bb_json[3].asInt()
                 });
+            }
+            auto region_names = _map_json["Regions"].getMemberNames();
+            for (const auto& region_name : region_names)
+            {
+                const auto& region_json = _map_json["Regions"][region_name];
+                region_t region;
+                region.name = region_name;
+                region.connects_to_exit = region_json.get("connects_to_exit", false).asBool();
+                region.connects_to_hub = region_json.get("connects_to_hub", false).asBool();
+                region.required_items_or = onut::deserializeStringArray(region_json["required_items_or"]);
+                region.required_items_and = onut::deserializeStringArray(region_json["required_items_and"]);
+                _map_state.regions.push_back(region);
             }
         }
     }
@@ -202,6 +247,8 @@ void push_undo()
 
 void select_map(int ep, int map)
 {
+    mouse_hover_sector = -1;
+    mouse_hover_bb = -1;
     active_ep = ep;
     active_map = map;
     map_state = &map_states[active_ep][active_map];
@@ -311,6 +358,9 @@ void init()
     select_map(0, 0);
 
     regen();
+
+    sector_at(0, 0, &maps[0][0]);
+    // 56508168
 }
 
 
@@ -450,60 +500,87 @@ void update()
     {
         case state_t::idle:
         {
-            mouse_hover_bb = get_bb_at(mouse_pos, map_view->cam_zoom, moving_edge);
-            if (mouse_hover_bb != -1)
+            if (!ImGui::GetIO().WantCaptureMouse)
             {
-                switch (moving_edge)
+                if (OInputJustPressed(OMouse3))
                 {
-                    case -1: SetCursor(nswe_cursor); break;
-                    case 0: SetCursor(we_cursor); break;
-                    case 1: SetCursor(ns_cursor); break;
-                    case 2: SetCursor(we_cursor); break;
-                    case 3: SetCursor(ns_cursor); break;
-                }
-            }
-            else
-            {
-                SetCursor(arrow_cursor);
-            }
-            update_shortcuts();
-            if (OInputJustPressed(OMouse3))
-            {
-                state = state_t::panning;
-                mouse_pos_on_down = OGetMousePos();
-                cam_pos_on_down = map_view->cam_pos;
-            }
-            else if (oInput->getStateValue(OMouseZ) > 0.0f)
-            {
-                map_view->cam_zoom *= 1.2f;
-            }
-            else if (oInput->getStateValue(OMouseZ) < 0.0f)
-            {
-                map_view->cam_zoom /= 1.2f;
-            }
-            else if (OInputJustPressed(OKeyTab))
-            {
-                state = state_t::gen;
-            }
-            else if (OInputJustPressed(OMouse1))
-            {
-                if (mouse_hover_bb != -1)
-                {
-                    map_state->selected_bb = mouse_hover_bb;
-                    state = state_t::move_bb;
-                    bb_on_down = map_state->bbs[mouse_hover_bb];
+                    state = state_t::panning;
                     mouse_pos_on_down = OGetMousePos();
+                    cam_pos_on_down = map_view->cam_pos;
                 }
-                else if (map_state->selected_bb != -1)
+                else if (oInput->getStateValue(OMouseZ) > 0.0f)
                 {
-                    map_state->selected_bb = -1;
-                    push_undo();
+                    map_view->cam_zoom *= 1.2f;
                 }
+                else if (oInput->getStateValue(OMouseZ) < 0.0f)
+                {
+                    map_view->cam_zoom /= 1.2f;
+                }
+                else if (OInputJustPressed(OKeyTab))
+                {
+                    state = state_t::gen;
+                }
+                else if (tool == tool_t::bb)
+                {
+                    mouse_hover_bb = get_bb_at(mouse_pos, map_view->cam_zoom, moving_edge);
+                    if (mouse_hover_bb != -1)
+                    {
+                        switch (moving_edge)
+                        {
+                            case -1: SetCursor(nswe_cursor); break;
+                            case 0: SetCursor(we_cursor); break;
+                            case 1: SetCursor(ns_cursor); break;
+                            case 2: SetCursor(we_cursor); break;
+                            case 3: SetCursor(ns_cursor); break;
+                        }
+                    }
+                    else
+                    {
+                        SetCursor(arrow_cursor);
+                    }
+
+                    if (OInputJustPressed(OMouse1))
+                    {
+                        if (mouse_hover_bb != -1)
+                        {
+                            map_state->selected_bb = mouse_hover_bb;
+                            state = state_t::move_bb;
+                            bb_on_down = map_state->bbs[mouse_hover_bb];
+                            mouse_pos_on_down = OGetMousePos();
+                        }
+                        else if (map_state->selected_bb != -1)
+                        {
+                            map_state->selected_bb = -1;
+                            push_undo();
+                        }
+                    }
+                }
+                else if (tool == tool_t::region)
+                {
+                    int x = (int)mouse_pos.x;
+                    int y = (int)-mouse_pos.y;
+                    mouse_hover_sector = sector_at(x, y, &maps[active_ep][active_map]);
+                    
+                    if (OInputPressed(OMouse1))
+                    {
+                        // "paint" selected region
+                    }
+                    else if (OInputJustPressed(OKeyF))
+                    {
+                        // Fill selected region
+                    }
+                }
+            }
+            if (!ImGui::GetIO().WantCaptureKeyboard)
+            {
+                update_shortcuts();
             }
             break;
         }
         case state_t::panning:
         {
+            ImGui::GetIO().WantCaptureMouse = false;
+            ImGui::GetIO().WantCaptureKeyboard = false;
             auto diff = OGetMousePos() - mouse_pos_on_down;
             map_view->cam_pos = cam_pos_on_down - diff / map_view->cam_zoom;
             if (OInputJustReleased(OMouse3))
@@ -597,7 +674,7 @@ void draw_guides()
 }
 
 
-void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_bounds = true)
+void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tools)
 {
     Color bound_color(1.0f);
     Color step_color(0.35f);
@@ -622,17 +699,32 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_boun
     //pb->draw(Vector2(map->bb[2], -map->bb[1]), bb_color); pb->draw(Vector2(map->bb[0], -map->bb[1]), bb_color);
 
     // Geometry
+    int i = 0;
     for (const auto& line : map->linedefs)
     {
         Color color = bound_color;
         if (line.back_sidedef != -1) color = step_color;
+
+        if (draw_tools && tool == tool_t::region)
+        {
+            if (mouse_hover_sector != -1)
+            {
+                if ((line.back_sidedef != -1 && map->sidedefs[line.back_sidedef].sector == mouse_hover_sector) ||
+                    (line.front_sidedef != -1 && map->sidedefs[line.front_sidedef].sector == mouse_hover_sector))
+                {
+                    color = Color(0, 1, 1);
+                }
+            }
+        }
         
         pb->draw(Vector2(map->vertexes[line.start_vertex].x, -map->vertexes[line.start_vertex].y), color);
         pb->draw(Vector2(map->vertexes[line.end_vertex].x, -map->vertexes[line.end_vertex].y), color);
+
+        ++i;
     }
 
     // Bounding boxes
-    if (draw_bounds)
+    if (draw_tools && tool == tool_t::bb)
     {
         int i = 0;
         for (const auto& bb : map_states[ep][lvl].bbs)
@@ -704,7 +796,7 @@ void render()
             {
                 for (int map = 0; map < MAP_COUNT; ++map)
                 {
-                    draw_level(ep, map, map_states[ep][map].pos, map_states[ep][map].angle, true);
+                    draw_level(ep, map, map_states[ep][map].pos, map_states[ep][map].angle, false);
                 }
             }
             sb->begin();
@@ -714,7 +806,7 @@ void render()
         }
         default:
         {
-            draw_level(active_ep, active_map, {0, 0}, 0);
+            draw_level(active_ep, active_map, {0, 0}, 0, true);
             break;
         }
     }
@@ -777,26 +869,215 @@ void renderUI()
         }
         ImGui::EndMenu();
     }
-    //if (state != state_t::gen && state != state_t::gen_panning)
-    //{
-    //    auto& _map_json = *map_json;
-    //    if (ImGui::Begin("Map Properties"))
-    //    {
-    //        if (ImGui::Button("Add"))
-    //        {
-    //            auto region_name = unique_name(_map_json["Regions"], "Main");
-    //            Json::Value region;
-    //            _map_json["Regions"][region_name] = region;
-    //        }
-    //        
-    //        auto names = _map_json["Regions"].getMemberNames();
-    //        for (const auto& name : names)
-    //        {
+    if (state != state_t::gen && state != state_t::gen_panning)
+    {
+        if (ImGui::Begin("Tools"))
+        {
+            int tooli = (int)tool;
+            ImGui::Combo("Tool", &tooli, "Bounding Box\0Region\0");
+            tool = (tool_t)tooli;
+        }
+        ImGui::End();
 
-    //        }
-    //    }
-    //    ImGui::End();
-    //}
+        if (ImGui::Begin("Regions"))
+        {
+            static char region_name[260] = {'\0'};
+            ImGui::InputText("##region_name", region_name, 260);
+            ImGui::SameLine();
+            if (ImGui::Button("Add") && strlen(region_name) > 0)
+            {
+                region_t region;
+                region.name = region_name;
+                map_state->regions.push_back(region);
+                region_name[0] = '\0';
+                map_state->selected_region = (int)map_state->regions.size() - 1;
+                push_undo();
+            }
+            {
+                int to_move_up = -1;
+                int to_move_down = -1;
+                int to_delete = -1;
+                for (int i = 0; i < (int)map_state->regions.size(); ++i)
+                {
+                    const auto& region = map_state->regions[i];
+                    bool selected = map_state->selected_region == i;
+                    if (ImGui::Selectable(region.name.c_str(), selected, 0, ImVec2(150, 22)))
+                    {
+                        map_state->selected_region = i;
+                    }
+                    if (map_state->selected_region == i)
+                    {
+                        ImGui::SameLine(); if (ImGui::Button(" ^ ")) to_move_up = i;
+                        ImGui::SameLine(); if (ImGui::Button(" v ")) to_move_down = i;
+                        ImGui::SameLine(); if (ImGui::Button("X")) to_delete = i;
+                    }
+                }
+                if (to_move_up > 0)
+                {
+                    region_t region = map_state->regions[to_move_up];
+                    map_state->regions.erase(map_state->regions.begin() + to_move_up);
+                    map_state->regions.insert(map_state->regions.begin() + (to_move_up - 1), region);
+                    map_state->selected_region = to_move_up - 1;
+                    push_undo();
+                }
+                if (to_move_down != -1 && to_move_down < (int)map_state->regions.size() - 1)
+                {
+                    region_t region = map_state->regions[to_move_down];
+                    map_state->regions.erase(map_state->regions.begin() + to_move_down);
+                    map_state->regions.insert(map_state->regions.begin() + (to_move_down + 1), region);
+                    map_state->selected_region = to_move_down + 1;
+                    push_undo();
+                }
+                if (to_delete != -1)
+                {
+                    map_state->regions.erase(map_state->regions.begin() + to_delete);
+                    map_state->selected_region = onut::min((int)map_state->regions.size() - 1, map_state->selected_region);
+                    push_undo();
+                }
+            }
+        }
+        ImGui::End();
+
+        if (ImGui::Begin("Region"))
+        {
+            if (map_state->selected_region != -1)
+            {
+                auto& region = map_state->regions[map_state->selected_region];
+
+                static char region_name[260] = {'\0'};
+                snprintf(region_name, 260, "%s", region.name.c_str());
+                if (ImGui::InputText("Name", region_name, 260, ImGuiInputTextFlags_EnterReturnsTrue))
+                {
+                    region.name = region_name;
+                    push_undo();
+                }
+
+                if (ImGui::Checkbox("Connects to Exit", &region.connects_to_exit)) push_undo();
+                if (ImGui::Checkbox("Connects to HUB", &region.connects_to_hub)) push_undo();
+                ImGui::ColorEdit4("Tint", &region.tint.r, ImGuiColorEditFlags_NoInputs);
+                if (ImGui::IsItemDeactivatedAfterEdit()) push_undo();
+
+                ImGui::Separator();
+                {
+                    ImGui::Text("Required items OR");
+
+                    static char item_name[260] = {'\0'};
+                    ImGui::InputText("##item_name_or", item_name, 260);
+                    ImGui::SameLine();
+                    if (ImGui::Button("Add##item_or") && strlen(item_name) > 0)
+                    {
+                        region.required_items_or.push_back(item_name);
+                        region.selected_item_or = (int)region.required_items_or.size() - 1;
+                        push_undo();
+                    }
+                    if (ImGui::BeginListBox("##item_or_list", ImVec2(300, 0)))
+                    {
+                        int to_move_up = -1;
+                        int to_move_down = -1;
+                        int to_delete = -1;
+                        for (int i = 0; i < (int)region.required_items_or.size(); ++i)
+                        {
+                            const auto& item = region.required_items_or[i];
+                            bool selected = region.selected_item_or == i;
+                            if (ImGui::Selectable((item + "##item_or_" + std::to_string(i)).c_str(), selected, 0, ImVec2(150, 22)))
+                            {
+                                region.selected_item_or = i;
+                            }
+                            if (region.selected_item_or == i)
+                            {
+                                ImGui::SameLine(); if (ImGui::Button(" ^ ##item_or")) to_move_up = i;
+                                ImGui::SameLine(); if (ImGui::Button(" v ##item_or")) to_move_down = i;
+                                ImGui::SameLine(); if (ImGui::Button("X##item_or")) to_delete = i;
+                            }
+                        }
+                        if (to_move_up > 0)
+                        {
+                            auto item = region.required_items_or[to_move_up];
+                            region.required_items_or.erase(region.required_items_or.begin() + to_move_up);
+                            region.required_items_or.insert(region.required_items_or.begin() + (to_move_up - 1), item);
+                            region.selected_item_or = to_move_up - 1;
+                            push_undo();
+                        }
+                        if (to_move_down != -1 && to_move_down < (int)map_state->regions.size() - 1)
+                        {
+                            auto item = region.required_items_or[to_move_down];
+                            region.required_items_or.erase(region.required_items_or.begin() + to_move_down);
+                            region.required_items_or.insert(region.required_items_or.begin() + (to_move_down + 1), item);
+                            region.selected_item_or = to_move_down + 1;
+                            push_undo();
+                        }
+                        if (to_delete != -1)
+                        {
+                            region.required_items_or.erase(region.required_items_or.begin() + to_delete);
+                            region.selected_item_or = onut::min((int)region.required_items_or.size() - 1, region.selected_item_or);
+                            push_undo();
+                        }
+                        ImGui::EndListBox();
+                    }
+                }
+
+                ImGui::Separator();
+                {
+                    ImGui::Text("Required items AND");
+
+                    static char item_name[260] = {'\0'};
+                    ImGui::InputText("##item_name_and", item_name, 260);
+                    ImGui::SameLine();
+                    if (ImGui::Button("Add##item_and") && strlen(item_name) > 0)
+                    {
+                        region.required_items_and.push_back(item_name);
+                        region.selected_item_and = (int)region.required_items_and.size() - 1;
+                        push_undo();
+                    }
+                    if (ImGui::BeginListBox("##item_and_list", ImVec2(300, 0)))
+                    {
+                        int to_move_up = -1;
+                        int to_move_down = -1;
+                        int to_delete = -1;
+                        for (int i = 0; i < (int)region.required_items_and.size(); ++i)
+                        {
+                            const auto& item = region.required_items_and[i];
+                            bool selected = region.selected_item_and == i;
+                            if (ImGui::Selectable((item + "##item_and_" + std::to_string(i)).c_str(), selected, 0, ImVec2(150, 22)))
+                            {
+                                region.selected_item_and = i;
+                            }
+                            if (region.selected_item_and == i)
+                            {
+                                ImGui::SameLine(); if (ImGui::Button(" ^ ##item_and")) to_move_up = i;
+                                ImGui::SameLine(); if (ImGui::Button(" v ##item_and")) to_move_down = i;
+                                ImGui::SameLine(); if (ImGui::Button("X##item_and")) to_delete = i;
+                            }
+                        }
+                        if (to_move_up > 0)
+                        {
+                            auto item = region.required_items_and[to_move_up];
+                            region.required_items_and.erase(region.required_items_and.begin() + to_move_up);
+                            region.required_items_and.insert(region.required_items_and.begin() + (to_move_up - 1), item);
+                            region.selected_item_and = to_move_up - 1;
+                            push_undo();
+                        }
+                        if (to_move_down != -1 && to_move_down < (int)map_state->regions.size() - 1)
+                        {
+                            auto item = region.required_items_and[to_move_down];
+                            region.required_items_and.erase(region.required_items_and.begin() + to_move_down);
+                            region.required_items_and.insert(region.required_items_and.begin() + (to_move_down + 1), item);
+                            region.selected_item_and = to_move_down + 1;
+                            push_undo();
+                        }
+                        if (to_delete != -1)
+                        {
+                            region.required_items_and.erase(region.required_items_and.begin() + to_delete);
+                            region.selected_item_and = onut::min((int)region.required_items_and.size() - 1, region.selected_item_and);
+                            push_undo();
+                        }
+                        ImGui::EndListBox();
+                    }
+                }
+            }
+        }
+        ImGui::End();
+    }
 
     ImGui::EndMainMenuBar();
 }

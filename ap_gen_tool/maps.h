@@ -133,6 +133,19 @@ struct map_seg_t
 };
 
 
+struct seg_t
+{
+    int sidedef;
+    int front_sector;
+};
+
+
+struct sector_t
+{
+    std::vector<int> vertices;
+};
+
+
 struct node_t
 {
     int x;
@@ -160,6 +173,7 @@ struct map_t
     std::vector<map_subsector_t>    map_subsectors;
     std::vector<map_node_t>         map_nodes;
     std::vector<map_seg_t>          map_segs;
+    std::vector<seg_t>              segs;
     std::vector<subsector_t>        subsectors;
     std::vector<node_t>             nodes;
     int16_t bb[4];
@@ -170,4 +184,4 @@ extern map_t maps[EP_COUNT][MAP_COUNT];
 
 
 void init_maps();
-
+int sector_at(int x, int y, map_t* map);
