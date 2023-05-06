@@ -1,484 +1,925 @@
 {
-    "Hangar (E1M1)": {
-        "episode": 1, "map": 1,
-        "Regions": {
-            "Main": {
-                "locations": ["Mega Armor", "Armor", "Shotgun"],
-                "connects_to_hub": true,
-                "connects_to_exit": true,
-                "required_items_or": []
-            }
-        }
-    },
-    "Nuclear Plant (E1M2)": {
-        "episode": 1, "map": 2,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Armor", "Supercharge", "Chaingun", "Red keycard", "Armor 2", "Backpack"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Red": {
-                "locations": ["Chainsaw", "Armor 3", "Mega Armor", "Backpack 2"],
-                "connects_to_exit": true,
-                "required_items_or": ["Red keycard"]
-            }
-        }
-    },
-    "Toxin Refinery (E1M3)": {
-        "episode": 1, "map": 3,
-        "Regions": {
-            "Main": {
-                "locations": ["Armor", "Supercharge", "Yellow keycard", "Blue keycard", "Shotgun", "Shotgun 2", "Armor 2", "Rocket launcher", "Chaingun", "Backpack"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Armor 3", "Chainsaw"],
-                "required_items_or": ["Blue keycard"],
-                "connects_to_exit": true
-            },
-            "Yellow": {
-                "locations": ["Mega Armor", "Supercharge 2", "Partial invisibility"],
-                "required_items_and": ["Blue keycard", "Yellow keycard"]
-            }
-        }
-    },
-    "Command Control (E1M4)": {
-        "episode": 1, "map": 4,
-        "Regions": {
-            "Main": {
-                "locations": ["Chaingun", "Blue keycard", "Supercharge", "Rocket launcher", "Backpack", "Shotgun"],
-                "connects_to_hub": true,
-                "connects_to_exit": true,
-                "required_items_or": []
-            },
-            "Blue Yellow": {
-                "locations": ["Armor", "Mega Armor", "Yellow keycard"],
-                "required_items_or": ["Blue keycard", "Yellow keycard"]
-            }
-        },
-        "death_logic_locations": ["Supercharge", "Mega Armor"]
-    },
-    "Phobos Lab (E1M5)": {
-        "episode": 1, "map": 5,
-        "Regions": {
-            "Main": {
-                "locations": ["Yellow keycard", "Mega Armor", "Rocket launcher", "Shotgun", "Shotgun 2", "Backpack", "Shotgun 3", "Armor"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue Yellow": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Yellow keycard", "Blue keycard"]
-            },
-            "Yellow": {
-                "locations": ["Blue keycard", "Mega Armor 2", "Chainsaw", "Supercharge", "Chaingun", "Computer area map", "Partial invisibility", "Armor 2"],
-                "required_items_or": ["Yellow keycard"]
-            }
-        }
-    },
-    "Central Processing (E1M6)": {
-        "episode": 1, "map": 6,
-        "Regions": {
-            "Main": {
-                "locations": ["Red keycard", "Partial invisibility", "Chaingun", "Shotgun", "Rocket launcher", "Backpack", "Armor", "Armor 4"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Supercharge 2", "Yellow keycard", "Computer area map", "Backpack 2", "Backpack 3", "Armor 2"],
-                "required_items_or": ["Blue keycard"]
-            },
-            "Blue Yellow": {
-                "locations": ["Armor 3"],
-                "required_items_or": ["Yellow keycard", "Blue keycard"],
-                "connects_to_exit": true
-            },
-            "Red": {
-                "locations": ["Supercharge", "Blue keycard", "Partial invisibility 2", "Mega Armor"],
-                "required_items_or": ["Red keycard"]
-            }
-        }
-    },
-    "Computer Station (E1M7)": {
-        "episode": 1, "map": 7,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun 2", "Yellow keycard", "Armor"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Shotgun"],
-                "required_items_and": ["Blue keycard", "Yellow keycard"],
-                "connects_to_exit": true
-            },
-            "Yellow": {
-                "locations": ["Chainsaw", "Chaingun", "Red keycard", "Rocket launcher", "Mega Armor", "Computer area map", "Supercharge", "Backpack", "Armor 2"],
-                "required_items_or": ["Yellow keycard"]
-            },
-            "Red": {
-                "locations": ["Blue keycard"],
-                "required_items_or": ["Red keycard"]
-            },
-            "Yellow Red": {
-                "locations": ["Partial invisibility"],
-                "required_items_and": ["Yellow keycard", "Red keycard"]
-            }
-        }
-    },
-    "Phobos Anomaly (E1M8)": {
-        "episode": 1, "map": 8,
-        "Regions": {
-            "Main": {
-                "locations": ["Supercharge", "Shotgun", "Shotgun 2", "Armor", "Chaingun", "Partial invisibility", "Computer area map"],
-                "connects_to_hub": true,
-                "connects_to_exit": true,
-                "required_items_or": ["Rocket launcher", "Plasma gun", "BFG9000"]
-            }
-        }
-    },
-    "Military Base (E1M9)": {
-        "episode": 1, "map": 9,
-        "Regions": {
-            "Main": {
-                "locations": ["Yellow keycard", "Chaingun", "Armor", "Rocket launcher"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Backpack", "Shotgun", "Chainsaw"],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue keycard"]
-            },
-            "Yellow": {
-                "locations": ["Red keycard"],
-                "required_items_or": ["Yellow keycard"]
-            },
-            "Red": {
-                "locations": ["Blue keycard"],
-                "required_items_or": ["Red keycard"]
-            }
-        }
-    },
-    "Deimos Anomaly (E2M1)": {
-        "episode": 2, "map": 1,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Shotgun 2", "Red keycard", "Armor", "Blue keycard", "Plasma gun"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue keycard"]
-            },
-            "Red": {
-                "locations": ["Computer area map", "Mega Armor"],
-                "required_items_or": ["Red keycard"]
-            }
-        }
-    },
-    "Containment Area (E2M2)": {
-        "episode": 2, "map": 2,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Shotgun 2", "Berserk", "Armor", "Armor 2", "Armor 3", "Armor 4", "Yellow keycard", "Backpack", "Computer area map", "Mega Armor", "Plasma gun", "Chainsaw", "Supercharge", "Blue keycard"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Red keycard"],
-                "required_items_or": ["Blue keycard"]
-            },
-            "Yellow": {
-                "locations": ["Chaingun", "Backpack 2", "Rocket launcher"],
-                "required_items_or": ["Yellow keycard"]
-            },
-            "Red": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Red keycard"]
-            }
-        },
-        "death_logic_locations": ["Supercharge"]
-    },
-    "Refinery (E2M3)": {
-        "episode": 2, "map": 3,
-        "Regions": {
-            "Main": {
-                "locations": ["Chaingun", "Shotgun", "Berserk", "Partial invisibility 2", "Mega Armor", "Backpack", "Plasma gun", "Blue keycard", "Armor"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Supercharge", "Partial invisibility"],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue keycard"]
-            }
-        }
-    },
-    "Deimos Lab (E2M4)": {
-        "episode": 2, "map": 4,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Computer area map", "Armor 2", "Partial invisibility", "Armor", "Berserk", "Backpack", "Supercharge 2", "Partial invisibility 2", "Chaingun", "Armor 3", "Blue keycard"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Yellow keycard"],
-                "required_items_or": ["Blue keycard"]
-            },
-            "Blue Yellow": {
-                "locations": ["Plasma gun", "Supercharge", "Mega Armor"],
-                "connects_to_exit": true,
-                "required_items_and": ["Blue keycard", "Yellow keycard"]
-            }
-        }
-    },
-    "Command Center (E2M5)": {
-        "episode": 2, "map": 5,
-        "Regions": {
-            "Main": {
-                "locations": ["Backpack", "Mega Armor", "Berserk", "Chaingun", "Chainsaw", "Plasma gun", "Computer area map", "Armor", "Armor 2", "Partial invisibility"],
-                "connects_to_hub": true,
-                "connects_to_exit": true,
-                "required_items_or": []
-            }
-        }
-    },
-    "Halls of the Damned (E2M6)": {
-        "episode": 2, "map": 6,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Rocket launcher", "Berserk", "Chainsaw", "Mega Armor", "Backpack", "Plasma gun", "Yellow skull key", "Partial invisibility 3", "Partial invisibility", "Armor", "Chaingun", "Red skull key", "Blue skull key", "Partial invisibility 2"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Yellow": {
-                "locations": ["Computer area map", "Supercharge"],
-                "required_items_or": ["Yellow skull key"]
-            },
-            "Blue Yellow Red": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_and": ["Red skull key", "Blue skull key", "Yellow skull key"]
-            }
-        }
-    },
-    "Spawning Vats (E2M7)": {
-        "episode": 2, "map": 7,
-        "Regions": {
-            "Main": {
-                "locations": ["Rocket launcher", "Partial invisibility", "Mega Armor", "Armor", "Blue keycard", "Invulnerability", "Berserk", "Chainsaw", "Invulnerability 2", "Computer area map", "Plasma gun"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Yellow keycard", "Chaingun", "Backpack", "Supercharge"],
-                "required_items_or": ["Blue keycard"]
-            },
-            "Yellow": {
-                "locations": ["Red keycard"],
-                "required_items_or": ["Yellow keycard"]
-            },
-            "Red": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Red keycard"]
-            }
-        }
-    },
-    "Tower of Babel (E2M8)": {
-        "episode": 2, "map": 8,
-        "Regions": {
-            "Main": {
-                "locations": ["Rocket launcher", "Supercharge", "Supercharge 2", "Mega Armor"],
-                "connects_to_hub": true,
-                "connects_to_exit": true,
-                "required_items_or": ["Rocket launcher", "Plasma gun", "BFG9000"]
-            }
-        }
-    },
-    "Fortress of Mystery (E2M9)": {
-        "episode": 2, "map": 9,
-        "Regions": {
-            "Main": {
-                "locations": ["Supercharge", "Blue skull key", "Backpack", "Chaingun", "Plasma gun", "Rocket launcher", "Shotgun", "Chainsaw", "Computer area map", "Mega Armor"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Red skull key"],
-                "required_items_or": ["Blue skull key"]
-            },
-            "Yellow": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Yellow skull key"]
-            },
-            "Red": {
-                "locations": ["Yellow skull key"],
-                "required_items_or": ["Red skull key"]
-            }
-        }
-    },
-    "Hell Keep (E3M1)": {
-        "episode": 3, "map": 1,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Narrow": {
-                "locations": ["Rocket launcher"],
-                "connects_to_exit": true,
-                "required_items_or": ["Shotgun", "Chaingun"]
-            }
-        }
-    },
-    "Slough of Despair (E3M2)": {
-        "episode": 3, "map": 2,
-        "Regions": {
-            "Main": {
-                "locations": ["Chaingun", "Berserk", "Mega Armor", "Armor", "Rocket launcher", "Plasma gun", "Computer area map", "Blue skull key", "Supercharge"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue skull key"]
-            }
-        }
-    },
-    "Pandemonium (E3M3)": {
-        "episode": 3, "map": 3,
-        "Regions": {
-            "Main": {
-                "locations": ["Berserk", "Chaingun", "BFG9000", "Supercharge", "Invulnerability", "Blue skull key", "Mega Armor", "Shotgun", "Armor", "Backpack", "Computer area map", "Mega Armor 2", "Shotgun 2", "Rocket launcher"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue skull key"]
-            }
-        },
-        "death_logic_locations": ["Mega Armor"]
-    },
-    "House of Pain (E3M4)": {
-        "episode": 3, "map": 4,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Berserk", "Mega Armor", "Chaingun", "Invulnerability", "Blue skull key", "Armor", "Mega Armor 2", "Armor 2", "Rocket launcher", "Armor 3"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["Yellow skull key", "Partial invisibility", "BFG9000", "Supercharge", "Invulnerability 2"],
-                "required_items_or": ["Blue skull key"]
-            },
-            "Blue Yellow": {
-                "locations": ["Red skull key"],
-                "required_items_and": ["Yellow skull key", "Blue skull key"]
-            },
-            "Blue Red": {
-                "locations": ["Backpack"],
-                "connects_to_exit": true,
-                "required_items_and": ["Red skull key", "Blue skull key"]
-            }
-        },
-        "death_logic_locations": ["Chaingun", "Invulnerability"]
-    },
-    "Unholy Cathedral (E3M5)": {
-        "episode": 3, "map": 5,
-        "Regions": {
-            "Main": {
-                "locations": ["Blue skull key", "Chaingun", "Plasma gun", "Supercharge", "Yellow skull key", "Invulnerability", "Berserk", "Partial invisibility", "Shotgun", "Shotgun 2", "Rocket launcher"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["BFG9000"],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue skull key"]
-            },
-            "Yellow": {
-                "locations": ["Chainsaw", "Supercharge 2"],
-                "required_items_or": ["Yellow skull key"]
-            }
-        },
-        "death_logic_locations": ["BFG9000"]
-    },
-    "Mt. Erebus (E3M6)": {
-        "episode": 3, "map": 6,
-        "Regions": {
-            "Main": {
-                "locations": ["Mega Armor", "Armor", "Backpack", "Invulnerability", "Chaingun", "Shotgun", "Rocket launcher", "Plasma gun", "Armor 2", "Berserk", "Invulnerability 2", "Supercharge", "Blue skull key", "Blue skull key 2", "Computer area map", "Chainsaw", "Supercharge 2"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Blue skull key"]
-            }
-        }
-    },
-    "Limbo (E3M7)": {
-        "episode": 3, "map": 7,
-        "Regions": {
-            "Main": {
-                "locations": ["Blue skull key", "Supercharge", "Rocket launcher", "Backpack", "Armor 2", "Mega Armor"],
-                "connects_to_hub": true,
-                "required_items_or": []
-            },
-            "Blue": {
-                "locations": ["BFG9000", "Red skull key"],
-                "required_items_or": ["Blue skull key"]
-            },
-            "Red": {
-                "locations": ["Armor", "Yellow skull key", "Plasma gun"],
-                "required_items_or": ["Red skull key"]
-            },
-            "Yellow Red": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Yellow skull key", "Red skull key"]
-            }
-        }
-    },
-    "Dis (E3M8)": {
-        "episode": 3, "map": 8,
-        "Regions": {
-            "Main": {
-                "locations": ["Rocket launcher", "Plasma gun", "Mega Armor"],
-                "connects_to_hub": true,
-                "connects_to_exit": true,
-                "required_items_or": ["Rocket launcher", "Plasma gun", "BFG9000"]
-            }
-        }
-    },
-    "Warrens (E3M9)": {
-        "episode": 3, "map": 9,
-        "Regions": {
-            "Main": {
-                "locations": ["Shotgun", "Rocket launcher", "Rocket launcher 2", "Supercharge", "Blue skull key", "Berserk", "Invulnerability", "Partial invisibility", "Chaingun", "Plasma gun", "Invulnerability 2", "Armor", "Chainsaw", "BFG9000", "Red skull key", "Supercharge 2"],
-                "connects_to_hub": true,
-                "required_items_or": ["Rocket launcher", "Plasma gun", "BFG9000"]
-            },
-            "Red": {
-                "locations": [],
-                "connects_to_exit": true,
-                "required_items_or": ["Red skull key"]
-            }
-        }
-    }
+   "Central Processing (E1M6)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [
+               "Supercharge 2",
+               "Yellow keycard",
+               "Computer area map",
+               "Backpack 2",
+               "Backpack 3",
+               "Armor 2"
+            ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Blue Yellow" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Armor 3" ],
+            "required_items_or" : [ "Yellow keycard", "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Red keycard",
+               "Partial invisibility",
+               "Chaingun",
+               "Shotgun",
+               "Rocket launcher",
+               "Backpack",
+               "Armor",
+               "Armor 4"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "locations" : [ "Supercharge", "Blue keycard", "Partial invisibility 2", "Mega Armor" ],
+            "required_items_or" : [ "Red keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -2316, 765, -630, 2132 ],
+         [ 615, -2342, 3499, 46 ],
+         [ -2155, -2423, -146, -1009 ],
+         [ -1036, -1477, 791, 2402 ],
+         [ 770, 26, 1420, 870 ]
+      ],
+      "episode" : 1,
+      "map" : 6
+   },
+   "Command Center (E2M5)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_exit" : true,
+            "connects_to_hub" : true,
+            "locations" : [
+               "Backpack",
+               "Mega Armor",
+               "Berserk",
+               "Chaingun",
+               "Chainsaw",
+               "Plasma gun",
+               "Computer area map",
+               "Armor",
+               "Armor 2",
+               "Partial invisibility"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -3851, -1160, 219, 1385 ],
+         [ -3672, 1372, -238, 2579 ],
+         [ -244, 369, 462, 1787 ]
+      ],
+      "episode" : 2,
+      "map" : 5
+   },
+   "Command Control (E1M4)" : {
+      "Regions" : {
+         "Blue Yellow" : {
+            "locations" : [ "Armor", "Mega Armor", "Yellow keycard" ],
+            "required_items_or" : [ "Blue keycard", "Yellow keycard" ]
+         },
+         "Main" : {
+            "connects_to_exit" : true,
+            "connects_to_hub" : true,
+            "locations" : [
+               "Chaingun",
+               "Blue keycard",
+               "Supercharge",
+               "Rocket launcher",
+               "Backpack",
+               "Shotgun"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -1484, -624, 1868, 2068 ],
+         [ -1612, 1772, -588, 2188 ],
+         [ 1848, 876, 2132, 1228 ]
+      ],
+      "death_logic_locations" : [ "Supercharge", "Mega Armor" ],
+      "episode" : 1,
+      "map" : 4
+   },
+   "Computer Station (E1M7)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Shotgun" ],
+            "required_items_and" : [ "Blue keycard", "Yellow keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [ "Shotgun 2", "Yellow keycard", "Armor" ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "locations" : [ "Blue keycard" ],
+            "required_items_or" : [ "Red keycard" ]
+         },
+         "Yellow" : {
+            "locations" : [
+               "Chainsaw",
+               "Chaingun",
+               "Red keycard",
+               "Rocket launcher",
+               "Mega Armor",
+               "Computer area map",
+               "Supercharge",
+               "Backpack",
+               "Armor 2"
+            ],
+            "required_items_or" : [ "Yellow keycard" ]
+         },
+         "Yellow Red" : {
+            "locations" : [ "Partial invisibility" ],
+            "required_items_and" : [ "Yellow keycard", "Red keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -1796, -376, 392, 620 ],
+         [ -1229, -2729, 1623, -369 ],
+         [ 364, -384, 1484, 292 ],
+         [ -1480, -2828, -1136, -2232 ],
+         [ 1616, -2643, 2259, -1511 ]
+      ],
+      "episode" : 1,
+      "map" : 7
+   },
+   "Containment Area (E2M2)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [ "Red keycard" ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Shotgun 2",
+               "Berserk",
+               "Armor",
+               "Armor 2",
+               "Armor 3",
+               "Armor 4",
+               "Yellow keycard",
+               "Backpack",
+               "Computer area map",
+               "Mega Armor",
+               "Plasma gun",
+               "Chainsaw",
+               "Supercharge",
+               "Blue keycard"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Red keycard" ]
+         },
+         "Yellow" : {
+            "locations" : [ "Chaingun", "Backpack 2", "Rocket launcher" ],
+            "required_items_or" : [ "Yellow keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -393, -582, 2825, 4619 ]
+      ],
+      "death_logic_locations" : [ "Supercharge" ],
+      "episode" : 2,
+      "map" : 2
+   },
+   "Deimos Anomaly (E2M1)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Shotgun 2",
+               "Red keycard",
+               "Armor",
+               "Blue keycard",
+               "Plasma gun"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "locations" : [ "Computer area map", "Mega Armor" ],
+            "required_items_or" : [ "Red keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -294, -1357, 2295, 502 ],
+         [ -266, 497, 355, 656 ]
+      ],
+      "episode" : 2,
+      "map" : 1
+   },
+   "Deimos Lab (E2M4)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [ "Yellow keycard" ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Blue Yellow" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Plasma gun", "Supercharge", "Mega Armor" ],
+            "required_items_and" : [ "Blue keycard", "Yellow keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Computer area map",
+               "Armor 2",
+               "Partial invisibility",
+               "Armor",
+               "Berserk",
+               "Backpack",
+               "Supercharge 2",
+               "Partial invisibility 2",
+               "Chaingun",
+               "Armor 3",
+               "Blue keycard"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -1035, -3012, 2887, 780 ]
+      ],
+      "episode" : 2,
+      "map" : 4
+   },
+   "Dis (E3M8)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_exit" : true,
+            "connects_to_hub" : true,
+            "locations" : [ "Rocket launcher", "Plasma gun", "Mega Armor" ],
+            "required_items_or" : [ "Rocket launcher", "Plasma gun", "BFG9000" ]
+         }
+      },
+      "bbs" : [
+         [ -1747, -1179, 2003, 2456 ],
+         [ 17, -1565, 304, -1171 ]
+      ],
+      "episode" : 3,
+      "map" : 8
+   },
+   "Fortress of Mystery (E2M9)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [ "Red skull key" ],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Supercharge",
+               "Blue skull key",
+               "Backpack",
+               "Chaingun",
+               "Plasma gun",
+               "Rocket launcher",
+               "Shotgun",
+               "Chainsaw",
+               "Computer area map",
+               "Mega Armor"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "locations" : [ "Yellow skull key" ],
+            "required_items_or" : [ "Red skull key" ]
+         },
+         "Yellow" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Yellow skull key" ]
+         }
+      },
+      "bbs" : [
+         [ 1388, -1240, 1944, 460 ],
+         [ -900, -656, 2707, -104 ],
+         [ -592, -1033, 721, 263 ],
+         [ -134, -1344, 268, 576 ]
+      ],
+      "episode" : 2,
+      "map" : 9
+   },
+   "Halls of the Damned (E2M6)" : {
+      "Regions" : {
+         "Blue Yellow Red" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_and" : [ "Red skull key", "Blue skull key", "Yellow skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Rocket launcher",
+               "Berserk",
+               "Chainsaw",
+               "Mega Armor",
+               "Backpack",
+               "Plasma gun",
+               "Yellow skull key",
+               "Partial invisibility 3",
+               "Partial invisibility",
+               "Armor",
+               "Chaingun",
+               "Red skull key",
+               "Blue skull key",
+               "Partial invisibility 2"
+            ],
+            "required_items_or" : []
+         },
+         "Yellow" : {
+            "locations" : [ "Computer area map", "Supercharge" ],
+            "required_items_or" : [ "Yellow skull key" ]
+         }
+      },
+      "bbs" : [
+         [ 753, 2358, 1672, 3337 ],
+         [ -1309, -1617, 471, -154 ],
+         [ -651, -661, 1975, 1676 ],
+         [ -1358, 1071, 1164, 2895 ],
+         [ -439, 2849, 193, 3411 ]
+      ],
+      "episode" : 2,
+      "map" : 6
+   },
+   "Hangar (E1M1)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_exit" : true,
+            "connects_to_hub" : true,
+            "locations" : [ "Mega Armor", "Armor", "Shotgun" ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -784, -3692, 1240, -2796 ],
+         [ 2684, -4863, 3344, -3859 ],
+         [ 2018, -4103, 3818, -2551 ],
+         [ 1206, -3787, 2566, -2031 ]
+      ],
+      "episode" : 1,
+      "map" : 1
+   },
+   "Hell Keep (E3M1)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [ "Shotgun" ],
+            "required_items_or" : []
+         },
+         "Narrow" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Rocket launcher" ],
+            "required_items_or" : [ "Shotgun", "Chaingun" ]
+         }
+      },
+      "bbs" : [
+         [ -782, -1998, 1176, -285 ],
+         [ -1171, 1102, -475, 2382 ],
+         [ -1168, -285, 975, 1115 ]
+      ],
+      "episode" : 3,
+      "map" : 1
+   },
+   "House of Pain (E3M4)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [
+               "Yellow skull key",
+               "Partial invisibility",
+               "BFG9000",
+               "Supercharge",
+               "Invulnerability 2"
+            ],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Blue Red" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Backpack" ],
+            "required_items_and" : [ "Red skull key", "Blue skull key" ]
+         },
+         "Blue Yellow" : {
+            "locations" : [ "Red skull key" ],
+            "required_items_and" : [ "Yellow skull key", "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Berserk",
+               "Mega Armor",
+               "Chaingun",
+               "Invulnerability",
+               "Blue skull key",
+               "Armor",
+               "Mega Armor 2",
+               "Armor 2",
+               "Rocket launcher",
+               "Armor 3"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -982, -2638, 349, -417 ],
+         [ -1988, -1838, -972, -312 ],
+         [ -633, -2062, 1230, 914 ],
+         [ 1218, -650, 2190, 969 ],
+         [ -154, 895, 207, 1190 ]
+      ],
+      "death_logic_locations" : [ "Chaingun", "Invulnerability" ],
+      "episode" : 3,
+      "map" : 4
+   },
+   "Limbo (E3M7)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [ "BFG9000", "Red skull key" ],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Blue skull key",
+               "Supercharge",
+               "Rocket launcher",
+               "Backpack",
+               "Armor 2",
+               "Mega Armor"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "locations" : [ "Armor", "Yellow skull key", "Plasma gun" ],
+            "required_items_or" : [ "Red skull key" ]
+         },
+         "Yellow Red" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Yellow skull key", "Red skull key" ]
+         }
+      },
+      "bbs" : [
+         [ -1612, -1578, 1993, 2121 ],
+         [ -1736, -1736, 497, -186 ]
+      ],
+      "episode" : 3,
+      "map" : 7
+   },
+   "Military Base (E1M9)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Backpack", "Shotgun", "Chainsaw" ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [ "Yellow keycard", "Chaingun", "Armor", "Rocket launcher" ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "locations" : [ "Blue keycard" ],
+            "required_items_or" : [ "Red keycard" ]
+         },
+         "Yellow" : {
+            "locations" : [ "Red keycard" ],
+            "required_items_or" : [ "Yellow keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -712, -1480, 2132, 1736 ],
+         [ 2120, -144, 2708, 656 ]
+      ],
+      "episode" : 1,
+      "map" : 9
+   },
+   "Mt. Erebus (E3M6)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Mega Armor",
+               "Armor",
+               "Backpack",
+               "Invulnerability",
+               "Chaingun",
+               "Shotgun",
+               "Rocket launcher",
+               "Plasma gun",
+               "Armor 2",
+               "Berserk",
+               "Invulnerability 2",
+               "Supercharge",
+               "Blue skull key",
+               "Blue skull key 2",
+               "Computer area map",
+               "Chainsaw",
+               "Supercharge 2"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -1688, -3424, 3187, 3408 ],
+         [ -2584, -1989, 4249, 1459 ]
+      ],
+      "episode" : 3,
+      "map" : 6
+   },
+   "Nuclear Plant (E1M2)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Armor",
+               "Supercharge",
+               "Chaingun",
+               "Red keycard",
+               "Armor 2",
+               "Backpack"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Chainsaw", "Armor 3", "Mega Armor", "Backpack 2" ],
+            "required_items_or" : [ "Red keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -2775, 633, 136, 1565 ],
+         [ -1841, 1526, 72, 2775 ],
+         [ 663, -789, 2583, 1715 ],
+         [ -2394, -1163, 728, 798 ]
+      ],
+      "episode" : 1,
+      "map" : 2
+   },
+   "Pandemonium (E3M3)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Berserk",
+               "Chaingun",
+               "BFG9000",
+               "Supercharge",
+               "Invulnerability",
+               "Blue skull key",
+               "Mega Armor",
+               "Shotgun",
+               "Armor",
+               "Backpack",
+               "Computer area map",
+               "Mega Armor 2",
+               "Shotgun 2",
+               "Rocket launcher"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ 795, -400, 1864, 1424 ],
+         [ -1676, -1288, 904, 76 ],
+         [ -1288, 68, 812, 948 ],
+         [ -780, 920, 788, 1740 ]
+      ],
+      "death_logic_locations" : [ "Mega Armor" ],
+      "episode" : 3,
+      "map" : 3
+   },
+   "Phobos Anomaly (E1M8)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_exit" : true,
+            "connects_to_hub" : true,
+            "locations" : [
+               "Supercharge",
+               "Shotgun",
+               "Shotgun 2",
+               "Armor",
+               "Chaingun",
+               "Partial invisibility",
+               "Computer area map"
+            ],
+            "required_items_or" : [ "Rocket launcher", "Plasma gun", "BFG9000" ]
+         }
+      },
+      "bbs" : [
+         [ -2919, 690, 3755, 6106 ],
+         [ 432, 6245, 779, 6681 ],
+         [ -231, -507, 977, 722 ]
+      ],
+      "episode" : 1,
+      "map" : 8
+   },
+   "Phobos Lab (E1M5)" : {
+      "Regions" : {
+         "Blue Yellow" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Yellow keycard", "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Yellow keycard",
+               "Mega Armor",
+               "Rocket launcher",
+               "Shotgun",
+               "Shotgun 2",
+               "Backpack",
+               "Shotgun 3",
+               "Armor"
+            ],
+            "required_items_or" : []
+         },
+         "Yellow" : {
+            "locations" : [
+               "Blue keycard",
+               "Mega Armor 2",
+               "Chainsaw",
+               "Supercharge",
+               "Chaingun",
+               "Computer area map",
+               "Partial invisibility",
+               "Armor 2"
+            ],
+            "required_items_or" : [ "Yellow keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -2244, 172, -892, 1484 ],
+         [ -1040, 1416, 532, 2508 ],
+         [ -900, -116, 1744, 1556 ],
+         [ -716, -756, 340, -116 ]
+      ],
+      "episode" : 1,
+      "map" : 5
+   },
+   "Refinery (E2M3)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Supercharge", "Partial invisibility" ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Chaingun",
+               "Shotgun",
+               "Berserk",
+               "Partial invisibility 2",
+               "Mega Armor",
+               "Backpack",
+               "Plasma gun",
+               "Blue keycard",
+               "Armor"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ -1326, -523, 2246, 1102 ],
+         [ -1036, 1092, 1692, 1453 ],
+         [ -781, 1444, 1340, 2013 ]
+      ],
+      "episode" : 2,
+      "map" : 3
+   },
+   "Slough of Despair (E3M2)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Chaingun",
+               "Berserk",
+               "Mega Armor",
+               "Armor",
+               "Rocket launcher",
+               "Plasma gun",
+               "Computer area map",
+               "Blue skull key",
+               "Supercharge"
+            ],
+            "required_items_or" : []
+         }
+      },
+      "bbs" : [
+         [ 537, -896, 2315, 184 ],
+         [ 274, 175, 2165, 3133 ],
+         [ 497, 3112, 921, 3484 ],
+         [ -585, 966, 305, 2747 ]
+      ],
+      "episode" : 3,
+      "map" : 2
+   },
+   "Spawning Vats (E2M7)" : {
+      "Regions" : {
+         "Blue" : {
+            "locations" : [ "Yellow keycard", "Chaingun", "Backpack", "Supercharge" ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Rocket launcher",
+               "Partial invisibility",
+               "Mega Armor",
+               "Armor",
+               "Blue keycard",
+               "Invulnerability",
+               "Berserk",
+               "Chainsaw",
+               "Invulnerability 2",
+               "Computer area map",
+               "Plasma gun"
+            ],
+            "required_items_or" : []
+         },
+         "Red" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Red keycard" ]
+         },
+         "Yellow" : {
+            "locations" : [ "Red keycard" ],
+            "required_items_or" : [ "Yellow keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -128, -467, 3848, 2120 ],
+         [ -136, -784, 80, -380 ],
+         [ 981, -576, 1137, -460 ]
+      ],
+      "episode" : 2,
+      "map" : 7
+   },
+   "Tower of Babel (E2M8)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_exit" : true,
+            "connects_to_hub" : true,
+            "locations" : [ "Rocket launcher", "Supercharge", "Supercharge 2", "Mega Armor" ],
+            "required_items_or" : [ "Rocket launcher", "Plasma gun", "BFG9000" ]
+         }
+      },
+      "bbs" : [
+         [ -1681, -3403, 1483, 1681 ]
+      ],
+      "episode" : 2,
+      "map" : 8
+   },
+   "Toxin Refinery (E1M3)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [ "Armor 3", "Chainsaw" ],
+            "required_items_or" : [ "Blue keycard" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Armor",
+               "Supercharge",
+               "Yellow keycard",
+               "Blue keycard",
+               "Shotgun",
+               "Shotgun 2",
+               "Armor 2",
+               "Rocket launcher",
+               "Chaingun",
+               "Backpack"
+            ],
+            "required_items_or" : []
+         },
+         "Yellow" : {
+            "locations" : [ "Mega Armor", "Supercharge 2", "Partial invisibility" ],
+            "required_items_and" : [ "Blue keycard", "Yellow keycard" ]
+         }
+      },
+      "bbs" : [
+         [ -2000, -3416, -1020, -2348 ],
+         [ -3312, -2668, -1888, -588 ],
+         [ -1892, -2520, 16, -336 ],
+         [ 8, -3252, 944, -1200 ]
+      ],
+      "episode" : 1,
+      "map" : 3
+   },
+   "Unholy Cathedral (E3M5)" : {
+      "Regions" : {
+         "Blue" : {
+            "connects_to_exit" : true,
+            "locations" : [ "BFG9000" ],
+            "required_items_or" : [ "Blue skull key" ]
+         },
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Blue skull key",
+               "Chaingun",
+               "Plasma gun",
+               "Supercharge",
+               "Yellow skull key",
+               "Invulnerability",
+               "Berserk",
+               "Partial invisibility",
+               "Shotgun",
+               "Shotgun 2",
+               "Rocket launcher"
+            ],
+            "required_items_or" : []
+         },
+         "Yellow" : {
+            "locations" : [ "Chainsaw", "Supercharge 2" ],
+            "required_items_or" : [ "Yellow skull key" ]
+         }
+      },
+      "bbs" : [
+         [ -970, 1508, 539, 2711 ],
+         [ -1582, -1941, 746, 1674 ],
+         [ 740, -328, 2135, 1673 ],
+         [ -2702, 240, -1516, 982 ],
+         [ -1949, 1158, -1421, 2198 ]
+      ],
+      "death_logic_locations" : [ "BFG9000" ],
+      "episode" : 3,
+      "map" : 5
+   },
+   "Warrens (E3M9)" : {
+      "Regions" : {
+         "Main" : {
+            "connects_to_hub" : true,
+            "locations" : [
+               "Shotgun",
+               "Rocket launcher",
+               "Rocket launcher 2",
+               "Supercharge",
+               "Blue skull key",
+               "Berserk",
+               "Invulnerability",
+               "Partial invisibility",
+               "Chaingun",
+               "Plasma gun",
+               "Invulnerability 2",
+               "Armor",
+               "Chainsaw",
+               "BFG9000",
+               "Red skull key",
+               "Supercharge 2"
+            ],
+            "required_items_or" : [ "Rocket launcher", "Plasma gun", "BFG9000" ]
+         },
+         "Red" : {
+            "connects_to_exit" : true,
+            "locations" : [],
+            "required_items_or" : [ "Red skull key" ]
+         }
+      },
+      "bbs" : [
+         [ 1650, -75, 3917, 601 ],
+         [ 1264, -1304, 2188, 404 ],
+         [ -1754, 2174, 411, 3856 ],
+         [ -681, -2024, 1300, -273 ],
+         [ -1049, -291, 1205, 2167 ]
+      ],
+      "episode" : 3,
+      "map" : 9
+   }
 }
