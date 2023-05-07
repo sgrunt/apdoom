@@ -26,7 +26,7 @@
 
 #define HU_MAXLINES		4
 #define HU_MAXLINELENGTH	80
-#define HU_MAX_LINE_BUFFER 50
+#define HU_MAX_LINE_BUFFER 500
 
 //
 // Typedefs of widgets

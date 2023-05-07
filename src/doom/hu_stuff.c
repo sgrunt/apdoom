@@ -1152,11 +1152,17 @@ void HU_TickAPMessages()
     {
         for (int i = 3; i >= 0; --i)
         {
-            if (ap_message_counters[i] && !--ap_message_counters[i])
+            if (ap_message_counters[i])
             {
-                ap_message_ons[i] = false;
-                ap_message_anim = 8;
-                break;
+                ap_message_counters[i] -= max(1, ap_message_buffer_count / 6);
+                if (ap_message_counters[i] <= 0)
+                {
+                    ap_message_counters[i] = 0;
+                    // ap_message_buffer_count
+                    ap_message_ons[i] = false;
+                    ap_message_anim = 8;
+                    break;
+                }
             }
         }
     }
@@ -1166,7 +1172,10 @@ void HU_TickAPMessages()
         HU_UpdateAPMessagePosition(i);
 
     if (ap_message_anim > 0)
-        ap_message_anim--;
+    {
+        ap_message_anim -= min(4, max(1, ap_message_buffer_count / 10));
+        if (ap_message_anim < 0) ap_message_anim = 0;
+    }
 }
 
 
