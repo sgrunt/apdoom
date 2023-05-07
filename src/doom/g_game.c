@@ -1246,7 +1246,7 @@ void G_Ticker (void)
 	switch (gameaction) 
 	{ 
 	  case ga_loadlevel: 
-	    G_DoLoadLevel (); 
+	    G_DoLoadLevel(); 
         set_ap_player_states();
         player_t* p = &players[consoleplayer];
         for (i = 0; i < AP_NUM_WEAPONS; ++i)
@@ -1264,7 +1264,8 @@ void G_Ticker (void)
                 }
             }
         }
-        p->health = deh_initial_health;
+        p->neghealth = p->health = deh_initial_health;
+        if (p->mo) p->mo->health = p->health;
 	    break; 
 	  case ga_newgame: 
 	    // [crispy] re-read game parameters from command line
