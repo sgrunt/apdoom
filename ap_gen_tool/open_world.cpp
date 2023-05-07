@@ -15,9 +15,11 @@
 #include <imgui/imgui.h>
 
 #include <vector>
+#include <set>
 
 #include "maps.h"
 #include "generate.h"
+#include "defs.h"
 
 
 enum class state_t
@@ -91,7 +93,7 @@ struct region_t
     std::string name;
     bool connects_to_exit = false;
     bool connects_to_hub = false;
-    std::vector<int> sectors;
+    std::set<int> sectors;
     std::vector<std::string> required_items_or;
     std::vector<std::string> required_items_and;
     Color tint = Color::White;
@@ -138,7 +140,7 @@ static map_state_t map_states[EP_COUNT][MAP_COUNT];
 static map_view_t map_views[EP_COUNT][MAP_COUNT];
 static map_history_t map_histories[EP_COUNT][MAP_COUNT];
 static state_t state = state_t::idle;
-static tool_t tool = tool_t::bb;
+static tool_t tool = tool_t::region;
 static Vector2 mouse_pos;
 static Vector2 mouse_pos_on_down;
 static Vector2 cam_pos_on_down;
@@ -154,20 +156,23 @@ static HCURSOR arrow_cursor = 0;
 static HCURSOR we_cursor = 0;
 static HCURSOR ns_cursor = 0;
 static HCURSOR nswe_cursor = 0;
-static Json::Value json;
-static Json::Value* map_json = nullptr;
 static bool generating = true;
 static map_state_t* flat_levels[EP_COUNT * MAP_COUNT];
 static int gen_step_count = 0;
+static bool painted = false;
 
 
 void save()
 {
+    Json::Value _json;
+
+    Json::Value eps_json(Json::arrayValue);
     for (int ep = 0; ep < EP_COUNT; ++ep)
     {
+        Json::Value maps_json(Json::arrayValue);
         for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
         {
-            auto& _map_json = json[level_names[ep][lvl]];
+            Json::Value _map_json;
             Json::Value bbs_json(Json::arrayValue);
             for (const auto& bb : map_states[ep][lvl].bbs)
             {
@@ -179,16 +184,43 @@ void save()
                 bbs_json.append(bb_json);
             }
             _map_json["bbs"] = bbs_json;
+
+            Json::Value regions_json(Json::arrayValue);
+            for (const auto& region : map_states[ep][lvl].regions)
+            {
+                Json::Value region_json;
+                region_json["name"] = region.name;
+                region_json["connects_to_exit"] = region.connects_to_exit;
+                region_json["connects_to_hub"] = region.connects_to_hub;
+                region_json["tint"] = onut::serializeFloat4(&region.tint.r);
+
+                Json::Value sectors_json(Json::arrayValue);
+                for (auto sectori : region.sectors)
+                    sectors_json.append(sectori);
+                region_json["sectors"] = sectors_json;
+
+                region_json["required_items_or"] = onut::serializeStringArray(region.required_items_or);
+                region_json["required_items_and"] = onut::serializeStringArray(region.required_items_and);
+
+                regions_json.append(region_json);
+            }
+            _map_json["regions"] = regions_json;
+
+            maps_json.append(_map_json);
         }
+        eps_json.append(maps_json);
     }
 
+    _json["episodes"] = eps_json;
+
     std::string filename = OArguments[2] + std::string("\\regions.json");
-    onut::saveJson(json, filename);
+    onut::saveJson(_json, filename, false);
 }
 
 
 void load()
 {
+    Json::Value json;
     std::string filename = OArguments[2] + std::string("\\regions.json");
     if (!onut::loadJson(json, filename))
     {
@@ -201,7 +233,8 @@ void load()
         for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
         {
             auto& _map_state = map_states[ep][lvl];
-            auto& _map_json = json[level_names[ep][lvl]];
+            auto& _map_json = json["episodes"][ep][lvl];
+
             const auto& bbs_json = _map_json["bbs"];
             for (const auto& bb_json : bbs_json)
             {
@@ -212,16 +245,24 @@ void load()
                     bb_json[3].asInt()
                 });
             }
-            auto region_names = _map_json["Regions"].getMemberNames();
-            for (const auto& region_name : region_names)
+
+            const auto& regions_json = _map_json["regions"];
+            for (const auto& region_json : regions_json)
             {
-                const auto& region_json = _map_json["Regions"][region_name];
                 region_t region;
-                region.name = region_name;
+
+                region.name = region_json.get("name", "BAD_NAME").asString();
                 region.connects_to_exit = region_json.get("connects_to_exit", false).asBool();
                 region.connects_to_hub = region_json.get("connects_to_hub", false).asBool();
+                onut::deserializeFloat4(&region.tint.r, region_json["tint"]);
+
+                const auto& sectors_json = region_json["sectors"];
+                for (const auto& sector_json : sectors_json)
+                    region.sectors.insert(sector_json.asInt());
+
                 region.required_items_or = onut::deserializeStringArray(region_json["required_items_or"]);
                 region.required_items_and = onut::deserializeStringArray(region_json["required_items_and"]);
+
                 _map_state.regions.push_back(region);
             }
         }
@@ -254,21 +295,6 @@ void select_map(int ep, int map)
     map_state = &map_states[active_ep][active_map];
     map_view = &map_views[active_ep][active_map];
     map_history = &map_histories[active_ep][active_map];
-
-    map_json = nullptr;
-    auto map_names = json.getMemberNames();
-    for (const auto& map_name : map_names)
-    {
-        auto& _map_json = json[map_name];
-        if (_map_json["episode"].asInt() == active_ep + 1 &&
-            _map_json["map"].asInt() == active_map + 1)
-        {
-            map_json = &_map_json;
-            break;
-        }
-    }
-
-    assert(map_json);
 
     update_window_title();
     if (map_history->history.empty())
@@ -560,14 +586,39 @@ void update()
                     int x = (int)mouse_pos.x;
                     int y = (int)-mouse_pos.y;
                     mouse_hover_sector = sector_at(x, y, &maps[active_ep][active_map]);
+
+                    if ((OInputJustReleased(OMouse1) || OInputJustReleased(OMouse2)) && painted)
+                    {
+                        painted = false;
+                        push_undo();
+                    }
                     
                     if (OInputPressed(OMouse1))
                     {
                         // "paint" selected region
+                        if (mouse_hover_sector != -1 && map_state->selected_region != -1)
+                        {
+                            for (auto& region : map_state->regions) region.sectors.erase(mouse_hover_sector);
+                            map_state->regions[map_state->selected_region].sectors.insert(mouse_hover_sector);
+                            painted = true;
+                        }
                     }
-                    else if (OInputJustPressed(OKeyF))
+                    else if (OInputPressed(OMouse2))
+                    {
+                        // "erase" selected region
+                        if (mouse_hover_sector != -1)
+                        {
+                            for (auto& region : map_state->regions) region.sectors.erase(mouse_hover_sector);
+                            painted = true;
+                        }
+                    }
+                    else if (OInputJustPressed(OKeyF) && map_state->selected_region != -1)
                     {
                         // Fill selected region
+                        for (auto& region : map_state->regions) region.sectors.clear();
+                        for (int i = 0, len = (int)maps[active_ep][active_map].sectors.size(); i < len; ++i)
+                            map_state->regions[map_state->selected_region].sectors.insert(i);
+                        painted = true;
                     }
                 }
             }
@@ -674,6 +725,20 @@ void draw_guides()
 }
 
 
+region_t* get_region_for_sector(int ep, int lvl, int sector)
+{
+    auto& map_state = map_states[ep][lvl];
+    for (auto& region : map_state.regions)
+    {
+        if (region.sectors.count(sector))
+        {
+            return &region;
+        }
+    }
+    return nullptr;
+}
+
+
 void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tools)
 {
     Color bound_color(1.0f);
@@ -683,11 +748,39 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
     auto pb = oPrimitiveBatch.get();
     auto sb = oSpriteBatch.get();
     auto map = &maps[ep][lvl];
+    oRenderer->renderStates.backFaceCull = false;
 
     auto transform = 
               Matrix::CreateRotationZ(angle) *
               Matrix::CreateTranslation(Vector2(pos.x, -pos.y)) *
               Matrix::Create2DTranslationZoom(OScreenf, map_view->cam_pos, map_view->cam_zoom);
+
+    // Sectors
+    if (draw_tools)
+    {
+        pb->begin(OPrimitiveTriangleList, nullptr, transform);
+        int i = 0;
+        for (const auto& sector : map->sectors)
+        {
+            region_t* region = get_region_for_sector(ep, lvl, i);
+            if (region)
+            {
+                Color color = region->tint * 0.5f;
+                for (int i = 0, len = (int)sector.vertices.size(); i < len; i += 3)
+                {
+                    const auto& v1 = map->vertexes[sector.vertices[i + 0]];
+                    const auto& v2 = map->vertexes[sector.vertices[i + 1]];
+                    const auto& v3 = map->vertexes[sector.vertices[i + 2]];
+
+                    pb->draw(Vector2(v1.x, -v1.y), color);
+                    pb->draw(Vector2(v2.x, -v2.y), color);
+                    pb->draw(Vector2(v3.x, -v3.y), color);
+                }
+            }
+            ++i;
+        }
+        pb->end();
+    }
 
     // Geometry
     pb->begin(OPrimitiveLineList, nullptr, transform);
@@ -704,6 +797,25 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
     {
         Color color = bound_color;
         if (line.back_sidedef != -1) color = step_color;
+
+        if (draw_tools)
+        {
+            if (line.special_type == LT_DR_DOOR_RED_OPEN_WAIT_CLOSE ||
+                line.special_type == LT_D1_DOOR_RED_OPEN_STAY ||
+                line.special_type == LT_SR_DOOR_RED_OPEN_STAY_FAST ||
+                line.special_type == LT_S1_DOOR_RED_OPEN_STAY_FAST)
+                color = Color(1, 0, 0);
+            else if (line.special_type == LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE ||
+                line.special_type == LT_D1_DOOR_YELLOW_OPEN_STAY ||
+                line.special_type == LT_SR_DOOR_YELLOW_OPEN_STAY_FAST ||
+                line.special_type == LT_S1_DOOR_YELLOW_OPEN_STAY_FAST)
+                color = Color(1, 1, 0);
+            else if (line.special_type == LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE ||
+                line.special_type == LT_D1_DOOR_BLUE_OPEN_STAY ||
+                line.special_type == LT_SR_DOOR_BLUE_OPEN_STAY_FAST ||
+                line.special_type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
+                color = Color(0, 0, 1);
+        }
 
         if (draw_tools && tool == tool_t::region)
         {
@@ -740,6 +852,14 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
     }
 
     pb->end();
+
+    // Vertices
+    //sb->begin(transform);
+    //for (const auto& v : map->vertexes)
+    //{
+    //    sb->drawSprite(nullptr, Vector2(v.x, -v.y), bound_color, 0.0f, 3.0f);
+    //}
+    //sb->end();
 
     // Items
     sb->begin(transform);

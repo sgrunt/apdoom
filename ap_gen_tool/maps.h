@@ -143,6 +143,7 @@ struct seg_t
 struct sector_t
 {
     std::vector<int> vertices;
+    std::vector<int> walls;
 };
 
 
@@ -176,6 +177,7 @@ struct map_t
     std::vector<seg_t>              segs;
     std::vector<subsector_t>        subsectors;
     std::vector<node_t>             nodes;
+    std::vector<sector_t>           sectors;
     int16_t bb[4];
 };
 

@@ -84,7 +84,7 @@ struct connection_t
 };
 
 
-struct sector_t
+struct level_sector_t
 {
     bool visited = false;
     std::vector<connection_t> connections;
@@ -97,7 +97,7 @@ struct level_t
     char name[9];
     int ep;
     int lvl;
-    std::vector<sector_t>           sectors;
+    std::vector<level_sector_t> sectors;
     int starting_sector = -1;
     bool keys[3] = {false};
     int location_count = 0;

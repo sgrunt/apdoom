@@ -2,8 +2,31 @@
 
 #include <onut/onut.h>
 #include <onut/Dialogs.h>
+#include <onut/Point.h>
+
+#include "earcut.hpp"
 
 #include <stdio.h>
+#include <algorithm>
+
+
+// For earcut to work
+namespace mapbox {
+namespace util {
+template <>
+struct nth<0, Point> {
+    inline static auto get(const Point &t) {
+        return t.x;
+    };
+};
+template <>
+struct nth<1, Point> {
+    inline static auto get(const Point &t) {
+        return t.y;
+    };
+};
+} // namespace util
+} // namespace mapbox
 
 
 #define	NF_SUBSECTOR_VANILLA	0x8000
@@ -127,6 +150,143 @@ subsector_t* point_in_subsector(int x, int y, map_t* map)
 }
 
 
+struct wall_t
+{
+    int v1, v2;
+    int sector;
+};
+
+
+static void create_wall(std::vector<wall_t>& map_walls, map_t* map, int16_t linedef_idx, int16_t sidedef_idx)
+{
+    const auto &linedef = map->linedefs[linedef_idx];
+    const auto &sidedef = map->sidedefs[sidedef_idx];
+    const auto &sectordef = map->sectors[sidedef.sector];
+
+    auto &sector = map->sectors[sidedef.sector];
+
+    wall_t wall;
+    wall.v1 = linedef.start_vertex;
+    wall.v2 = linedef.end_vertex;
+    
+    // When moving a sector we will need to refer to the sector behind to invalidate it
+    if (linedef.front_sidedef != sidedef_idx)
+    {
+        // Invert direction of wall if we are behind the linedef
+        std::swap(wall.v1, wall.v2);
+    }
+
+    wall.sector = sidedef.sector;
+
+    sector.walls.push_back((int)map_walls.size());
+    map_walls.push_back(wall);
+}
+
+
+static void triangulate_sector(const std::vector<wall_t>& map_walls, map_t* map, int sectori)
+{
+    auto& sector = map->sectors[sectori];
+
+    std::vector<int> wall_idx_remaining(sector.walls.size());
+    for (int i = 0, len = (int)sector.walls.size(); i < len; ++i)
+        wall_idx_remaining[i] = i;
+
+    // Build loops
+    std::vector<std::vector<int>> loops;
+    while (wall_idx_remaining.size() >= 3)
+    {
+        // Pick first line, and try to build a loop
+        std::vector<int> loop = { wall_idx_remaining[0] };
+        wall_idx_remaining.erase(wall_idx_remaining.begin());
+        while (true)
+        {
+            auto previous = loop[(int)loop.size() - 1];
+            bool found = false;
+            for (int i = 0, len = (int)wall_idx_remaining.size(); i < len; ++i)
+            {
+                auto idx = wall_idx_remaining[i];
+                const auto &wall = map_walls[sector.walls[idx]];
+                if (map_walls[sector.walls[previous]].v1 == wall.v2)
+                {
+                    loop.push_back(idx);
+                    wall_idx_remaining.erase(wall_idx_remaining.begin() + i);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) break;
+        }
+
+        if (loop.size() >= 3)
+        {
+            loops.push_back(loop);
+        }
+    }
+
+    // Calculate biggest loop, and put it in front. This will be our outside loop. This is what earcut expects.
+    double biggest_area = 0;
+    int biggest_loop = 0;
+    for (int i = 0, len = (int)loops.size(); i < len; ++i)
+    {
+        const auto &loop = loops[i];
+        auto first_wall = loop[0];
+        const auto &vertex = map->vertexes[map_walls[sector.walls[first_wall]].v1];
+        double mins[2] = { (double)vertex.x, (double)vertex.y };
+        double maxs[2] = { (double)vertex.x, (double)vertex.y };
+        for (auto wall_idx : loop)
+        {
+            const auto &vert = map->vertexes[map_walls[sector.walls[wall_idx]].v1];
+            mins[0] = std::min(mins[0], (double)vert.x);
+            mins[1] = std::min(mins[1], (double)vert.y);
+            maxs[0] = std::max(maxs[0], (double)vert.x);
+            maxs[1] = std::max(maxs[1], (double)vert.y);
+        }
+        auto area = (maxs[0] - mins[0]) * (maxs[1] - mins[1]);
+        if (area > biggest_area)
+        {
+            biggest_area = area;
+            biggest_loop = i;
+        }
+    }
+    if (biggest_loop != 0)
+        std::swap(loops[0], loops[biggest_loop]);
+
+    // Construct points that earcut will understand
+    std::vector<std::vector<Point>> point_loops(loops.size());
+    for (int j = 0, len = (int)loops.size(); j < len; ++j)
+    {
+        const auto &loop = loops[j];
+        auto &point_loop = point_loops[j];
+        point_loop.resize(loop.size());
+        for (int i = 0, len = (int)loop.size(); i < len; ++i)
+        {
+            const auto &vertex = map->vertexes[map_walls[sector.walls[loop[i]]].v1];
+            auto &point = point_loop[i];
+            point.x = (int)vertex.x;
+            point.y = (int)vertex.y;
+        }
+    }
+
+    // Triangulate
+    auto indices = mapbox::earcut<int>(point_loops);
+
+    // Flatten loop so we can know which indice match which loop
+    std::vector<int> flatten_loops;
+    for (int j = 0, len = (int)loops.size(); j < len; ++j)
+    {
+        const auto &loop = loops[j];
+        flatten_loops.insert(flatten_loops.end(), loop.begin(), loop.end());
+    }
+
+    // Translate this into indices to vertexes from mapdef
+    sector.vertices.resize(indices.size());
+    for (int i = 0, len = (int)indices.size(); i < len; ++i)
+    {
+        sector.vertices[i] = map_walls[sector.walls[flatten_loops[indices[i]]]].v1;
+    }
+}
+
+
 void init_maps()
 {
     // Load DOOM.WAD
@@ -186,9 +346,10 @@ void init_maps()
                 }
             }
 
+            map->sectors.resize(map->map_sectors.size());
             map->subsectors.resize(map->map_subsectors.size());
             map->nodes.resize(map->map_nodes.size());
-            for (int j = 0, len = (int)map->map_nodes.size(); j < len; ++j)
+            for (int j = 0, lenj = (int)map->map_nodes.size(); j < lenj; ++j)
             {
                 map->nodes[j].x = (int16_t)map->map_nodes[j].x << 16;
                 map->nodes[j].y = (int16_t)map->map_nodes[j].y << 16;
@@ -212,7 +373,7 @@ void init_maps()
             }
 
             map->segs.resize(map->map_segs.size());
-            for (int j = 0, len = (int)map->map_segs.size(); j < len; ++j)
+            for (int j = 0, lenj = (int)map->map_segs.size(); j < lenj; ++j)
             {
                 const auto& map_seg = map->map_segs[j];
                 auto& seg = map->segs[j];
@@ -222,7 +383,7 @@ void init_maps()
             }
 
             // Assign sector to subsector
-            for (int j = 0, len = (int)map->map_subsectors.size(); j < len; ++j)
+            for (int j = 0, lenj = (int)map->map_subsectors.size(); j < lenj; ++j)
             {
                 const auto& seg = map->segs[map->map_subsectors[j].firstseg];
                 //const auto& map_sidedef = map->sidedefs[seg.sidedef];
@@ -240,6 +401,112 @@ void init_maps()
                 map->bb[2] = std::max(map->bb[2], map->vertexes[v].x);
                 map->bb[3] = std::max(map->bb[3], map->vertexes[v].y);
             }
+
+            // Create "walls" used in triangulation step
+            std::vector<wall_t> map_walls;
+            for (int j = 0; j < (int)map->linedefs.size(); ++j)
+            {
+                const auto &linedef = map->linedefs[j];
+
+                if (linedef.front_sidedef != -1)
+                    create_wall(map_walls, map, j, linedef.front_sidedef);
+                if (linedef.back_sidedef != -1)
+                    create_wall(map_walls, map, j, linedef.back_sidedef);
+            }
+
+            // Triangulate
+            for (int j = 0; j < (int)map->sectors.size(); ++j)
+            {
+                triangulate_sector(map_walls, map, j);
+            }
+
+#if 0
+            // Triangulate
+            struct wall_t
+            {
+                int v1, v2;
+            };
+            std::vector<wall_t> walls;
+            map->sectors.resize(map->map_sectors.size());
+            for (int j = 0; j < (int)map->subsectors.size(); ++j)
+            {
+                const auto& map_subsector = map->map_subsectors[j];
+                const auto& subsector = map->subsectors[j];
+                auto& sector = map->sectors[subsector.sector];
+
+                walls.clear();
+                for (int k = 0, lenk = map_subsector.numsegs; k < lenk; ++k)
+                {
+                    //
+                    const auto& map_seg = map->map_segs[k + map_subsector.firstseg];
+                    const auto& next_map_seg = map->map_segs[(k + 1) % lenk + map_subsector.firstseg];
+                    walls.push_back({map_seg.v1, map_seg.v2});
+                    if (map_seg.v2 != next_map_seg.v1)
+                        walls.push_back({map_seg.v2, next_map_seg.v1});
+                    //sector.vertices.push_back(map_seg.v1);
+                    //sector.vertices.push_back(map_seg.v2);
+                    //sector.vertices.push_back(map_seg.v2);
+                    //sector.vertices.push_back(next_map_seg.v1);
+                }
+                
+
+                //walls.clear();
+                //for (int k = map_subsector.firstseg, lenk = map_subsector.firstseg + map_subsector.numsegs; k < lenk; ++k)
+                //{
+                //    const auto& map_seg = map->map_segs[k];
+                //    walls.push_back({(int)map_seg.v1, (int)map_seg.v2});
+                //}
+
+                // Reorder walls so they form a loop
+                if (walls.size() >= 3)
+                {
+                    std::vector<int> vertices;
+                    vertices.push_back(walls[0].v1);
+                    vertices.push_back(walls[0].v2);
+                    walls.erase(walls.begin());
+                    while (!walls.empty())
+                    {
+                        bool found = false;
+                        int last_v2 = vertices.back();
+                        for (int k = 0; k < (int)walls.size(); ++k)
+                        {
+                            const auto& wall = walls[k];
+                            if (wall.v1 == last_v2)
+                            {
+                                vertices.push_back(wall.v2);
+                                found = true;
+                                walls.erase(walls.begin() + k);
+                                --k;
+                                break;
+                            }
+                            else if (wall.v2 == last_v2)
+                            {
+                                vertices.push_back(wall.v1);
+                                found = true;
+                                walls.erase(walls.begin() + k);
+                                --k;
+                                break;
+                            }
+                        }
+                        if (!found) break;
+                    }
+
+                    if (vertices.size() >= 3)
+                    {
+                        sector.vertices.push_back(vertices[0]);
+                        sector.vertices.push_back(vertices[1]);
+                        sector.vertices.push_back(vertices[2]);
+                        for (int v = 3, lenv = (int)vertices.size(); v < lenv; ++v)
+                        {
+                            sector.vertices.push_back(vertices[0]);
+                            sector.vertices.push_back(vertices[v - 1]);
+                            sector.vertices.push_back(vertices[v]);
+                        }
+                    }
+                }
+            }
+#endif
+
         }
     }
 
