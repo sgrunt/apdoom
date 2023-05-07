@@ -42,11 +42,7 @@ enum class tool_t : int
 struct bb_t
 {
     int x1, y1, x2, y2;
-
-    bool operator!=(const bb_t& other) const
-    {
-        return x1 != other.x1 || x2 != other.x2 || y1 != other.y1 || y2 != other.y2;
-    }
+    int region = -1;
 
     int overlaps(const bb_t& other) const
     {
@@ -181,6 +177,7 @@ void save()
                 bb_json.append(bb.y1);
                 bb_json.append(bb.x2);
                 bb_json.append(bb.y2);
+                bb_json.append(bb.region);
                 bbs_json.append(bb_json);
             }
             _map_json["bbs"] = bbs_json;
@@ -242,7 +239,8 @@ void load()
                     bb_json[0].asInt(),
                     bb_json[1].asInt(),
                     bb_json[2].asInt(),
-                    bb_json[3].asInt()
+                    bb_json[3].asInt(),
+                    bb_json.isValidIndex(4) ? bb_json[4].asInt() : -1,
                 });
             }
 
@@ -345,7 +343,7 @@ void regen()
         for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
         {
             auto map = &maps[ep][lvl];
-            auto mid = Vector2((map->bb[2] + map->bb[0]) / 2, -(map->bb[3] + map->bb[1]) / 2);
+            auto mid = Vector2((map->bb[2] + map->bb[0]) / 2, (map->bb[3] + map->bb[1]) / 2);
             map_states[ep][lvl].pos = -mid + onut::rand2f(Vector2(-1000, -1000), Vector2(1000, 1000));
         }
     }
@@ -487,6 +485,10 @@ void update_gen()
     {
         for (int k = 0; k < (int)flat_levels[i]->bbs.size(); ++k)
         {
+            // try to pull back to the middle
+            //if (gen_step_count > 100 && gen_step_count < 200)
+            //    flat_levels[i]->pos *= (1.0f - dt * 0.5f);
+
             for (int j = 0; j < EP_COUNT * MAP_COUNT; ++j)
             {
                 if (j == i) continue;
@@ -564,6 +566,12 @@ void update()
                     {
                         SetCursor(arrow_cursor);
                     }
+
+                    for (int i = 0; i < 9; ++i)
+                        if (OInputJustPressed((onut::Input::State)((int)OKey1 + i)) && map_state->selected_bb != -1)
+                            map_state->bbs[map_state->selected_bb].region = i;
+                    if (OInputJustPressed(OKey0) && map_state->selected_bb != -1)
+                        map_state->bbs[map_state->selected_bb].region = -1;
 
                     if (OInputJustPressed(OMouse1))
                     {
@@ -743,7 +751,7 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
 {
     Color bound_color(1.0f);
     Color step_color(0.35f);
-    Color bb_color(1, 1, 0, 1);
+    Color bb_color(0.5f);
 
     auto pb = oPrimitiveBatch.get();
     auto sb = oSpriteBatch.get();
@@ -842,7 +850,8 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
         for (const auto& bb : map_states[ep][lvl].bbs)
         {
             Color color = bb_color;
-            if (i == map_state->selected_bb) color = Color(1, 0, 0);
+            if (bb.region != -1 && bb.region < (int)map_states[ep][lvl].regions.size()) color = map_states[ep][lvl].regions[bb.region].tint;
+            //if (i == map_state->selected_bb) color = Color(1, 0, 0);
             pb->draw(Vector2(bb.x1, -bb.y1), color); pb->draw(Vector2(bb.x1, -bb.y2), color);
             pb->draw(Vector2(bb.x1, -bb.y2), color); pb->draw(Vector2(bb.x2, -bb.y2), color);
             pb->draw(Vector2(bb.x2, -bb.y2), color); pb->draw(Vector2(bb.x2, -bb.y1), color);
@@ -852,6 +861,18 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
     }
 
     pb->end();
+
+    // Selected bb
+    if (draw_tools && tool == tool_t::bb)
+    {
+        sb->begin(transform);
+        if (map_states[ep][lvl].selected_bb != -1)
+        {
+            const auto& bb = map_states[ep][lvl].bbs[map_states[ep][lvl].selected_bb];
+            sb->drawRect(nullptr, Rect(bb.x1, -bb.y1 - (bb.y2 - bb.y1), bb.x2 - bb.x1, bb.y2 - bb.y1), Color(0.5f, 0, 0, 0.5f));
+        }
+    sb->end();
+    }
 
     // Vertices
     //sb->begin(transform);
@@ -916,7 +937,7 @@ void render()
             {
                 for (int map = 0; map < MAP_COUNT; ++map)
                 {
-                    draw_level(ep, map, map_states[ep][map].pos, map_states[ep][map].angle, false);
+                    draw_level(ep, map, map_states[ep][map].pos, map_states[ep][map].angle, true);
                 }
             }
             sb->begin();
@@ -1021,7 +1042,7 @@ void renderUI()
                 {
                     const auto& region = map_state->regions[i];
                     bool selected = map_state->selected_region == i;
-                    if (ImGui::Selectable(region.name.c_str(), selected, 0, ImVec2(150, 22)))
+                    if (ImGui::Selectable((std::to_string(i + 1) + " " + region.name).c_str(), selected, 0, ImVec2(150, 22)))
                     {
                         map_state->selected_region = i;
                     }
@@ -1030,6 +1051,14 @@ void renderUI()
                         ImGui::SameLine(); if (ImGui::Button(" ^ ")) to_move_up = i;
                         ImGui::SameLine(); if (ImGui::Button(" v ")) to_move_down = i;
                         ImGui::SameLine(); if (ImGui::Button("X")) to_delete = i;
+                        if (map_state->selected_bb != -1 && tool == tool_t::bb)
+                        {
+                            ImGui::SameLine();
+                            if (ImGui::Button("Assign"))
+                            {
+                                map_state->bbs[map_state->selected_bb].region = i;
+                            }
+                        }
                     }
                 }
                 if (to_move_up > 0)
@@ -1195,6 +1224,12 @@ void renderUI()
                     }
                 }
             }
+        }
+        ImGui::End();
+
+        if (ImGui::Begin("Map"))
+        {
+
         }
         ImGui::End();
     }
