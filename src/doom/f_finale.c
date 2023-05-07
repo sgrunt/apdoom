@@ -140,24 +140,26 @@ void F_StartFinale (void)
     }
 
     // Find the right screen and set the text and background
-
-    for (i=0; i<arrlen(textscreens); ++i)
+    if (!finalfullscreenbg)
     {
-        textscreen_t *screen = &textscreens[i];
-
-        // Hack for Chex Quest
-
-        if (gameversion == exe_chex && screen->mission == doom)
+        for (i=0; i<arrlen(textscreens); ++i)
         {
-            screen->level = 5;
-        }
+            textscreen_t *screen = &textscreens[i];
 
-        if (logical_gamemission == screen->mission
-         && (logical_gamemission != doom || gameepisode == screen->episode)
-         && gamemap == screen->level)
-        {
-            finaletext = screen->text;
-            finaleflat = screen->background;
+            // Hack for Chex Quest
+
+            if (gameversion == exe_chex && screen->mission == doom)
+            {
+                screen->level = 5;
+            }
+
+            if (logical_gamemission == screen->mission
+             && (logical_gamemission != doom || gameepisode == screen->episode)
+             && gamemap == screen->level)
+            {
+                finaletext = screen->text;
+                finaleflat = screen->background;
+            }
         }
     }
 
