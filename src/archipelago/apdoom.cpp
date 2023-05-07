@@ -396,6 +396,8 @@ void load_state()
 	{
 		ap_progressive_locations.insert(prog_json.asInt64());
 	}
+	
+	json_get_int(json["victory"], ap_state.victory);
 }
 
 
@@ -495,6 +497,8 @@ void save_state()
 	{
 		json["progressive_locations"].append(loc_id);
 	}
+
+	json["victory"] = ap_state.victory;
 
 	f << json;
 }
@@ -673,6 +677,8 @@ int apdoom_is_location_progression(int ep, int map, int index)
 
 void apdoom_check_victory()
 {
+	if (ap_state.victory) return;
+
 	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
 	{
 		if (!ap_state.episodes[ep]) continue;
@@ -683,7 +689,6 @@ void apdoom_check_victory()
 	}
 
 	AP_StoryComplete();
-
 	ap_settings.victory_callback();
 }
 
