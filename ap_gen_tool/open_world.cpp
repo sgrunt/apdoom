@@ -39,7 +39,8 @@ enum class tool_t : int
 {
     bb,
     region,
-    rules
+    rules,
+    access
 };
 
 
@@ -61,6 +62,10 @@ struct rule_region_t
 #define RULES_W 1024
 #define RULES_H 400
 #define RULE_CONNECTION_OFFSET 64.0f
+#define BIG_DOOR_W 128
+#define BIG_DOOR_H 128
+#define SMALL_DOOR_W 64
+#define SMALL_DOOR_H 72
 
 
 struct bb_t
@@ -167,6 +172,7 @@ struct map_state_t
     std::vector<item_t> items;
     rule_region_t world_rules;
     rule_region_t exit_rules;
+    std::set<int> accesses;
 };
 
 
@@ -190,7 +196,7 @@ static map_state_t map_states[EP_COUNT][MAP_COUNT];
 static map_view_t map_views[EP_COUNT][MAP_COUNT];
 static map_history_t map_histories[EP_COUNT][MAP_COUNT];
 static state_t state = state_t::idle;
-static tool_t tool = tool_t::rules;
+static tool_t tool = tool_t::access;
 static Vector2 mouse_pos;
 static Vector2 mouse_pos_on_down;
 static Vector2 cam_pos_on_down;
@@ -218,6 +224,7 @@ static int mouse_hover_rule = -3;
 static int connecting_rule_from = -3;
 static int set_rule_rule = -3;
 static int set_rule_connection = -1;
+static int mouse_hover_access = -1;
 
 static std::map<int, OTextureRef> REQUIREMENT_TEXTURES;
 static const std::vector<int> REQUIREMENTS = {
@@ -348,6 +355,14 @@ void save()
                 regions_json.append(region_json);
             }
             _map_json["regions"] = regions_json;
+
+            Json::Value accesses_json(Json::arrayValue);
+            for (auto access : map_states[ep][lvl].accesses)
+            {
+                accesses_json.append(access);
+            }
+            _map_json["accesses"] = accesses_json;
+
             _map_json["world_rules"] = serialize_rules(map_states[ep][lvl].world_rules);
             _map_json["exit_rules"] = serialize_rules(map_states[ep][lvl].exit_rules);
 
@@ -412,6 +427,12 @@ void load()
                 region.rules = deserialize_rules(region_json["rules"]);
 
                 _map_state.regions.push_back(region);
+            }
+
+            const auto& accesses_json = _map_json["accesses"];
+            for (const auto& access_json : accesses_json)
+            {
+                _map_state.accesses.insert(access_json.asInt());
             }
 
             _map_state.world_rules = deserialize_rules(_map_json["world_rules"]);
@@ -1641,7 +1662,7 @@ void renderUI()
         if (ImGui::Begin("Tools"))
         {
             int tooli = (int)tool;
-            ImGui::Combo("Tool", &tooli, "Bounding Box\0Region\0Rules\0");
+            ImGui::Combo("Tool", &tooli, "Bounding Box\0Region\0Rules\0Access\0");
             tool = (tool_t)tooli;
         }
         ImGui::End();
