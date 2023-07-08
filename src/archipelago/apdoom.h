@@ -25,7 +25,13 @@ extern "C"
 #endif
 
 
-#define APDOOM_VERSION "0.3.5"
+
+#define APDOOM_MAJOR 0
+#define APDOOM_MINOR 4
+#define APDOOM_PATCH 0
+#define APDOOM_STR(x) APDOOM_STR2(x)
+#define APDOOM_STR2(x) #x
+#define APDOOM_VERSION APDOOM_STR(APDOOM_MAJOR) "." APDOOM_STR(APDOOM_MINOR) "." APDOOM_STR(APDOOM_PATCH)
 #define APDOOM_VERSION_TEXT APDOOM_VERSION " (BETA)"
 #define APDOOM_VERSION_FULL_TEXT "APDOOM " APDOOM_VERSION_TEXT
 
@@ -140,6 +146,7 @@ void apdoom_update();
 int ap_is_doomtype_location(int doomtype);
 const char* apdoom_get_seed();
 void apdoom_send_message(const char* msg);
+void apdoom_complete_level(int ep, int map);
 
 // Deathlink stuff
 void apdoom_on_death();

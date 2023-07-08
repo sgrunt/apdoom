@@ -171,6 +171,7 @@ static bool ap_was_connected = false; // Got connected at least once. That means
 static std::set<int64_t> ap_progressive_locations;
 static bool ap_initialized = false;
 static std::vector<std::string> ap_cached_messages;
+static std::string ap_save_dir_name;
 
 
 void f_itemclr();
@@ -186,6 +187,24 @@ void f_episode3(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
+
+
+std::string string_to_hex(const char* str)
+{
+    static const char hex_digits[] = "0123456789ABCDEF";
+
+	std::string out;
+	std::string in = str;
+
+    out.reserve(in.length() * 2);
+    for (unsigned char c : in)
+    {
+        out.push_back(hex_digits[c >> 4]);
+        out.push_back(hex_digits[c & 15]);
+    }
+
+    return out;
+}
 
 
 int apdoom_init(ap_settings_t* settings)
@@ -217,7 +236,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetLocationIsProgressionCallback(f_locprog);
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
-	AP_RegisterSlotDataIntCallback("random_items", f_random_items);
+	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
 	AP_RegisterSlotDataIntCallback("episode1", f_episode1);
 	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
@@ -236,10 +255,11 @@ int apdoom_init(ap_settings_t* settings)
 				AP_GetRoomInfo(&ap_room_info);
 
 				ap_was_connected = true;
+				ap_save_dir_name = "AP_" + ap_room_info.seed_name + "_" + string_to_hex(ap_settings.player_name);
 
 				// Create a directory where saves will go for this AP seed.
-				if (!AP_FileExists(("AP_" + ap_room_info.seed_name).c_str()))
-					AP_MakeDirectory(("AP_" + ap_room_info.seed_name).c_str());
+				if (!AP_FileExists(ap_save_dir_name.c_str()))
+					AP_MakeDirectory(ap_save_dir_name.c_str());
 
 				load_state();
 
@@ -333,7 +353,7 @@ static void json_get_int(const Json::Value& json, int& out_or_default)
 
 void load_state()
 {
-	std::string filename = "AP_" + ap_room_info.seed_name + "/apstate.json";
+	std::string filename = ap_save_dir_name + "/apstate.json";
 	std::ifstream f(filename);
 	if (!f.is_open())
 		return; // Could be no state yet, that's fine
@@ -358,6 +378,14 @@ void load_state()
 		json_get_int(json["player"]["ammo"][i], ap_state.player_state.ammo[i]);
 	for (int i = 0; i < AP_NUM_AMMO; ++i)
 		json_get_int(json["player"]["max_ammo"][i], ap_state.player_state.max_ammo[i]);
+
+	if (ap_state.player_state.backpack)
+	{
+		ap_state.player_state.max_ammo[0] = 200 * 2;
+		ap_state.player_state.max_ammo[1] = 50 * 2;
+		ap_state.player_state.max_ammo[2] = 300 * 2;
+		ap_state.player_state.max_ammo[3] = 50 * 2;
+	}
 
 	// Level states
 	for (int i = 0; i < AP_EPISODE_COUNT; ++i)
@@ -403,7 +431,7 @@ void load_state()
 
 void save_state()
 {
-	std::string filename = "AP_" + ap_room_info.seed_name + "/apstate.json";
+	std::string filename = ap_save_dir_name + "/apstate.json";
 	std::ofstream f(filename);
 	if (!f.is_open())
 	{
@@ -541,6 +569,10 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		// Backpack
 		case 8:
 			ap_state.player_state.backpack = 1;
+			ap_state.player_state.max_ammo[0] = 200 * 2;
+			ap_state.player_state.max_ammo[1] = 50 * 2;
+			ap_state.player_state.max_ammo[2] = 300 * 2;
+			ap_state.player_state.max_ammo[3] = 50 * 2;
             break;
 
 		// Is it a weapon?
@@ -634,7 +666,7 @@ void f_episode3(int ep)
 
 const char* apdoom_get_seed()
 {
-	return ap_room_info.seed_name.c_str();
+	return ap_save_dir_name.c_str();
 }
 
 
@@ -651,8 +683,11 @@ void apdoom_check_location(int ep, int map, int index)
 
 	int64_t id = it3->second;
 
-	ap_state.level_states[ep - 1][map - 1].checks[ap_state.level_states[ep - 1][map - 1].check_count] = index;
-	ap_state.level_states[ep - 1][map - 1].check_count++;
+	if (index >= 0)
+	{
+		ap_state.level_states[ep - 1][map - 1].checks[ap_state.level_states[ep - 1][map - 1].check_count] = index;
+		ap_state.level_states[ep - 1][map - 1].check_count++;
+	}
 
 	AP_SendItem(id);
 }
@@ -672,6 +707,14 @@ int apdoom_is_location_progression(int ep, int map, int index)
 	int64_t id = it3->second;
 
 	return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
+}
+
+
+void apdoom_complete_level(int ep, int map)
+{
+	//if (ap_state.level_states[ep - 1][map - 1].completed) return; // Already completed
+    ap_state.level_states[ep - 1][map - 1].completed = 1;
+	apdoom_check_location(ep, map, -1); // -1 is complete location
 }
 
 

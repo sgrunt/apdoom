@@ -106,7 +106,8 @@ struct level_t
 };
 
 
-int64_t item_next_id = 350000;
+int64_t item_id_base = 350000;
+int64_t item_next_id = item_id_base;
 int64_t location_next_id = 351000;
 
 int total_item_count = 0;
@@ -238,14 +239,15 @@ int generate()
 {
     printf("AP Gen Tool\n");
 
-    if (OArguments.size() != 3) // Minimum effort validation
+    if (OArguments.size() != 4) // Minimum effort validation
     {
-        printf("Usage: ap_gen_tool.exe DOOM.WAD python_py_out_dir cpp_py_out_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago");
+        printf("Usage: ap_gen_tool.exe DOOM.WAD python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago  C:\\github\\apdoom\\data\\poptracker");
         return 1;
     }
 
     std::string py_out_dir = OArguments[1] + std::string("\\");
     std::string cpp_out_dir = OArguments[2] + std::string("\\");
+    std::string pop_tracker_data_dir = OArguments[3] + std::string("\\");
 
     int armor_count = 0;
     int megaarmor_count = 0;
@@ -253,6 +255,39 @@ int generate()
     int invulnerability_count = 0;
     int partial_invisibility_count = 0;
     int supercharge_count = 0;
+    
+    // Guns.
+    add_item("Shotgun", 2001, 1, PROGRESSION, "Weapons");
+    add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
+    add_item("Plasma gun", 2004, 1, PROGRESSION, "Weapons");
+    add_item("Chainsaw", 2005, 1, PROGRESSION, "Weapons");
+    add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
+    add_item("BFG9000", 2006, 1, PROGRESSION, "Weapons");
+
+    // Make backpack progression item (Idea, gives more than one, with less increase each time)
+    add_item("Backpack", 8, 1, PROGRESSION, "");
+
+    // Fillers
+    printf("Armor: %i\n", armor_count);
+    printf("Mega Armor: %i\n", megaarmor_count);
+    printf("Berserk: %i\n", berserk_count);
+    printf("Invulnerability: %i\n", invulnerability_count);
+    printf("Partial invisibility: %i\n", partial_invisibility_count);
+    printf("Supercharge: %i\n", supercharge_count);
+
+    add_item("Armor", 2018, 0, FILLER, "Powerups");
+    add_item("Mega Armor", 2019, 0, FILLER, "Powerups");
+    add_item("Berserk", 2023, 0, FILLER, "Powerups");
+    add_item("Invulnerability", 2022, 0, FILLER, "Powerups");
+    add_item("Partial invisibility", 2024, 0, FILLER, "Powerups");
+    add_item("Supercharge", 2013, 0, FILLER, "Powerups");
+
+    // Junk items
+    add_item("Medikit", 2012, 0, FILLER, "");
+    add_item("Box of bullets", 2048, 0, FILLER, "Ammos");
+    add_item("Box of rockets", 2046, 0, FILLER, "Ammos");
+    add_item("Box of shotgun shells", 2049, 0, FILLER, "Ammos");
+    add_item("Energy cell pack", 17, 0, FILLER, "Ammos");
 
     std::vector<level_t*> levels;
     for (int ep = 0; ep < EP_COUNT; ++ep)
@@ -270,17 +305,13 @@ int generate()
             levels.push_back(level);
         }
     }
-
+    
+    // Keycard n such
+    item_next_id = item_id_base + 200;
     for (auto level : levels)
     {
         std::string lvl_prefix = level_names[level->ep - 1][level->lvl - 1] + std::string(" - "); //"E" + std::to_string(level->ep) + "M" + std::to_string(level->lvl) + " ";
         int i = 0;
-
-        auto& level_item = add_item(level_names[level->ep - 1][level->lvl - 1], -1, 1, PROGRESSION, "Levels");
-        level_item.ep = level->ep;
-        level_item.lvl = level->lvl;
-
-        //add_loc(level_names[level->ep - 1][level->lvl - 1] + std::string(" - Complete"), level);
 
         for (const auto& thing : level->map->things)
         {
@@ -355,42 +386,19 @@ int generate()
             }
             ++i;
         }
-
-        add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
     }
 
-    // Guns.
-    add_item("Shotgun", 2001, 1, PROGRESSION, "Weapons");
-    add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
-    add_item("Plasma gun", 2004, 1, PROGRESSION, "Weapons");
-    add_item("Chainsaw", 2005, 1, PROGRESSION, "Weapons");
-    add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
-    add_item("BFG9000", 2006, 1, PROGRESSION, "Weapons");
+    // Lastly, add level items. We want to add more levels in the future and not shift all existing item IDs
+    item_next_id = item_id_base + 400;
+    for (auto level : levels)
+    {
+        const char* lvl_name = level_names[level->ep - 1][level->lvl - 1];
+        std::string lvl_prefix = lvl_name + std::string(" - ");
 
-    // Make backpack progression item (Idea, gives more than one, with less increase each time)
-    add_item("Backpack", 8, 1, PROGRESSION, "");
-
-    // Fillers
-    printf("Armor: %i\n", armor_count);
-    printf("Mega Armor: %i\n", megaarmor_count);
-    printf("Berserk: %i\n", berserk_count);
-    printf("Invulnerability: %i\n", invulnerability_count);
-    printf("Partial invisibility: %i\n", partial_invisibility_count);
-    printf("Supercharge: %i\n", supercharge_count);
-
-    add_item("Armor", 2018, 0, FILLER, "Powerups");
-    add_item("Mega Armor", 2019, 0, FILLER, "Powerups");
-    add_item("Berserk", 2023, 0, FILLER, "Powerups");
-    add_item("Invulnerability", 2022, 0, FILLER, "Powerups");
-    add_item("Partial invisibility", 2024, 0, FILLER, "Powerups");
-    add_item("Supercharge", 2013, 0, FILLER, "Powerups");
-
-    // Junk items
-    add_item("Medikit", 2012, 0, FILLER, "");
-    add_item("Box of bullets", 2048, 0, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 0, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 0, FILLER, "Ammos");
-    add_item("Energy cell pack", 17, 0, FILLER, "Ammos");
+        add_item(lvl_name, -1, 1, PROGRESSION, "Levels", 0, level);
+        add_item(lvl_prefix + "Complete", -2, 1, PROGRESSION, "", 0, level);
+        add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
+    }
 
     printf("%i locations\n%i items\n", total_loc_count, total_item_count - 3 /* Early items */);
 
@@ -444,14 +452,14 @@ from typing import TypedDict, Dict, Set \n\
 class ItemDict(TypedDict, total=False): \n\
     classification: ItemClassification \n\
     count: int \n\
-    progression_count: int \n\
     name: str \n\
-    doom_type: int # Unique numerical id used to spawn the item. \n\
+    doom_type: int # Unique numerical id used to spawn the item. -1 is level item, -2 is level complete item. \n\
     episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n\
     map: int \n\
 \n\
 \n\
 ");
+        //     progression_count: int \n\
 
         fprintf(fout, "item_table: Dict[int, ItemDict] = {\n");
         for (const auto& item : ap_items)
@@ -467,7 +475,7 @@ class ItemDict(TypedDict, total=False): \n\
                 case PROGRESSION_SKIP_BALANCING: fprintf(fout, "'classification': ItemClassification.progression_skip_balancing"); break;
             }
             fprintf(fout, ",\n             'count': %i", item.count);
-            fprintf(fout, ",\n             'progression_count': %i", item.progression_count);
+            //fprintf(fout, ",\n             'progression_count': %i", item.progression_count);
             fprintf(fout, ",\n             'name': '%s'", item.name.c_str());
             fprintf(fout, ",\n             'doom_type': %i", item.doom_type);
             fprintf(fout, ",\n             'episode': %i", item.ep);
@@ -542,7 +550,7 @@ class ItemDict(TypedDict, total=False): \n\
                     complete_loc.lvl = level_json["map"].asInt();
                     complete_loc.x = -1;
                     complete_loc.y = -1;
-                    complete_loc.name = level_name + " - Complete";
+                    complete_loc.name = level_name + " - Exit";
                     complete_loc.region_name = level_name + " " + region_name;
                     complete_loc.id = location_next_id++;
                     ap_locations.push_back(complete_loc);
@@ -625,15 +633,15 @@ class LocationDict(TypedDict, total=False): \n\
 
     // Events
     {
-        FILE* fout = fopen((py_out_dir + "Events.py").c_str(), "w");
+        FILE* fout = fopen((py_out_dir + "Maps.py").c_str(), "w");
 
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import List\n\n\n");
 
-        fprintf(fout, "events: List[str] = [");
+        fprintf(fout, "map_names: List[str] = [");
         for (auto level : levels)
         {
-            fprintf(fout, "\n    '%s - Complete',", level_names[level->ep - 1][level->lvl - 1]);
+            fprintf(fout, "\n    '%s',", level_names[level->ep - 1][level->lvl - 1]);
         }
         fprintf(fout, "\n]\n");
 

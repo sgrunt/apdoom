@@ -1968,7 +1968,7 @@ void G_DoCompleted (void)
 
     // [AP]
     cache_ap_player_state();
-    ap_state.level_states[gameepisode - 1][gamemap - 1].completed = 1;
+    apdoom_complete_level(gameepisode, gamemap);
     apdoom_save_state();
     G_DoSaveGame();
 
@@ -2468,7 +2468,7 @@ void G_DoSaveGame (void)
 
     char filename[260];
 
-    snprintf(filename, 260, "AP_%s/AP_%s_E%iM%i.dsg", apdoom_get_seed(), apdoom_get_seed(), gameepisode, gamemap);
+    snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);
 
     char *savegame_file;
     char *temp_savegame_file;
