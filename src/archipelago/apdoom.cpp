@@ -226,7 +226,7 @@ int apdoom_init(ap_settings_t* settings)
 
 	ap_settings = *settings;
 
-	AP_NetworkVersion version = {0, 4, 2};
+	AP_NetworkVersion version = {0, 4, 1};
 	AP_SetClientVersion(&version);
     AP_Init(ap_settings.ip, ap_settings.game, ap_settings.player_name, ap_settings.passwd);
 	AP_SetDeathLinkSupported(true);
@@ -263,6 +263,7 @@ int apdoom_init(ap_settings_t* settings)
 
 				load_state();
 
+#if 1 // Show progression icons
 				// If we don't have information about scouts, load them (We need this to display the proper icon for progressive vs non-progressive
 				if (ap_progressive_locations.empty())
 				{
@@ -287,6 +288,7 @@ int apdoom_init(ap_settings_t* settings)
 					Json::FastWriter writer;
 					APSend(writer.write(packet));
 				}
+#endif
 				should_break = true;
 				break;
 			}
@@ -303,6 +305,7 @@ int apdoom_init(ap_settings_t* settings)
 		}
 	}
 
+#if 1
 	// Wait for location infos
 	start_time = std::chrono::steady_clock::now();
 	while (ap_progressive_locations.empty())
@@ -316,6 +319,7 @@ int apdoom_init(ap_settings_t* settings)
 			return 0;
 		}
 	}
+#endif
 
 	ap_initialized = true;
 
