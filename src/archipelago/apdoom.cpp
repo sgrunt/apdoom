@@ -262,33 +262,6 @@ int apdoom_init(ap_settings_t* settings)
 					AP_MakeDirectory(ap_save_dir_name.c_str());
 
 				load_state();
-
-#if 1 // Show progression icons
-				// If we don't have information about scouts, load them (We need this to display the proper icon for progressive vs non-progressive
-				if (ap_progressive_locations.empty())
-				{
-					Json::Value packet;
-					packet[0]["cmd"] = "LocationScouts";
-
-					// const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {
-					for (const auto& kv1 : location_table)
-					{
-						if (!ap_state.episodes[kv1.first - 1])
-							continue;
-						for (const auto& kv2 : kv1.second)
-						{
-							for (const auto& kv3 : kv2.second)
-							{
-								if (kv3.first == -1) continue;
-								packet[0]["locations"].append(kv3.second);
-							}
-						}
-					}
-
-					Json::FastWriter writer;
-					APSend(writer.write(packet));
-				}
-#endif
 				should_break = true;
 				break;
 			}
@@ -306,6 +279,46 @@ int apdoom_init(ap_settings_t* settings)
 	}
 
 #if 1
+	// If we don't have information about scouts, fetch them (We need this to display the proper icon for progressive vs non-progressive
+	if (ap_progressive_locations.empty())
+	{
+		Json::Value packet;
+		packet[0]["cmd"] = "LocationScouts";
+		int loc_count_in_packet = 0;
+		static const int MAX_LOC_COUNT_IN_PACKET = 20;
+
+		// const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {
+		for (const auto& kv1 : location_table)
+		{
+			if (!ap_state.episodes[kv1.first - 1])
+				continue;
+			for (const auto& kv2 : kv1.second)
+			{
+				for (const auto& kv3 : kv2.second)
+				{
+					if (kv3.first == -1) continue;
+					packet[0]["locations"].append(kv3.second);
+					++loc_count_in_packet;
+					if (loc_count_in_packet >= MAX_LOC_COUNT_IN_PACKET)
+					{
+						Json::FastWriter writer;
+						APSend(writer.write(packet));
+						packet = Json::arrayValue;
+						packet.append(Json::objectValue);
+						packet[0]["cmd"] = "LocationScouts";
+						loc_count_in_packet = 0;
+					}
+				}
+			}
+		}
+
+		if (loc_count_in_packet > 0)
+		{
+			Json::FastWriter writer;
+			APSend(writer.write(packet));
+		}
+	}
+
 	// Wait for location infos
 	start_time = std::chrono::steady_clock::now();
 	while (ap_progressive_locations.empty())
