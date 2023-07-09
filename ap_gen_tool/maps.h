@@ -187,3 +187,4 @@ extern map_t maps[EP_COUNT][MAP_COUNT];
 
 void init_maps();
 int sector_at(int x, int y, map_t* map);
+subsector_t* point_in_subsector(int x, int y, map_t* map);

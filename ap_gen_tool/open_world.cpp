@@ -1632,7 +1632,11 @@ void renderUI()
     {
         if (ImGui::MenuItem("Save")) save();
         ImGui::Separator();
-        if (ImGui::MenuItem("Generate")) generate();
+        if (ImGui::MenuItem("Generate"))
+        {
+            save();
+            generate();
+        }
         ImGui::Separator();
         if (ImGui::MenuItem("Exit")) OQuit();
         ImGui::EndMenu();

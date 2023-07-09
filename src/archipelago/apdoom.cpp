@@ -226,7 +226,7 @@ int apdoom_init(ap_settings_t* settings)
 
 	ap_settings = *settings;
 
-	AP_NetworkVersion version = {0, 4, 0};
+	AP_NetworkVersion version = {0, 4, 2};
 	AP_SetClientVersion(&version);
     AP_Init(ap_settings.ip, ap_settings.game, ap_settings.player_name, ap_settings.passwd);
 	AP_SetDeathLinkSupported(true);
@@ -291,14 +291,14 @@ int apdoom_init(ap_settings_t* settings)
 				break;
 			}
 			case AP_ConnectionStatus::ConnectionRefused:
-				printf("AP: Failed to connect\n");
+				printf("AP: Failed to connect, connection refused\n");
 				return 0;
 		}
 		if (should_break) break;
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
 		{
-			printf("AP: Failed to connect\n");
+			printf("AP: Failed to connect, timeout\n");
 			return 0;
 		}
 	}
@@ -312,7 +312,7 @@ int apdoom_init(ap_settings_t* settings)
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
 		{
-			printf("AP: Failed to connect\n");
+			printf("AP: Failed to connect, timeout waiting for LocationScouts\n");
 			return 0;
 		}
 	}

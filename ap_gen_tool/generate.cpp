@@ -25,6 +25,7 @@
 #include <fstream>
 #include <json/json.h>
 #include <onut/onut.h>
+#include <onut/Strings.h>
 
 #include "maps.h"
 
@@ -118,6 +119,25 @@ std::map<std::string, std::set<std::string>> item_name_groups;
 std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
 std::map<std::string, ap_item_t*> item_map;
 
+static std::string get_requirement_name(const std::string& level_name, int doom_type)
+{
+    switch (doom_type)
+    {
+        case 5: return level_name + " - Blue keycard";
+        case 40: return level_name + " - Blue skull key";
+        case 6: return level_name + " - Yellow keycard";
+        case 39: return level_name + " - Yellow skull key";
+        case 13: return level_name + " - Red keycard";
+        case 38: return level_name + " - Red skull key";
+        case 2005: return "Chainsaw";
+        case 2001: return "Shotgun";
+        case 2002: return "Chaingun";
+        case 2003: return "Rocket launcher";
+        case 2004: return "Plasma gun";
+        case 2006: return "BFG9000";
+    }
+    return "ERROR";
+}
 
 bool loc_name_taken(const std::string& name)
 {
@@ -267,14 +287,6 @@ int generate()
     // Make backpack progression item (Idea, gives more than one, with less increase each time)
     add_item("Backpack", 8, 1, PROGRESSION, "");
 
-    // Fillers
-    printf("Armor: %i\n", armor_count);
-    printf("Mega Armor: %i\n", megaarmor_count);
-    printf("Berserk: %i\n", berserk_count);
-    printf("Invulnerability: %i\n", invulnerability_count);
-    printf("Partial invisibility: %i\n", partial_invisibility_count);
-    printf("Supercharge: %i\n", supercharge_count);
-
     add_item("Armor", 2018, 0, FILLER, "Powerups");
     add_item("Mega Armor", 2019, 0, FILLER, "Powerups");
     add_item("Berserk", 2023, 0, FILLER, "Powerups");
@@ -302,6 +314,8 @@ int generate()
             level->name[3] = '1' + lvl;
             level->name[4] = '\0';
             level->map = map;
+            level->ep = ep + 1;
+            level->lvl = lvl + 1;
             levels.push_back(level);
         }
     }
@@ -310,6 +324,7 @@ int generate()
     item_next_id = item_id_base + 200;
     for (auto level : levels)
     {
+        level->sectors.resize(maps[level->ep - 1][level->lvl - 1].sectors.size());
         std::string lvl_prefix = level_names[level->ep - 1][level->lvl - 1] + std::string(" - "); //"E" + std::to_string(level->ep) + "M" + std::to_string(level->lvl) + " ";
         int i = 0;
 
@@ -388,6 +403,14 @@ int generate()
         }
     }
 
+    // Fillers
+    printf("Armor: %i\n", armor_count);
+    printf("Mega Armor: %i\n", megaarmor_count);
+    printf("Berserk: %i\n", berserk_count);
+    printf("Invulnerability: %i\n", invulnerability_count);
+    printf("Partial invisibility: %i\n", partial_invisibility_count);
+    printf("Supercharge: %i\n", supercharge_count);
+
     // Lastly, add level items. We want to add more levels in the future and not shift all existing item IDs
     item_next_id = item_id_base + 400;
     for (auto level : levels)
@@ -402,7 +425,6 @@ int generate()
 
     printf("%i locations\n%i items\n", total_loc_count, total_item_count - 3 /* Early items */);
 
-#if 0
     // Fill in locations into level's sectors
     for (int i = 0, len = (int)ap_locations.size(); i < len; ++i)
     {
@@ -412,7 +434,7 @@ int generate()
             if (loc.lvl == level->lvl &&
                 loc.ep == level->ep)
             {
-                auto subsector = point_in_subsector(loc.x, loc.y, level);
+                auto subsector = point_in_subsector(loc.x, loc.y, &maps[loc.ep - 1][loc.lvl - 1]);
                 if (subsector)
                 {
                     level->sectors[subsector->sector].locations.push_back(i);
@@ -426,14 +448,6 @@ int generate()
             }
         }
     }
-
-    // Collect sector neighbors
-    for (auto level : levels)
-        connect_neighbors(level);
-
-    // Regions
-    generate_regions(levels[0]);
-#endif
 
     //--- Generate the python files
     std::ifstream fregions(cpp_out_dir + "regions.json");
@@ -503,59 +517,114 @@ class ItemDict(TypedDict, total=False): \n\
 #if 1 // Regions.py
     // Generate Regions.py from regions.json (Manually entered data)
     {
-        std::ifstream fregions(cpp_out_dir + "regions.json");
-        Json::Value levels_json;
-        fregions >> levels_json;
-        fregions.close();
-
         FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import List\n");
-        fprintf(fout, "from BaseClasses import Region, Entrance\n\n");
+        fprintf(fout, "from BaseClasses import TypedDict\n\n");
 
-        fprintf(fout, "regions:List[Region] = [\n");
+        fprintf(fout, "class RegionDict(TypedDict, total=False): \n");
+        fprintf(fout, "    name: str\n");
+        fprintf(fout, "    connects_to_hub: bool\n");
+        fprintf(fout, "    connections: List[str]\n\n\n");
+
+        fprintf(fout, "regions:List[RegionDict] = [\n");
 
         // Regions
-        auto level_names = levels_json.getMemberNames();
-        for (const auto& level_name : level_names)
+        const auto& episodes_json = levels_json["episodes"];
+        int ep = 0;
+        for (const auto& episode_json : episodes_json)
         {
-            const auto& level_json = levels_json[level_name];
-            auto region_names = level_json["Regions"].getMemberNames();
-            for (const auto& region_name : region_names)
+            int lvl = 0;
+            for (const auto& level_json : episode_json)
             {
-                fprintf(fout, "    \"%s %s\",\n", level_name.c_str(), region_name.c_str());
-                const auto& region_json = level_json["Regions"][region_name];
-                const auto& locs_json = level_json["Regions"][region_name]["locations"];
-                for (const auto& loc_json : locs_json)
+                const auto& world_connections_json = level_json["world_rules"]["connections"];
+
+                std::string level_name = level_names[ep][lvl];
+                if (ep != 0 || lvl != 0) fprintf(fout, "\n");
+                fprintf(fout, "    # %s\n", level_name.c_str());
+
+                const auto& regions_json = level_json["regions"];
+                int region_i = 0;
+                for (const auto& region_json : regions_json)
                 {
-                    bool found = false;
-                    for (auto& loc : ap_locations)
+                    std::string region_name = level_name + " " + region_json["name"].asString();
+
+                    // Create locations
+                    const auto& sectors_json = region_json["sectors"];
+                    for (const auto& sector_json : sectors_json)
                     {
-                        if (loc.name == level_name + " - " + loc_json.asString())
+                        int sectori = sector_json.asInt();
+                        const auto& locs = levels[ep * MAP_COUNT + lvl]->sectors[sectori].locations;
+                        for (auto loci : locs)
                         {
-                            loc.region_name = level_name + " " + region_name;
-                            found = true;
-                            break;
+                            ap_locations[loci].region_name = region_name;
                         }
                     }
-                    if (!found)
-                        printf("Location not found: %s\n", (level_name + " - " + loc_json.asString()).c_str());
+                    bool connects_to_exit = false;
+                    bool connects_to_hub = false;
+
+                    for (const auto& world_connection_json : world_connections_json)
+                    {
+                        auto target_region = world_connection_json["target_region"].asInt();
+                        if (target_region == region_i) connects_to_hub = true;
+                    }
+
+                    // Build the region dicts
+                    std::vector<std::string> connections;
+                    const auto& rules_json = region_json["rules"];
+                    const auto& connections_json = rules_json["connections"];
+                    for (const auto& connection_json : connections_json)
+                    {
+                        int target_region = connection_json["target_region"].asInt();
+                        if (target_region == -2)
+                        {
+                            connects_to_exit = true;
+                            continue;
+                        }
+                        if (target_region == -1)
+                        {
+                            continue;
+                        }
+
+                        connections.push_back("\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\"");
+                    }
+                    fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
+                    fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
+                    if (connections.empty())
+                    {
+                        fprintf(fout, "     \"connections\":[]},\n");
+                    }
+                    else if (connections.size() == 1)
+                    {
+                        fprintf(fout, "     \"connections\":[%s]},\n", connections[0].c_str());
+                    }
+                    else
+                    {
+                        fprintf(fout, "     \"connections\":[\n");
+                        fprintf(fout, "        %s", onut::join(connections, ",\n        ").c_str());
+                        fprintf(fout, "]},\n");
+                    }
+
+                    if (connects_to_exit)
+                    {
+                        ap_location_t complete_loc;
+                        complete_loc.doom_thing_index = -1;
+                        complete_loc.doom_type = -1;
+                        complete_loc.ep = ep + 1;
+                        complete_loc.lvl = lvl + 1;
+                        complete_loc.x = -1;
+                        complete_loc.y = -1;
+                        complete_loc.name = level_name + " - Exit";
+                        complete_loc.region_name = region_name;
+                        complete_loc.id = location_next_id++;
+                        ap_locations.push_back(complete_loc);
+                    }
+
+                    ++region_i;
                 }
-                if (region_json["connects_to_exit"].asBool())
-                {
-                    ap_location_t complete_loc;
-                    complete_loc.doom_thing_index = -1;
-                    complete_loc.doom_type = -1;
-                    complete_loc.ep = level_json["episode"].asInt();
-                    complete_loc.lvl = level_json["map"].asInt();
-                    complete_loc.x = -1;
-                    complete_loc.y = -1;
-                    complete_loc.name = level_name + " - Exit";
-                    complete_loc.region_name = level_name + " " + region_name;
-                    complete_loc.id = location_next_id++;
-                    ap_locations.push_back(complete_loc);
-                }
+                ++lvl;
             }
+            ++ep;
         }
         fprintf(fout, "]\n");
 
@@ -617,21 +686,21 @@ class LocationDict(TypedDict, total=False): \n\
 
         // Death logic locations
         fprintf(fout, "death_logic_locations = [\n");
-        for (const auto& level_json : levels_json)
-        {
-            auto level_name = level_names[level_json["episode"].asInt() - 1][level_json["map"].asInt() - 1];
-            for (const auto& loc_json : level_json["death_logic_locations"])
-            {
-                fprintf(fout, "    \"%s - %s\",\n", level_name, loc_json.asCString());
-            }
-        }
+        //for (const auto& level_json : levels_json)
+        //{
+        //    auto level_name = level_names[level_json["episode"].asInt() - 1][level_json["map"].asInt() - 1];
+        //    for (const auto& loc_json : level_json["death_logic_locations"])
+        //    {
+        //        fprintf(fout, "    \"%s - %s\",\n", level_name, loc_json.asCString());
+        //    }
+        //}
         fprintf(fout, "]\n");
         //death_logic_locations
 
         fclose(fout);
     }
 
-    // Events
+    // Maps
     {
         FILE* fout = fopen((py_out_dir + "Maps.py").c_str(), "w");
 
@@ -859,7 +928,6 @@ class LocationDict(TypedDict, total=False): \n\
         FILE* fout = fopen((py_out_dir + "Rules.py").c_str(), "w");
         fprintf(fout, "# This file is auto generated. More info: https://github.com/Daivuk/apdoom\n\n");
         fprintf(fout, "from typing import TYPE_CHECKING\n");
-
         fprintf(fout, "from worlds.generic.Rules import set_rule\n\n");
         
         fprintf(fout, "if TYPE_CHECKING:\n");
@@ -869,168 +937,128 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    player = doom_1993_world.player\n");
         fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
 
-        // This was not such a good idea. We want to forbid other game's progression items too!
-        
-        //fprintf(fout, "    progression_items = [\n");
-        //for (const auto& item : ap_items)
-        //{
-        //    if (item.classification == PROGRESSION || item.progression_count)
-        //    {
-        //        fprintf(fout, "        \"%s\",\n", item.name.c_str());
-        //    }
-        //}
-        //fprintf(fout, "    ]\n\n");
-
-        //fprintf(fout, "    # Specific Case for E1M4, item you have 1 shot to get. Lets not put progressive in there.\n");
-        //fprintf(fout, "    forbid_items(world.get_location(\"Command Control - Supercharge\", player), progression_items)\n\n");
-
-        //fprintf(fout, "    # Specific Case for E3M4, 2 items here might require you die if you're not fast enough. Lets not put progressive in there.\n");
-        //fprintf(fout, "    forbid_items(world.get_location(\"House of Pain - Chaingun\", player), progression_items)\n");
-        //fprintf(fout, "    forbid_items(world.get_location(\"House of Pain - Invulnerability\", player), progression_items)\n\n");
-
-        //fprintf(fout, "    # Specific Case for E3M3, item behind one way elevator. You can die to get it.\n");
-        //fprintf(fout, "    forbid_items(world.get_location(\"Pandemonium - Mega Armor\", player), progression_items)\n\n");
-
-        std::vector<std::string> map_items = {
-            "Blue keycard", "Blue skull key", "Yellow keycard", "Yellow skull key", "Red keycard", "Red skull key"
-        };
-
-        for (auto level : levels)
+        const auto& episodes_json = levels_json["episodes"];
+        int ep = 0;
+        for (const auto& episode_json : episodes_json)
         {
-            auto level_name = level_names[level->ep - 1][level->lvl - 1];
-            const auto& level_json = levels_json[level_name];
-            fprintf(fout, "    # %s - E%iM%i\n", level_name, level_json["episode"].asInt(), level_json["map"].asInt());
-            auto region_names = level_json["Regions"].getMemberNames();
-            for (const auto& region_name : region_names)
+            int lvl = 0;
+            for (const auto& level_json : episode_json)
             {
-                const auto& region_json = level_json["Regions"][region_name];
-                const auto& locs_json = level_json["Regions"][region_name]["locations"];
-
-                std::vector<std::string> required_items_or;
-                for (const auto& required_item_json : region_json["required_items_or"])
+                if (lvl == 5)
                 {
-                    required_items_or.push_back(required_item_json.asString());
+                    int tmp;
+                    tmp = 5;
                 }
+                const auto& world_connections_json = level_json["world_rules"]["connections"];
 
-                std::vector<std::string> required_items_and;
-                for (const auto& required_item_json : region_json["required_items_and"])
-                {
-                    required_items_and.push_back(required_item_json.asString());
-                }
-#if 0 // Rules by locations
-                for (const auto& loc_json : locs_json)
-                {
-                    // We guarantee shotgun for any level that is not first of each episode
-                    if (level->lvl > 1)
-                    {
-                        fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: (state.has(\"%s\", player, 1) and state.has(\"Shotgun\", player, 1))", level_name, loc_json.asCString(), level_name);
-                    }
-                    else
-                    {
-                        fprintf(fout, "    set_rule(world.get_location(\"%s - %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, loc_json.asCString(), level_name);
-                    }
-                    for (const auto& required_item_and : required_items_and)
-                    {
-                        if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
-                            fprintf(fout, "and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
-                        else
-                            fprintf(fout, "and state.has(\"%s\", player, 1)", required_item_and.c_str());
-                    }
-                    if (!required_items_or.empty())
-                    {
-                        fprintf(fout, " and (");
-                    }
-                    bool first = true;
-                    for (const auto& required_item_or : required_items_or)
-                    {
-                        if (!first) fprintf(fout, " or ");
-                        first = false;
-                        if (std::find(map_items.begin(), map_items.end(), required_item_or) != map_items.end())
-                            fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
-                        else
-                            fprintf(fout, "state.has(\"%s\", player, 1)", required_item_or.c_str());
-                    }
-                    if (!required_items_or.empty())
-                    {
-                        fprintf(fout, ")");
-                    }
-                    fprintf(fout, ")\n");
-                }
+                std::string level_name = level_names[ep][lvl];
+                fprintf(fout, "    # %s\n", level_name.c_str());
 
-                if (region_json["connects_to_exit"].asBool())
+                const auto& regions_json = level_json["regions"];
+                int region_i = 0;
+                bool has_rules = false;
+                for (const auto& region_json : regions_json)
                 {
-                    if (level->lvl > 1)
+                    std::string region_name = level_name + " " + region_json["name"].asString();
+
+                    // Hub rules
+                    for (const auto& world_connection_json : world_connections_json)
                     {
-                        fprintf(fout, "    set_rule(world.get_location(\"%s - Complete\", player), lambda state: (state.has(\"%s\", player, 1) and state.has(\"Shotgun\", player, 1))", level_name, level_name);
-                    }
-                    else
-                    {
-                        fprintf(fout, "    set_rule(world.get_location(\"%s - Complete\", player), lambda state: state.has(\"%s\", player, 1)", level_name, level_name);
+                        auto world_target_region = world_connection_json["target_region"].asInt();
+                        if (world_target_region == region_i)
+                        {
+                            const auto& world_requirements_and_json = world_connection_json["requirements_and"];
+                            const auto& world_requirements_or_json = world_connection_json["requirements_or"];
+
+                            if (!world_requirements_and_json.empty() || !world_requirements_or_json.empty())
+                            {
+                                has_rules = true;
+
+                                std::vector<std::string> ands;
+                                std::vector<std::string> ors;
+
+                                for (const auto& requirement_and_json: world_requirements_and_json)
+                                {
+                                    int doom_type = requirement_and_json.asInt();
+                                    ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                                }
+                                for (const auto& requirement_or_json: world_requirements_or_json)
+                                {
+                                    int doom_type = requirement_or_json.asInt();
+                                    ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                                }
+
+                                fprintf(fout, "    set_rule(world.get_entrance(\"Hub -> %s\", player), lambda state:\n", region_name.c_str());
+
+                                if (ands.empty())
+                                    fprintf(fout, "        %s)\n", onut::join(ors, " or\n        ").c_str());
+                                else if (ors.empty())
+                                    fprintf(fout, "        %s)\n", onut::join(ands, " and\n        ").c_str());
+                                else
+                                    fprintf(fout, "       (%s) and       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
+                            }
+                        }
                     }
 
-                    // Gotta love some duplicated code
-                    for (const auto& required_item_and : required_items_and)
+                    std::vector<std::string> connections;
+                    const auto& rules_json = region_json["rules"];
+                    const auto& connections_json = rules_json["connections"];
+                    for (const auto& connection_json : connections_json)
                     {
-                        if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
-                            fprintf(fout, "and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
+                        int target_region = connection_json["target_region"].asInt();
+                        if (target_region == -2)
+                        {
+                            continue;
+                        }
+                        if (target_region == -1)
+                        {
+                            continue;
+                        }
+
+                        const auto& requirements_and_json = connection_json["requirements_and"];
+                        const auto& requirements_or_json = connection_json["requirements_or"];
+
+                        if (requirements_and_json.empty() && requirements_or_json.empty()) continue;
+
+                        has_rules = true;
+
+                        std::vector<std::string> ands;
+                        std::vector<std::string> ors;
+
+                        for (const auto& requirement_and_json: requirements_and_json)
+                        {
+                            int doom_type = requirement_and_json.asInt();
+                            ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        }
+                        for (const auto& requirement_or_json: requirements_or_json)
+                        {
+                            int doom_type = requirement_or_json.asInt();
+                            ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        }
+
+                        auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();
+                        fprintf(fout, "    set_rule(world.get_entrance(\"%s -> %s\", player), lambda state:\n", region_name.c_str(), target_name.c_str());
+                        
+                        if (ands.empty())
+                            fprintf(fout, "        %s)\n", onut::join(ors, " or\n        ").c_str());
+                        else if (ors.empty())
+                            fprintf(fout, "        %s)\n", onut::join(ands, " and\n        ").c_str());
                         else
-                            fprintf(fout, "and state.has(\"%s\", player, 1)", required_item_and.c_str());
+                            fprintf(fout, "       (%s) and       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
                     }
-                    if (!required_items_or.empty())
-                    {
-                        fprintf(fout, " and (");
-                    }
-                    bool first = true;
-                    for (const auto& required_item_or : required_items_or)
-                    {
-                        if (!first) fprintf(fout, " or ");
-                        first = false;
-                        if (std::find(map_items.begin(), map_items.end(), required_item_or) != map_items.end())
-                            fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
-                        else
-                            fprintf(fout, "state.has(\"%s\", player, 1)", required_item_or.c_str());
-                    }
-                    if (!required_items_or.empty())
-                    {
-                        fprintf(fout, ")");
-                    }
-                    fprintf(fout, ")\n");
+                    ++region_i;
                 }
-#else // Rules by regions
-                fprintf(fout, "    set_rule(world.get_entrance(\"Mars -> %s %s\", player), lambda state: state.has(\"%s\", player, 1)", level_name, region_name.c_str(), level_name);
-                if (level->lvl > 1)
-                    fprintf(fout, " and state.has(\"Shotgun\", player, 1)");
-                if (level->lvl > 3)
-                    fprintf(fout, " and state.has(\"Chaingun\", player, 1)");
-                for (const auto& required_item_and : required_items_and)
+                if (!has_rules)
                 {
-                    if (std::find(map_items.begin(), map_items.end(), required_item_and) != map_items.end())
-                        fprintf(fout, "and state.has(\"%s - %s\", player, 1)", level_name, required_item_and.c_str());
-                    else
-                        fprintf(fout, "and state.has(\"%s\", player, 1)", required_item_and.c_str());
+                    fprintf(fout, "    # No rules...\n\n");
                 }
-                if (!required_items_or.empty())
+                else
                 {
-                    fprintf(fout, " and (");
+                    fprintf(fout, "\n");
                 }
-                bool first = true;
-                for (const auto& required_item_or : required_items_or)
-                {
-                    if (!first) fprintf(fout, " or ");
-                    first = false;
-                    if (std::find(map_items.begin(), map_items.end(), required_item_or) != map_items.end())
-                        fprintf(fout, "state.has(\"%s - %s\", player, 1)", level_name, required_item_or.c_str());
-                    else
-                        fprintf(fout, "state.has(\"%s\", player, 1)", required_item_or.c_str());
-                }
-                if (!required_items_or.empty())
-                {
-                    fprintf(fout, ")");
-                }
-                fprintf(fout, ")\n");
-#endif
+                ++lvl;
             }
-            fprintf(fout, "\n");
+            ++ep;
         }
 
         fclose(fout);
