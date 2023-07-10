@@ -1021,12 +1021,6 @@ void HU_AddAPLine(const char* line, int len)
 void HU_AddAPMessage(const char* message)
 {
     int len = strlen(message);
-    //if (len <= HU_MAXLINELENGTH)
-    //{
-    //    // ez pz
-    //    HU_AddAPLine(message, len);
-    //    return;
-    //}
 
     int i = 0;
     int j = 0;
@@ -1042,13 +1036,19 @@ void HU_AddAPMessage(const char* message)
         if (message[j] != '\n')
         {
             int w = HULib_measureText(message + i, j - i);
-            if (w < ORIGWIDTH + WIDESCREENDELTA - 8 && (j - i) + 2 < HU_MAXLINELENGTH && j < len)
+            if (w >= ORIGWIDTH + WIDESCREENDELTA - 8 && word_start == i)
             {
-                j++;
-                continue;
+                if (j > i && word_start == i) --j;
             }
-            if (j < len)
-                j = word_start;
+            else
+            {
+                if (w < ORIGWIDTH + WIDESCREENDELTA - 8 && (j - i) + 2 < HU_MAXLINELENGTH && j < len)
+                {
+                    j++;
+                    continue;
+                }
+                if (j < len) j = word_start;
+            }
         }
         else
         {

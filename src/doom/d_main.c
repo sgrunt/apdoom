@@ -1687,16 +1687,16 @@ void D_DoomMain (void)
     // Grab parameters for AP
     int apserver_arg_id = M_CheckParmWithArgs("-apserver", 1);
     if (!apserver_arg_id)
-	    I_Error("The '-apserver' parameter requires an argument.");
+	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-apserver' parameter requires an argument.");
     int applayer_arg_id = M_CheckParmWithArgs("-applayer", 1);
     if (!applayer_arg_id)
-	    I_Error("The '-applayer' parameter requires an argument.");
+	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-applayer' parameter requires an argument.");
     const char* password = "";
     if (M_CheckParm("-password"))
     {
         int password_arg_id = M_CheckParmWithArgs("-password", 1);
         if (!password_arg_id)
-	        I_Error("The '-password' parameter requires an argument.");
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-password' parameter requires an argument.");
         password = myargv[password_arg_id + 1];
     }
 

@@ -177,7 +177,7 @@ static std::string ap_save_dir_name;
 void f_itemclr();
 void f_itemrecv(int64_t item_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
-void f_locprog(int64_t loc_id);
+void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
@@ -233,7 +233,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetItemClearCallback(f_itemclr);
 	AP_SetItemRecvCallback(f_itemrecv);
 	AP_SetLocationCheckedCallback(f_locrecv);
-	AP_SetLocationIsProgressionCallback(f_locprog);
+	AP_SetLocationInfoCallback(f_locinfo);
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
@@ -251,7 +251,7 @@ int apdoom_init(ap_settings_t* settings)
 		{
 			case AP_ConnectionStatus::Authenticated:
 			{
-				printf("AP: Authenticated\n");
+				printf("APDOOM: Authenticated\n");
 				AP_GetRoomInfo(&ap_room_info);
 
 				ap_was_connected = true;
@@ -266,28 +266,22 @@ int apdoom_init(ap_settings_t* settings)
 				break;
 			}
 			case AP_ConnectionStatus::ConnectionRefused:
-				printf("AP: Failed to connect, connection refused\n");
+				printf("APDOOM: Failed to connect, connection refused\n");
 				return 0;
 		}
 		if (should_break) break;
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
 		{
-			printf("AP: Failed to connect, timeout\n");
+			printf("APDOOM: Failed to connect, timeout\n");
 			return 0;
 		}
 	}
 
-#if 1
-	// If we don't have information about scouts, fetch them (We need this to display the proper icon for progressive vs non-progressive
+	// Scout locations to see which are progressive
 	if (ap_progressive_locations.empty())
 	{
-		Json::Value packet;
-		packet[0]["cmd"] = "LocationScouts";
-		int loc_count_in_packet = 0;
-		static const int MAX_LOC_COUNT_IN_PACKET = 20;
-
-		// const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {
+		std::vector<int64_t> location_scouts;
 		for (const auto& kv1 : location_table)
 		{
 			if (!ap_state.episodes[kv1.first - 1])
@@ -297,42 +291,26 @@ int apdoom_init(ap_settings_t* settings)
 				for (const auto& kv3 : kv2.second)
 				{
 					if (kv3.first == -1) continue;
-					packet[0]["locations"].append(kv3.second);
-					++loc_count_in_packet;
-					if (loc_count_in_packet >= MAX_LOC_COUNT_IN_PACKET)
-					{
-						Json::FastWriter writer;
-						APSend(writer.write(packet));
-						packet = Json::arrayValue;
-						packet.append(Json::objectValue);
-						packet[0]["cmd"] = "LocationScouts";
-						loc_count_in_packet = 0;
-					}
+					location_scouts.push_back(kv3.second);
 				}
 			}
 		}
+		AP_SendLocationScouts(location_scouts, 0);
 
-		if (loc_count_in_packet > 0)
+		// Wait for location infos
+		start_time = std::chrono::steady_clock::now();
+		while (ap_progressive_locations.empty())
 		{
-			Json::FastWriter writer;
-			APSend(writer.write(packet));
-		}
-	}
-
-	// Wait for location infos
-	start_time = std::chrono::steady_clock::now();
-	while (ap_progressive_locations.empty())
-	{
-		apdoom_update();
+			apdoom_update();
 		
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
-		{
-			printf("AP: Failed to connect, timeout waiting for LocationScouts\n");
-			return 0;
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
+			{
+				printf("APDOOM: Failed to connect, timeout waiting for LocationScouts\n");
+				return 0;
+			}
 		}
 	}
-#endif
 
 	ap_initialized = true;
 
@@ -635,13 +613,57 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 
 void f_locrecv(int64_t loc_id)
 {
-	// Not much to do here
+	// Find where this location is
+	int ep = -1;
+	int map = -1;
+	int index = -1;
+	for (const auto& loc_map_table : location_table)
+	{
+		for (const auto& loc_index_table : loc_map_table.second)
+		{
+			for (const auto& loc_index : loc_index_table.second)
+			{
+				if (loc_index.second == loc_id)
+				{
+					ep = loc_map_table.first;
+					map = loc_index_table.first;
+					index = loc_index.first;
+					break;
+				}
+			}
+			if (ep != -1) break;
+		}
+		if (ep != -1) break;
+	}
+	if (ep == -1)
+	{
+		printf("APDOOM: In f_locrecv, loc id not found: %i\n", (int)loc_id);
+		return; // Loc not found
+	}
+
+	// Make sure we didn't already check if
+	for (int i = 0; i < ap_state.level_states[ep - 1][map - 1].check_count; ++i)
+	{
+		if (ap_state.level_states[ep - 1][map - 1].checks[i] == index)
+		{
+			return; // Don't print anything
+		}
+	}
+
+	if (index < 0) return;
+
+	ap_state.level_states[ep - 1][map - 1].checks[ap_state.level_states[ep - 1][map - 1].check_count] = index;
+	ap_state.level_states[ep - 1][map - 1].check_count++;
 }
 
 
-void f_locprog(int64_t loc_id)
+void f_locinfo(std::vector<AP_NetworkItem> loc_infos)
 {
-	ap_progressive_locations.insert(loc_id);
+	for (const auto& loc_info : loc_infos)
+	{
+		if (loc_info.flags & 1)
+			ap_progressive_locations.insert(loc_info.location);
+	}
 }
 
 
@@ -849,40 +871,12 @@ void apdoom_update()
 			}
 		}
 
-		printf("AP: %s\n", msg->text.c_str());
+		printf("APDOOM: %s\n", msg->text.c_str());
 
 		if (ap_initialized)
 			ap_settings.message_callback(colored_msg.c_str());
 		else
 			ap_cached_messages.push_back(colored_msg);
-
-		//switch (msg->type)
-		//{
-		//	case AP_MessageType::Plaintext:
-		//	{
-		//		break;
-		//	}
-		//	case AP_MessageType::ItemSend:
-		//	{
-		//		AP_ItemSendMessage* item_send_msg = (AP_ItemSendMessage*)msg;
-		//		break;
-		//	}
-		//	case AP_MessageType::ItemRecv:
-		//	{
-		//		AP_ItemRecvMessage* item_recv_msg = (AP_ItemRecvMessage*)msg;
-		//		break;
-		//	}
-		//	case AP_MessageType::Hint:
-		//	{
-		//		AP_HintMessage* hint_msg = (AP_HintMessage*)msg;
-		//		break;
-		//	}
-		//	case AP_MessageType::Countdown:
-		//	{
-		//		AP_CountdownMessage* countdown_msg = (AP_CountdownMessage*)msg;
-		//		break;
-		//	}
-		//}
 
 		AP_ClearLatestMessage();
 	}

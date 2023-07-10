@@ -913,6 +913,8 @@ void P_LoadThings (int lump)
 	spawnthing.angle = SHORT(mt->angle);
 	spawnthing.type = SHORT(things_type_remap[i]);
 	spawnthing.options = SHORT(mt->options);
+	
+    auto type_before = spawnthing.type;
 
         // Replace AP locations with AP item
         if (is_doom_type_ap_location(spawnthing.type))
@@ -942,7 +944,7 @@ void P_LoadThings (int lump)
         // [AP] On player start 1, put level select teleport "HUB"
         if (spawnthing.type == 1)
             spawnthing_player1_start = spawnthing;
-	
+
 	P_SpawnMapThing(&spawnthing, i);
 
     }

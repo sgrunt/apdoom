@@ -746,9 +746,10 @@ P_TouchSpecialThing
 // KillMobj
 //
 void
-P_KillMobj
+P_KillMobj_Real // So we can specify death by death link
 ( mobj_t*	source,
-  mobj_t*	target )
+  mobj_t*	target,
+  boolean   died_by_death_link )
 {
     mobjtype_t	item;
     mobj_t*	mo;
@@ -785,7 +786,8 @@ P_KillMobj
 			
 	target->flags &= ~MF_SOLID;
 	target->player->playerstate = PST_DEAD;
-	apdoom_on_death();
+	if (!died_by_death_link)
+		apdoom_on_death();
 	P_DropWeapon (target->player);
 	// [crispy] center view when dying
 	target->player->centering = true;
@@ -861,6 +863,14 @@ P_KillMobj
 
     mo = P_SpawnMobj (target->x,target->y,ONFLOORZ, item);
     mo->flags |= MF_DROPPED;	// special versions of items
+}
+
+void
+P_KillMobj
+( mobj_t*	source,
+  mobj_t*	target )
+{
+	P_KillMobj_Real(source, target, false);
 }
 
 

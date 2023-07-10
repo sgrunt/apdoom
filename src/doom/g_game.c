@@ -253,7 +253,9 @@ int             vanilla_demo_limit = 1;
 
 // [crispy] store last cmd to track joins
 static ticcmd_t* last_cmd = NULL;
- 
+
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean died_by_death_link);
+
 int G_CmdChecksum (ticcmd_t* cmd) 
 { 
     size_t		i;
@@ -1464,7 +1466,7 @@ void G_Ticker (void)
             if (apdoom_should_die() && players[consoleplayer].mo)
             {
                 HU_AddAPMessage("Death by Deathlink");
-                P_KillMobj(NULL, players[consoleplayer].mo);
+                P_KillMobj_Real(NULL, players[consoleplayer].mo, true);
             }
         }
 	break; 

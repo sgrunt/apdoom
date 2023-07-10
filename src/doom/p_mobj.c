@@ -1058,6 +1058,8 @@ void P_SpawnMapThing (mapthing_t* mthing, int index)
     else
 	z = ONFLOORZ;
     
+        
+
     mobj = P_SpawnMobj (x,y,z, i);
     mobj->index = index;
     mobj->spawnpoint = *mthing;
