@@ -40,6 +40,7 @@ enum class tool_t : int
     bb,
     region,
     rules,
+    locations,
     access
 };
 
@@ -116,48 +117,32 @@ struct bb_t
 struct region_t
 {
     std::string name;
-    bool connects_to_exit = false;
-    bool connects_to_hub = false;
     std::set<int> sectors;
-    std::vector<std::string> required_items_or;
-    std::vector<std::string> required_items_and;
     Color tint = Color::White;
-    int selected_item_or = -1;
-    int selected_item_and = -1;
     rule_region_t rules;
 };
 
 
 static region_t world_region = {
     "World",
-    false,
-    false,
-    {},
-    {},
     {},
     Color(0.6f, 0.6f, 0.6f, 1.0f),
-    -1,
-    -1,
     {}
 };
 
 static region_t exit_region = {
     "Exit",
-    false,
-    false,
-    {},
-    {},
     {},
     Color(0.6f, 0.6f, 0.6f, 1.0f),
-    -1,
-    -1,
     {}
 };
 
 
-struct item_t
+struct location_t
 {
     bool death_logic = false;
+    std::string name;
+    std::string description;
 };
 
 
@@ -167,12 +152,13 @@ struct map_state_t
     float angle = 0.0f;
     int selected_bb = -1;
     int selected_region = -1;
+    int selected_location = -1;
     std::vector<bb_t> bbs;
     std::vector<region_t> regions;
-    std::vector<item_t> items;
     rule_region_t world_rules;
     rule_region_t exit_rules;
     std::set<int> accesses;
+    std::map<int, location_t> locations;
 };
 
 
@@ -196,7 +182,7 @@ static map_state_t map_states[EP_COUNT][MAP_COUNT];
 static map_view_t map_views[EP_COUNT][MAP_COUNT];
 static map_history_t map_histories[EP_COUNT][MAP_COUNT];
 static state_t state = state_t::idle;
-static tool_t tool = tool_t::access;
+static tool_t tool = tool_t::locations;
 static Vector2 mouse_pos;
 static Vector2 mouse_pos_on_down;
 static Vector2 cam_pos_on_down;
@@ -225,12 +211,42 @@ static int connecting_rule_from = -3;
 static int set_rule_rule = -3;
 static int set_rule_connection = -1;
 static int mouse_hover_access = -1;
+static int mouse_hover_location = -1;
 
 static std::map<int, OTextureRef> REQUIREMENT_TEXTURES;
 static const std::vector<int> REQUIREMENTS = {
     5, 40, 6, 39, 13, 38,
     2005, 2001, 2002, 2003, 2004, 2006
 };
+
+
+const char* get_doom_type_name(int doom_type)
+{
+    switch (doom_type)
+    {
+        case 5: return "Blue keycard";
+        case 40: return "Blue skull key";
+        case 6: return "Yellow keycard";
+        case 39: return "Yellow skull key";
+        case 13: return "Red keycard";
+        case 38: return "Red skull key";
+        case 2018: return "Armor";
+        case 8: return "Backpack";
+        case 2019: return "Mega Armor";
+        case 2023: return "Berserk";
+        case 2022: return "Invulnerability";
+        case 2024: return "Partial invisibility";
+        case 2013: return "Supercharge";
+        case 2006: return "BFG9000";
+        case 2002: return "Chaingun";
+        case 2005: return "Chainsaw";
+        case 2004: return "Plasma gun";
+        case 2003: return "Rocket launcher";
+        case 2001: return "Shotgun";
+        case 2026: return "Computer area map";
+    }
+    return "ERROR";
+}
 
 
 Json::Value serialize_rules(const rule_region_t& rules)
@@ -338,17 +354,12 @@ void save()
             {
                 Json::Value region_json;
                 region_json["name"] = region.name;
-                region_json["connects_to_exit"] = region.connects_to_exit;
-                region_json["connects_to_hub"] = region.connects_to_hub;
                 region_json["tint"] = onut::serializeFloat4(&region.tint.r);
 
                 Json::Value sectors_json(Json::arrayValue);
                 for (auto sectori : region.sectors)
                     sectors_json.append(sectori);
                 region_json["sectors"] = sectors_json;
-
-                region_json["required_items_or"] = onut::serializeStringArray(region.required_items_or);
-                region_json["required_items_and"] = onut::serializeStringArray(region.required_items_and);
 
                 region_json["rules"] = serialize_rules(region.rules);
 
@@ -362,6 +373,18 @@ void save()
                 accesses_json.append(access);
             }
             _map_json["accesses"] = accesses_json;
+
+            Json::Value locations_json(Json::arrayValue);
+            for (const auto& kv : map_states[ep][lvl].locations)
+            {
+                Json::Value location_json;
+                location_json["index"] = kv.first;
+                location_json["death_logic"] = kv.second.death_logic;
+                location_json["name"] = kv.second.name;
+                location_json["description"] = kv.second.description;
+                locations_json.append(location_json);
+            }
+            _map_json["locations"] = locations_json;
 
             _map_json["world_rules"] = serialize_rules(map_states[ep][lvl].world_rules);
             _map_json["exit_rules"] = serialize_rules(map_states[ep][lvl].exit_rules);
@@ -413,16 +436,11 @@ void load()
                 region_t region;
 
                 region.name = region_json.get("name", "BAD_NAME").asString();
-                region.connects_to_exit = region_json.get("connects_to_exit", false).asBool();
-                region.connects_to_hub = region_json.get("connects_to_hub", false).asBool();
                 onut::deserializeFloat4(&region.tint.r, region_json["tint"]);
 
                 const auto& sectors_json = region_json["sectors"];
                 for (const auto& sector_json : sectors_json)
                     region.sectors.insert(sector_json.asInt());
-
-                region.required_items_or = onut::deserializeStringArray(region_json["required_items_or"]);
-                region.required_items_and = onut::deserializeStringArray(region_json["required_items_and"]);
 
                 region.rules = deserialize_rules(region_json["rules"]);
 
@@ -433,6 +451,55 @@ void load()
             for (const auto& access_json : accesses_json)
             {
                 _map_state.accesses.insert(access_json.asInt());
+            }
+
+            // Default locations from maps
+            const auto& map = maps[ep][lvl];
+            for (int i = 0; i < (int)map.things.size(); ++i)
+            {
+                const auto& thing = map.things[i];
+                if (thing.flags & 0x0010)
+                {
+                    continue; // Thing is not in single player
+                }
+                switch (thing.type)
+                {
+                    case 5:
+                    case 40:
+                    case 6:
+                    case 39:
+                    case 13:
+                    case 38:
+                    case 2018:
+                    case 8:
+                    case 2019:
+                    case 2023:
+                    case 2022:
+                    case 2024:
+                    case 2013:
+                    case 2006:
+                    case 2002:
+                    case 2005:
+                    case 2004:
+                    case 2003:
+                    case 2001:
+                    case 2026:
+                    {
+                        location_t location;
+                        _map_state.locations[i] = location;
+                        break;
+                    }
+                }
+            }
+            
+            const auto& locations_json = _map_json["locations"];
+            for (const auto& location_json : locations_json)
+            {
+                location_t location;
+                location.death_logic = location_json["death_logic"].asBool();
+                location.name = location_json["name"].asString();
+                location.description = location_json["description"].asString();
+                _map_state.locations[location_json["index"].asInt()] = location;
             }
 
             _map_state.world_rules = deserialize_rules(_map_json["world_rules"]);
@@ -464,6 +531,7 @@ void select_map(int ep, int map)
     mouse_hover_bb = -1;
     set_rule_rule = -3;
     set_rule_connection = -1;
+    mouse_hover_location = -1;
     active_ep = ep;
     active_map = map;
     map_state = &map_states[active_ep][active_map];
@@ -690,6 +758,57 @@ int get_bb_at(const Vector2& pos, float zoom, int &edge)
         if (test_bb(map_state->bbs[i], pos, zoom, edge))
             return i;
     }
+    return -1;
+}
+
+
+int get_loc_at(const Vector2& pos)
+{
+    auto map = &maps[active_ep][active_map];
+
+    int index = 0;
+    for (const auto& thing : map->things)
+    {
+        if (thing.flags & 0x0010)
+        {
+            ++index;
+            continue; // Thing is not in single player
+        }
+        switch (thing.type)
+        {
+            case 5:
+            case 40:
+            case 6:
+            case 39:
+            case 13:
+            case 38:
+            case 2018:
+            case 8:
+            case 2019:
+            case 2023:
+            case 2022:
+            case 2024:
+            case 2013:
+            case 2006:
+            case 2002:
+            case 2005:
+            case 2004:
+            case 2003:
+            case 2001:
+            case 2026:
+            {
+                Rect rect((float)thing.x - 32.0f, (float)-thing.y - 32.0f, 64.0f, 64.0f);
+                if (rect.Contains(pos))
+                {
+                    return index;
+                }
+                //sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
+                break;
+            }
+        }
+        ++index;
+    }
+
     return -1;
 }
 
@@ -1056,6 +1175,21 @@ void update()
                             set_rule_connection = -1;
                             state = state_t::connecting_rule;
                             connecting_rule_from = mouse_hover_rule;
+                        }
+                    }
+                }
+                else if (tool == tool_t::locations)
+                {
+                    mouse_hover_location = get_loc_at(mouse_pos);
+                    if (OInputJustPressed(OMouse1))
+                    {
+                        if (mouse_hover_location == -1)
+                        {
+                            map_state->selected_location = -1;
+                        }
+                        else
+                        {
+                            map_state->selected_location = mouse_hover_location;
                         }
                     }
                 }
@@ -1520,6 +1654,25 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
         sb->end();
     }
 
+    // Selected location
+    if (draw_tools && tool == tool_t::locations)
+    {
+        sb->begin(transform);
+        if (mouse_hover_location != -1)
+        {
+            auto thing = &map->things[mouse_hover_location];
+            Rect rect((float)thing->x - 32.0f, (float)-thing->y - 32.0f, 64.0f, 64.0f);
+            sb->drawOutterOutlineRect(rect, 2.0f / map_view->cam_zoom, Color(1, 1, 0));
+        }
+        if (map_states[ep][lvl].selected_location != -1)
+        {
+            auto thing = &map->things[map_states[ep][lvl].selected_location];
+            Rect rect((float)thing->x - 32.0f, (float)-thing->y - 32.0f, 64.0f, 64.0f);
+            sb->drawOutterOutlineRect(rect, 2.0f / map_view->cam_zoom, Color(1, 0, 0));
+        }
+        sb->end();
+    }
+
     // Vertices
     //sb->begin(transform);
     //for (const auto& v : map->vertexes)
@@ -1556,7 +1709,7 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
             case 2003:
             case 2001:
             case 2026:
-                sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y));
+                sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
                 break;
         }
     }
@@ -1666,7 +1819,7 @@ void renderUI()
         if (ImGui::Begin("Tools"))
         {
             int tooli = (int)tool;
-            ImGui::Combo("Tool", &tooli, "Bounding Box\0Region\0Rules\0Access\0");
+            ImGui::Combo("Tool", &tooli, "Bounding Box\0Region\0Rules\0Location\0Access\0");
             tool = (tool_t)tooli;
         }
         ImGui::End();
@@ -1788,128 +1941,8 @@ void renderUI()
                     push_undo();
                 }
 
-                if (ImGui::Checkbox("Connects to Exit", &region.connects_to_exit)) push_undo();
-                if (ImGui::Checkbox("Connects to HUB", &region.connects_to_hub)) push_undo();
                 ImGui::ColorEdit4("Tint", &region.tint.r, ImGuiColorEditFlags_NoInputs);
                 if (ImGui::IsItemDeactivatedAfterEdit()) push_undo();
-
-                ImGui::Separator();
-                {
-                    ImGui::Text("Required items OR");
-
-                    static char item_name[260] = {'\0'};
-                    ImGui::InputText("##item_name_or", item_name, 260);
-                    ImGui::SameLine();
-                    if (ImGui::Button("Add##item_or") && strlen(item_name) > 0)
-                    {
-                        region.required_items_or.push_back(item_name);
-                        region.selected_item_or = (int)region.required_items_or.size() - 1;
-                        push_undo();
-                    }
-                    if (ImGui::BeginListBox("##item_or_list", ImVec2(300, 0)))
-                    {
-                        int to_move_up = -1;
-                        int to_move_down = -1;
-                        int to_delete = -1;
-                        for (int i = 0; i < (int)region.required_items_or.size(); ++i)
-                        {
-                            const auto& item = region.required_items_or[i];
-                            bool selected = region.selected_item_or == i;
-                            if (ImGui::Selectable((item + "##item_or_" + std::to_string(i)).c_str(), selected, 0, ImVec2(150, 22)))
-                            {
-                                region.selected_item_or = i;
-                            }
-                            if (region.selected_item_or == i)
-                            {
-                                ImGui::SameLine(); if (ImGui::Button(" ^ ##item_or")) to_move_up = i;
-                                ImGui::SameLine(); if (ImGui::Button(" v ##item_or")) to_move_down = i;
-                                ImGui::SameLine(); if (ImGui::Button("X##item_or")) to_delete = i;
-                            }
-                        }
-                        if (to_move_up > 0)
-                        {
-                            auto item = region.required_items_or[to_move_up];
-                            region.required_items_or.erase(region.required_items_or.begin() + to_move_up);
-                            region.required_items_or.insert(region.required_items_or.begin() + (to_move_up - 1), item);
-                            region.selected_item_or = to_move_up - 1;
-                            push_undo();
-                        }
-                        if (to_move_down != -1 && to_move_down < (int)map_state->regions.size() - 1)
-                        {
-                            auto item = region.required_items_or[to_move_down];
-                            region.required_items_or.erase(region.required_items_or.begin() + to_move_down);
-                            region.required_items_or.insert(region.required_items_or.begin() + (to_move_down + 1), item);
-                            region.selected_item_or = to_move_down + 1;
-                            push_undo();
-                        }
-                        if (to_delete != -1)
-                        {
-                            region.required_items_or.erase(region.required_items_or.begin() + to_delete);
-                            region.selected_item_or = onut::min((int)region.required_items_or.size() - 1, region.selected_item_or);
-                            push_undo();
-                        }
-                        ImGui::EndListBox();
-                    }
-                }
-
-                ImGui::Separator();
-                {
-                    ImGui::Text("Required items AND");
-
-                    static char item_name[260] = {'\0'};
-                    ImGui::InputText("##item_name_and", item_name, 260);
-                    ImGui::SameLine();
-                    if (ImGui::Button("Add##item_and") && strlen(item_name) > 0)
-                    {
-                        region.required_items_and.push_back(item_name);
-                        region.selected_item_and = (int)region.required_items_and.size() - 1;
-                        push_undo();
-                    }
-                    if (ImGui::BeginListBox("##item_and_list", ImVec2(300, 0)))
-                    {
-                        int to_move_up = -1;
-                        int to_move_down = -1;
-                        int to_delete = -1;
-                        for (int i = 0; i < (int)region.required_items_and.size(); ++i)
-                        {
-                            const auto& item = region.required_items_and[i];
-                            bool selected = region.selected_item_and == i;
-                            if (ImGui::Selectable((item + "##item_and_" + std::to_string(i)).c_str(), selected, 0, ImVec2(150, 22)))
-                            {
-                                region.selected_item_and = i;
-                            }
-                            if (region.selected_item_and == i)
-                            {
-                                ImGui::SameLine(); if (ImGui::Button(" ^ ##item_and")) to_move_up = i;
-                                ImGui::SameLine(); if (ImGui::Button(" v ##item_and")) to_move_down = i;
-                                ImGui::SameLine(); if (ImGui::Button("X##item_and")) to_delete = i;
-                            }
-                        }
-                        if (to_move_up > 0)
-                        {
-                            auto item = region.required_items_and[to_move_up];
-                            region.required_items_and.erase(region.required_items_and.begin() + to_move_up);
-                            region.required_items_and.insert(region.required_items_and.begin() + (to_move_up - 1), item);
-                            region.selected_item_and = to_move_up - 1;
-                            push_undo();
-                        }
-                        if (to_move_down != -1 && to_move_down < (int)map_state->regions.size() - 1)
-                        {
-                            auto item = region.required_items_and[to_move_down];
-                            region.required_items_and.erase(region.required_items_and.begin() + to_move_down);
-                            region.required_items_and.insert(region.required_items_and.begin() + (to_move_down + 1), item);
-                            region.selected_item_and = to_move_down + 1;
-                            push_undo();
-                        }
-                        if (to_delete != -1)
-                        {
-                            region.required_items_and.erase(region.required_items_and.begin() + to_delete);
-                            region.selected_item_and = onut::min((int)region.required_items_and.size() - 1, region.selected_item_and);
-                            push_undo();
-                        }
-                        ImGui::EndListBox();
-                    }
-                }
             }
         }
         ImGui::End();
@@ -2004,6 +2037,42 @@ void renderUI()
         if (ImGui::Begin("Map"))
         {
 
+        }
+        ImGui::End();
+
+        if (ImGui::Begin("Location"))
+        {
+            if (map_state->selected_location != -1)
+            {
+                ImGui::Text("Thing Index: %i", map_state->selected_location);
+                ImGui::Text("Thing Type: %s", get_doom_type_name(maps[active_ep][active_map].things[map_state->selected_location].type));
+
+                auto& location = map_state->locations[map_state->selected_location];
+                
+                if (ImGui::Checkbox("Death Logic", &location.death_logic))
+                {
+                    push_undo();
+                }
+
+                {
+                    static char buf[260] = {'\0'};
+                    snprintf(buf, 260, "%s", location.name.c_str());
+                    if (ImGui::InputText("Name", buf, 260, ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        location.name = buf;
+                        push_undo();
+                    }
+                }
+                {
+                    static char buf[1000] = {'\0'};
+                    snprintf(buf, 1000, "%s", location.description.c_str());
+                    if (ImGui::InputText("Description", buf, 1000, ImGuiInputTextFlags_EnterReturnsTrue))
+                    {
+                        location.description = buf;
+                        push_undo();
+                    }
+                }
+            }
         }
         ImGui::End();
     }

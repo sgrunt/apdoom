@@ -119,6 +119,8 @@ std::map<std::string, std::set<std::string>> item_name_groups;
 std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
 std::map<std::string, ap_item_t*> item_map;
 
+const char* get_doom_type_name(int doom_type);
+
 static std::string get_requirement_name(const std::string& level_name, int doom_type)
 {
     switch (doom_type)
@@ -252,6 +254,22 @@ ap_item_t& add_item(const std::string& name, int doom_type, int count, item_clas
     }
     ap_items.push_back(item);
     return ap_items.back();
+}
+
+
+std::string escape_csv(const std::string& str)
+{
+    std::string ret = str;
+    for (int i = 0; i < (int)ret.size(); ++i)
+    {
+        auto c = ret[i];
+        if (c == '"')
+        {
+            ret.insert(ret.begin() + i, '"');
+            ++i;
+        }
+    }
+    return "\"" + ret + "\"";
 }
 
 
@@ -700,14 +718,32 @@ class LocationDict(TypedDict, total=False): \n\
 
         // Death logic locations
         fprintf(fout, "death_logic_locations = [\n");
-        //for (const auto& level_json : levels_json)
-        //{
-        //    auto level_name = level_names[level_json["episode"].asInt() - 1][level_json["map"].asInt() - 1];
-        //    for (const auto& loc_json : level_json["death_logic_locations"])
-        //    {
-        //        fprintf(fout, "    \"%s - %s\",\n", level_name, loc_json.asCString());
-        //    }
-        //}
+        const auto& episodes_json = levels_json["episodes"];
+        int ep = 0;
+        for (const auto& episode_json : episodes_json)
+        {
+            int lvl = 0;
+            for (const auto& level_json : episode_json)
+            {
+                const auto& locations_json = level_json["locations"];
+                for (const auto& location_json : locations_json)
+                {
+                    auto idx = location_json["index"].asInt();
+                    if (location_json["death_logic"].asBool())
+                    {
+                        for (const auto& location : ap_locations)
+                        {
+                            if (location.lvl - 1 == lvl && location.ep - 1 == ep && location.doom_thing_index == idx)
+                            {
+                                fprintf(fout, "    \"%s\",\n", location.name.c_str());
+                            }
+                        }
+                    }
+                }
+                ++lvl;
+            }
+            ++ep;
+        }
         fprintf(fout, "]\n");
 
         fclose(fout);
@@ -992,6 +1028,39 @@ class LocationDict(TypedDict, total=False): \n\
 
         fclose(fout);
     }
+
+    // Generate location CSV that will be used for names
+    {
+        FILE* fout = fopen((pop_tracker_data_dir + "location_names.csv").c_str(), "w");
+        fprintf(fout, "Map,Type,Index,Name,Description\n");
+        int ep = 0;
+        for (const auto& episode_json : episodes_json)
+        {
+            int lvl = 0;
+            for (const auto& level_json : episode_json)
+            {
+                fprintf(fout, ",,,,\n");
+
+                const auto& locations_json = level_json["locations"];
+                for (const auto& location_json : locations_json)
+                {
+                    std::string level_name = level_names[ep][lvl];
+                    int index = location_json["index"].asInt();
+
+                    fprintf(fout, "%s,", level_name.c_str());
+                    fprintf(fout, "%s,", get_doom_type_name(maps[ep][lvl].things[index].type));
+                    fprintf(fout, "%i,", index);
+                    fprintf(fout, "%s,", escape_csv(location_json["name"].asString()).c_str());
+                    fprintf(fout, "%s,\n", escape_csv(location_json["description"].asString()).c_str());
+                }
+                ++lvl;
+            }
+            ++ep;
+        }
+        fclose(fout);
+    }
+
+    // Now for Poptracker, rasterize levels onto a 1024x1024
 
     // Clean up
     for (auto level : levels) delete level; // We don't need to
