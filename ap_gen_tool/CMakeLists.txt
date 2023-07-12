@@ -28,6 +28,7 @@ add_executable(${PROJECT_NAME} WIN32
     maps.h
     maps.cpp
     defs.h
+    ids_remap.h
 )
 
 # Work dir

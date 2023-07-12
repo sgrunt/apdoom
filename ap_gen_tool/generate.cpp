@@ -26,8 +26,12 @@
 #include <json/json.h>
 #include <onut/onut.h>
 #include <onut/Strings.h>
+#include <onut/Log.h>
 
 #include "maps.h"
+#include "ids_remap.h"
+
+#include <algorithm>
 
 
 struct region_t
@@ -275,11 +279,11 @@ std::string escape_csv(const std::string& str)
 
 int generate()
 {
-    printf("AP Gen Tool\n");
+    OLog("AP Gen Tool");
 
     if (OArguments.size() != 4) // Minimum effort validation
     {
-        printf("Usage: ap_gen_tool.exe DOOM.WAD python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago  C:\\github\\apdoom\\data\\poptracker");
+        OLogE("Usage: ap_gen_tool.exe DOOM.WAD python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago  C:\\github\\apdoom\\data\\poptracker");
         return 1;
     }
 
@@ -291,13 +295,6 @@ int generate()
     Json::Value levels_json;
     fregions >> levels_json;
     fregions.close();
-
-    int armor_count = 0;
-    int megaarmor_count = 0;
-    int berserk_count = 0;
-    int invulnerability_count = 0;
-    int partial_invisibility_count = 0;
-    int supercharge_count = 0;
     
     // Guns.
     add_item("Shotgun", 2001, 1, PROGRESSION, "Weapons");
@@ -397,13 +394,13 @@ int generate()
                         break;
 
                     // Locations
-                    case 2018: add_loc(lvl_prefix + "Armor", thing, level, i, thing.x, thing.y); ++armor_count; break;
+                    case 2018: add_loc(lvl_prefix + "Armor", thing, level, i, thing.x, thing.y); break;
                     case 8: add_loc(lvl_prefix + "Backpack", thing, level, i, thing.x, thing.y); break;
-                    case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i, thing.x, thing.y); ++megaarmor_count; break;
-                    case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i, thing.x, thing.y); ++berserk_count; break;
-                    case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i, thing.x, thing.y); ++invulnerability_count; break;
-                    case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i, thing.x, thing.y); ++partial_invisibility_count; break;
-                    case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i, thing.x, thing.y); ++supercharge_count; break;
+                    case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i, thing.x, thing.y); break;
+                    case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i, thing.x, thing.y); break;
+                    case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i, thing.x, thing.y); break;
+                    case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i, thing.x, thing.y); break;
+                    case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i, thing.x, thing.y); break;
                     case 2006: add_loc(lvl_prefix + "BFG9000", thing, level, i, thing.x, thing.y); break;
                     case 2002: add_loc(lvl_prefix + "Chaingun", thing, level, i, thing.x, thing.y); break;
                     case 2005: add_loc(lvl_prefix + "Chainsaw", thing, level, i, thing.x, thing.y); break;
@@ -454,14 +451,6 @@ int generate()
         ++ep;
     }
 
-    // Fillers
-    printf("Armor: %i\n", armor_count);
-    printf("Mega Armor: %i\n", megaarmor_count);
-    printf("Berserk: %i\n", berserk_count);
-    printf("Invulnerability: %i\n", invulnerability_count);
-    printf("Partial invisibility: %i\n", partial_invisibility_count);
-    printf("Supercharge: %i\n", supercharge_count);
-
     // Lastly, add level items. We want to add more levels in the future and not shift all existing item IDs
     item_next_id = item_id_base + 400;
     for (auto level : levels)
@@ -474,7 +463,7 @@ int generate()
         add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
     }
 
-    printf("%i locations\n%i items\n", total_loc_count, total_item_count - 3 /* Early items */);
+    OLog(std::to_string(total_loc_count) + " locations\n" + std::to_string(total_item_count - 3) + " items");
 
     // Fill in locations into level's sectors
     for (int i = 0, len = (int)ap_locations.size(); i < len; ++i)
@@ -493,14 +482,62 @@ int generate()
                 }
                 else
                 {
-                    printf("Cannot find sector for location: %s\n", loc.name.c_str());
+                    OLogE("Cannot find sector for location: " + loc.name);
                 }
                 break;
             }
         }
     }
 
-    //--- Generate the python files
+    //--- Remap location's IDs for backward compatibility with 0.3.9
+    {
+        int64_t next_location_id = 0;
+        std::vector<int> unmapped_locations;
+        int i = 0;
+        for (const auto &kv : LOCATIONS_TO_LEGACY_IDS)
+            next_location_id = std::max(next_location_id, kv.second + 1);
+        for (auto& location : ap_locations)
+        {
+            auto it = LOCATIONS_TO_LEGACY_IDS.find(location.name);
+            if (it != LOCATIONS_TO_LEGACY_IDS.end())
+                location.id = LOCATIONS_TO_LEGACY_IDS[location.name];
+            else
+                unmapped_locations.push_back(i);
+            ++i;
+        }
+        for (auto unmapped_location : unmapped_locations)
+            ap_locations[unmapped_location].id = next_location_id++;
+
+        // Sort by id so it's clean in AP
+        std::sort(ap_locations.begin(), ap_locations.end(), [](const ap_location_t& a, const ap_location_t& b) { return a.id < b.id; });
+    }
+
+    //--- Remap item's IDs for backward compatibility with 0.3.9
+    {
+        int64_t next_itemn_id = 0;
+        std::vector<int> unmapped_items;
+        int i = 0;
+        for (const auto &kv : ITEMS_TO_LEGACY_IDS)
+            next_itemn_id = std::max(next_itemn_id, kv.second + 1);
+        for (auto& item : ap_items)
+        {
+            auto it = ITEMS_TO_LEGACY_IDS.find(item.name);
+            if (it != ITEMS_TO_LEGACY_IDS.end())
+                item.id = ITEMS_TO_LEGACY_IDS[item.name];
+            else
+                unmapped_items.push_back(i);
+            ++i;
+        }
+        for (auto unmapped_item : unmapped_items)
+            ap_items[unmapped_item].id = next_itemn_id++;
+
+        // Sort by id so it's clean in AP
+        std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+    }
+
+    //---------------------------------------------
+    //-------- Generate the python files ----------
+    //---------------------------------------------
 
     // Items
     {
