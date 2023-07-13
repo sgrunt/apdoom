@@ -160,6 +160,7 @@ void restart_wi_anims()
     WI_initAnimatedBack();
 }
 
+void HU_ClearAPMessages();
 
 void play_level(int ep, int lvl)
 {
@@ -182,6 +183,8 @@ void play_level(int ep, int lvl)
     }
 
     apdoom_check_victory(); // In case we had pending victory
+
+    HU_ClearAPMessages();
 }
 
 

@@ -994,6 +994,34 @@ static const crispy_statsline_func_t crispy_statslines[NUM_STATSFORMATS] =
 };
 
 
+void HU_ClearAPMessages()
+{
+    // Keep the last 3 ones in case they are important, but remove the queue.
+    while (HU_GetActiveAPMessageCount() > 3 && ap_message_buffer_count)
+    {
+        // Shift currents
+        for (int i = 3; i > 0; --i)
+        {
+            memcpy(&w_ap_messages[i], &w_ap_messages[i - 1], sizeof(hu_stext_t));
+            w_ap_messages[i].on = &ap_message_ons[i]; // Don't break that
+            ap_message_counters[i] = ap_message_counters[i - 1];
+            ap_message_ons[i] = ap_message_ons[i - 1];
+        }
+	    HUlib_addMessageToSText(&w_ap_messages[0], 0, ap_message_buffer[0]);
+	    ap_message_ons[0] = true;
+	    ap_message_counters[0] = HU_APMSGTIMEOUT;
+
+        // Shift buffers
+        for (int i = 1; i < ap_message_buffer_count; ++i)
+        {
+            memcpy(ap_message_buffer[i - 1], ap_message_buffer[i], HU_MAXLINELENGTH + 1);
+        }
+        ap_message_buffer_count--;
+    }
+    ap_message_anim = 0;
+}
+
+
 void HU_InitAPMessages()
 {
     // [AP] AP messages

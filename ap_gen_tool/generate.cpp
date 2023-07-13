@@ -465,30 +465,6 @@ int generate()
 
     OLog(std::to_string(total_loc_count) + " locations\n" + std::to_string(total_item_count - 3) + " items");
 
-    // Fill in locations into level's sectors
-    for (int i = 0, len = (int)ap_locations.size(); i < len; ++i)
-    {
-        auto& loc = ap_locations[i];
-        for (const auto& level : levels)
-        {
-            if (loc.lvl == level->lvl &&
-                loc.ep == level->ep)
-            {
-                auto subsector = point_in_subsector(loc.x, loc.y, &maps[loc.ep - 1][loc.lvl - 1]);
-                if (subsector)
-                {
-                    level->sectors[subsector->sector].locations.push_back(i);
-                    loc.sector = subsector->sector;
-                }
-                else
-                {
-                    OLogE("Cannot find sector for location: " + loc.name);
-                }
-                break;
-            }
-        }
-    }
-
     //--- Remap location's IDs for backward compatibility with 0.3.9
     {
         int64_t next_location_id = 0;
@@ -533,6 +509,30 @@ int generate()
 
         // Sort by id so it's clean in AP
         std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+    }
+
+    // Fill in locations into level's sectors
+    for (int i = 0, len = (int)ap_locations.size(); i < len; ++i)
+    {
+        auto& loc = ap_locations[i];
+        for (const auto& level : levels)
+        {
+            if (loc.lvl == level->lvl &&
+                loc.ep == level->ep)
+            {
+                auto subsector = point_in_subsector(loc.x, loc.y, &maps[loc.ep - 1][loc.lvl - 1]);
+                if (subsector)
+                {
+                    level->sectors[subsector->sector].locations.push_back(i);
+                    loc.sector = subsector->sector;
+                }
+                else
+                {
+                    OLogE("Cannot find sector for location: " + loc.name);
+                }
+                break;
+            }
+        }
     }
 
     //---------------------------------------------
