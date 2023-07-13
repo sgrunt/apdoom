@@ -320,7 +320,7 @@ void init_maps()
             // That's a level!
             auto ep = dir_entry.name[1] - '0';
             auto lvl = dir_entry.name[3] - '0';
-            if (ep < 1 || ep > 3 || lvl < 1 || lvl > 9)
+            if (ep < 1 || ep > EP_COUNT || lvl < 1 || lvl > MAP_COUNT)
             {
                 // ok.. not a level
                 continue;

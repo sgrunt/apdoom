@@ -27,7 +27,7 @@ extern "C"
 
 
 #define APDOOM_MAJOR 0
-#define APDOOM_MINOR 4
+#define APDOOM_MINOR 5
 #define APDOOM_PATCH 0
 #define APDOOM_STR(x) APDOOM_STR2(x)
 #define APDOOM_STR2(x) #x
@@ -41,7 +41,7 @@ extern "C"
 #ifdef FIRST_EP_ONLY
 #define AP_EPISODE_COUNT 1
 #else
-#define AP_EPISODE_COUNT 3
+#define AP_EPISODE_COUNT 4
 #endif
 #define AP_LEVEL_COUNT 9
 #define AP_NUM_POWERS 6
@@ -109,7 +109,7 @@ typedef struct
     int random_monsters;
     int random_items;
     int death_link;
-    int episodes[3];
+    int episodes[AP_EPISODE_COUNT];
     int victory;
     
 } ap_state_t;

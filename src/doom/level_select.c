@@ -55,7 +55,7 @@ extern int cursor_y;
 
 static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 {
-    // Episode 0 World Map
+    // Episode 1
     {
         { 185, 164 + 10, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
 	    { 148, 143, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
@@ -69,7 +69,7 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
     },
 
 #ifndef FIRST_EP_ONLY
-    // Episode 1 World Map should go here
+    // Episode 2
     {
 	    { 254, 25, 18, "WIURH2", 0, 0 },	// location of level 0 (CJ)
 	    { 97, 50, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
@@ -82,7 +82,7 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 	    { 235, 158 + 10, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
     },
 
-    // Episode 2 World Map should go here
+    // Episode 3
     {
 	    { 156, 168, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
 	    { 48, 154, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
@@ -93,6 +93,19 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 	    { 198, 48, 18, "WIURH3", 0, 0 },	// location of level 6 (CJ)
 	    { 140, 25, 22, "WIURH1", 0, 0 },	// location of level 7 (CJ)
 	    { 281, 136, -26, "WIURH3", 0, 0 }	// location of level 8 (CJ)
+    },
+
+    // Episode 4
+    {
+        { 185, 164 + 10, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
+	    { 148, 143, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
+	    { 69, 122, 18, "WIURH1", 0, 0 },	// location of level 2 (CJ)
+	    { 209 + 20, 102, 22, "WIURH0", 0, 0 },	// location of level 3 (CJ)
+	    { 116, 89, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
+	    { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0 },	// location of level 5 (CJ)
+	    { 71, 56, 18, "WIURH1", 0, 0 },	// location of level 6 (CJ)
+	    { 135, 29, 18, "WIURH0", -2, 4 },	// location of level 7 (CJ)
+	    { 71, 24, 22, "WIURH1", 0, 0 }	// location of level 8 (CJ)
     }
 #endif
 };
@@ -437,12 +450,20 @@ void DrawLevelSelectStats()
 }
 
 
+static const char* WIN_MAPS[4] = {
+    "WIMAP0",
+    "WIMAP1",
+    "WIMAP2",
+    "VICTORY2"
+};
+
+
 void DrawLevelSelect()
 {
     int x_offset = ep_anim * 32;
 
     char lump_name[9];
-    snprintf(lump_name, 9, "WIMAP%d", selected_ep);
+    snprintf(lump_name, 9, "%s", WIN_MAPS[selected_ep]);
     
     // [crispy] fill pillarboxes in widescreen mode
     if (SCREENWIDTH != NONWIDEWIDTH)
@@ -459,7 +480,7 @@ void DrawLevelSelect()
     }
     else
     {
-        snprintf(lump_name, 9, "WIMAP%d", prev_ep);
+        snprintf(lump_name, 9, "%s", WIN_MAPS[prev_ep]);
         if (ep_anim > 0)
             x_offset = -(10 - ep_anim) * 32;
         else
