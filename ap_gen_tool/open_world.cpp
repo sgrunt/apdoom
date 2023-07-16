@@ -124,7 +124,7 @@ struct region_t
 
 
 static region_t world_region = {
-    "World",
+    "Hub",
     {},
     Color(0.6f, 0.6f, 0.6f, 1.0f),
     {}
