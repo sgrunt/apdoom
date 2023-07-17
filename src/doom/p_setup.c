@@ -1005,6 +1005,14 @@ void P_LoadLineDefs (int lump)
                 }
             }
         }
+        // [AP] We can get stuck and not able to come back to the HUB. Make sure the entrance door can be re-openned from the other side
+        else if (gameepisode == 4 && gamemap == 8)
+        {
+            if (i == 96)
+            {
+                mld->special = 61; // Stay open
+            }
+        }
 
 	ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
 	ld->special = SHORT(mld->special);
