@@ -152,7 +152,7 @@ typedef struct
     int		data2; 
 
     // actual graphics for frames of animations
-    patch_t*	p[3]; 
+    patch_t*	p[6]; 
 
     // following must be initialized to zero before use!
 
@@ -263,18 +263,26 @@ static anim_t epsd2animinfo[] =
     ANIM(ANIM_ALWAYS, TICRATE/4, 3, 40, 0, 0),
 };
 
+static anim_t epsd3animinfo[] =
+{
+    ANIM(ANIM_ALWAYS, TICRATE/4, 3, 72, 107, 0),
+    ANIM(ANIM_ALWAYS, TICRATE/4, 6, 259, 55, 0)
+};
+
 static int NUMANIMS[NUMEPISODES] =
 {
     arrlen(epsd0animinfo),
     arrlen(epsd1animinfo),
     arrlen(epsd2animinfo),
+    arrlen(epsd3animinfo)
 };
 
 static anim_t *anims[NUMEPISODES] =
 {
     epsd0animinfo,
     epsd1animinfo,
-    epsd2animinfo
+    epsd2animinfo,
+    epsd3animinfo
 };
 
 
@@ -542,7 +550,7 @@ void WI_initAnimatedBack(void)
     if (gamemode == commercial)
 	return;
 
-    if (wbs->epsd > 2)
+    if (wbs->epsd > 3)
 	return;
 
     for (i=0;i<NUMANIMS[wbs->epsd];i++)
@@ -571,7 +579,7 @@ void WI_updateAnimatedBack(void)
     if (gamemode == commercial)
 	return;
 
-    if (wbs->epsd > 2)
+    if (wbs->epsd > 3)
 	return;
 
     for (i=0;i<NUMANIMS[wbs->epsd];i++)
@@ -622,7 +630,7 @@ void WI_drawAnimatedBack(void)
     if (gamemode == commercial)
 	return;
 
-    if (wbs->epsd > 2)
+    if (wbs->epsd > 3)
 	return;
 
     for (i=0 ; i<NUMANIMS[wbs->epsd] ; i++)
@@ -843,7 +851,7 @@ void WI_drawShowNextLoc(void)
 
     if ( gamemode != commercial)
     {
-  	if (wbs->epsd > 2)
+  	if (wbs->epsd > 3)
 	{
 	    WI_drawEL();
 	    return;
@@ -1754,7 +1762,7 @@ static void WI_loadUnloadData(load_callback_t callback)
 	// splat
         callback(DEH_String("WISPLAT"), &splat[0]);
 
-	if (wbs->epsd < 3)
+	if (wbs->epsd < 4)
 	{
 	    for (j=0;j<NUMANIMS[wbs->epsd];j++)
 	    {

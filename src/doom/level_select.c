@@ -97,15 +97,15 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 
     // Episode 4
     {
-        { 185, 164 + 10, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
-	    { 148, 143, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
-	    { 69, 122, 18, "WIURH1", 0, 0 },	// location of level 2 (CJ)
-	    { 209 + 20, 102, 22, "WIURH0", 0, 0 },	// location of level 3 (CJ)
-	    { 116, 89, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
-	    { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0 },	// location of level 5 (CJ)
-	    { 71, 56, 18, "WIURH1", 0, 0 },	// location of level 6 (CJ)
-	    { 135, 29, 18, "WIURH0", -2, 4 },	// location of level 7 (CJ)
-	    { 71, 24, 22, "WIURH1", 0, 0 }	// location of level 8 (CJ)
+        { 101, 177, 22, "WIURH1", 0, 0 },	// location of level 0 (CJ)
+	    { 183, 148, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
+	    { 172, 97, 18, "WIURH2", 0, 0 },	// location of level 2 (CJ)
+	    { 78, 85, 22, "WIURH2", 0, 0 },	// location of level 3 (CJ)
+	    { 251, 85, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
+	    { 33 + 4, 24, -24, "WIURH2", 3, -20 },	// location of level 5 (CJ)
+	    { 260, 47, 18, "WIURH0", -5, -4 },	// location of level 6 (CJ)
+	    { 191, 24, 28, "WIURH3", 0, 0 },	// location of level 7 (CJ)
+	    { 88, 58, 17, "WIURH0", 0, 0 }	// location of level 8 (CJ)
     }
 #endif
 };
@@ -454,7 +454,7 @@ static const char* WIN_MAPS[4] = {
     "WIMAP0",
     "WIMAP1",
     "WIMAP2",
-    "VICTORY2"
+    "WIMAP3"
 };
 
 
