@@ -18,6 +18,7 @@ namespace APDoomLauncher
         public Form1()
         {
             InitializeComponent();
+            this.AcceptButton = btnLaunchDOOM;
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs paintEventArgs)
