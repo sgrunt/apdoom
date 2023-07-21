@@ -76,6 +76,5 @@ namespace APDoomLauncher
             txtWidth.Enabled = !chkFullscreen.Checked;
             txtHeight.Enabled = !chkFullscreen.Checked;
         }
-
     }
 }
