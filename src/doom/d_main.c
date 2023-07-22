@@ -1910,7 +1910,17 @@ void D_DoomMain (void)
     I_AtExit(M_SaveDefaults, true); // [crispy] always save configuration at exit
 
     // Find main IWAD file and load it.
-    iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
+    int iwad_mask = IWAD_MASK_DOOM;
+    if (M_CheckParm("-game"))
+    {
+        int game_arg_id = M_CheckParmWithArgs("-game", 1);
+        if (!game_arg_id)
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-game' parameter requires an argument.");
+        const char* game_name = myargv[game_arg_id + 1];
+        if (strcmp(game_name, "doom") == 0) iwad_mask = 1 << doom; // Remove doom2
+        if (strcmp(game_name, "doom2") == 0) iwad_mask = 1 << doom2; // Remove doom
+    }
+    iwadfile = D_FindIWAD(iwad_mask, &gamemission);
 
     // None found?
 

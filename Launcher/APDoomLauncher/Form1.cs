@@ -29,6 +29,7 @@ namespace APDoomLauncher
 
         private void btnLaunchDOOM_Click(object sender, EventArgs e)
         {
+            Settings.Default.Game = cboGame.SelectedIndex;
             Settings.Default.Fullscreen = chkFullscreen.Checked;
             Settings.Default.Width = txtWidth.Text;
             Settings.Default.Height = txtHeight.Text;
@@ -43,6 +44,13 @@ namespace APDoomLauncher
             {
                 command_line += $" -password {txtPassword.Text}";
             }
+
+            switch (cboGame.SelectedIndex)
+            {
+                case 0: command_line += " -game doom"; break;
+                case 1: command_line += " -game doom2"; break;
+            }
+
             if (chkFullscreen.Checked)
             {
                 command_line += " -fullscreen";
@@ -65,6 +73,7 @@ namespace APDoomLauncher
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            cboGame.SelectedIndex = Settings.Default.Game;
             chkFullscreen.Checked = Settings.Default.Fullscreen;
             txtWidth.Text = Settings.Default.Width;
             txtHeight.Text = Settings.Default.Height;

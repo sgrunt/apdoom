@@ -106,5 +106,17 @@ namespace APDoomLauncher.Properties {
                 this["Password"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Game {
+            get {
+                return ((int)(this["Game"]));
+            }
+            set {
+                this["Game"] = value;
+            }
+        }
     }
 }
