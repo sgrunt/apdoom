@@ -295,6 +295,8 @@ int generate()
     Json::Value levels_json;
     fregions >> levels_json;
     fregions.close();
+
+    ap_locations.reserve(1000);
     
     // Guns.
     add_item("Shotgun", 2001, 1, PROGRESSION, "Weapons");
@@ -518,7 +520,8 @@ int generate()
         for (const auto& level : levels)
         {
             if (loc.lvl == level->lvl &&
-                loc.ep == level->ep)
+                loc.ep == level->ep &&
+                loc.doom_thing_index >= 0)
             {
                 auto subsector = point_in_subsector(loc.x, loc.y, &maps[loc.ep - 1][loc.lvl - 1]);
                 if (subsector)

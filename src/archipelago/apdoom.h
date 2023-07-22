@@ -108,7 +108,7 @@ typedef struct
     int difficulty;
     int random_monsters;
     int random_items;
-    int death_link;
+    int two_ways_keydoors;
     int episodes[AP_EPISODE_COUNT];
     int victory;
     

@@ -185,6 +185,7 @@ void f_episode1(int);
 void f_episode2(int);
 void f_episode3(int);
 void f_episode4(int);
+void f_two_ways_keydoors(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
@@ -242,6 +243,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
 	AP_RegisterSlotDataIntCallback("episode4", f_episode4);
+	AP_RegisterSlotDataIntCallback("two_ways_keydoors", f_two_ways_keydoors);
     AP_Start();
 
 	// Block DOOM until connection succeeded or failed
@@ -323,7 +325,6 @@ int apdoom_init(ap_settings_t* settings)
 	}
 
 	ap_initialized = true;
-
 	return 1;
 }
 
@@ -709,6 +710,12 @@ void f_episode3(int ep)
 void f_episode4(int ep)
 {
 	ap_state.episodes[3] = ep;
+}
+
+
+void f_two_ways_keydoors(int two_ways_keydoors)
+{
+	ap_state.two_ways_keydoors = two_ways_keydoors;
 }
 
 

@@ -991,28 +991,33 @@ void P_LoadLineDefs (int lump)
     mld = (maplinedef_t *)data;
     ld = lines;
     warn = warn2 = 0; // [crispy] warn about invalid linedefs
+
+
+
+    // [AP] If the multiworld was generacted with 2 way keydoors, we need to fix those doors to be 2 ways
+    if (gameepisode == 2 && gamemap == 6 && ap_state.two_ways_keydoors)
+        mld[620].special = 27; // Yellow keycard
+    else if (gameepisode == 3 && gamemap == 9 && ap_state.two_ways_keydoors)
+        mld[195].special = 32; // Blue keycard
+
+    // [AP] Can be softlocked if coming back to that level after boss is dead, make sure to disable it's triggers that closes the doors
+    else if (gameepisode == 2 && gamemap == 8)
+    {
+        for (i = 140; i <= 143; ++i)
+        {
+            mld[i].special = 0;
+            mld[i].tag = 0;
+        }
+    }
+
+    // [AP] We can get stuck and not able to come back to the HUB. Make sure the entrance door can be re-openned from the other side
+    else if (gameepisode == 4 && gamemap == 8)
+        mld[96].special = 61; // Stay open
+
+
+
     for (i=0 ; i<numlines ; i++, mld++, ld++)
     {
-        // [AP] Can be softlocked if coming back to that level after boss is dead, make sure to disable it's triggers that closes the doors
-        if (gameepisode == 2 && gamemap == 8)
-        {
-            //if (ap_state.level_states[gameepisode - 1][gamemap - 1].completed)
-            {
-                if (i >= 140 && i <= 143)
-                {
-                    mld->special = 0;
-                    mld->tag = 0;
-                }
-            }
-        }
-        // [AP] We can get stuck and not able to come back to the HUB. Make sure the entrance door can be re-openned from the other side
-        else if (gameepisode == 4 && gamemap == 8)
-        {
-            if (i == 96)
-            {
-                mld->special = 61; // Stay open
-            }
-        }
 
 	ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
 	ld->special = SHORT(mld->special);
