@@ -766,6 +766,98 @@ void delete_selected()
 }
 
 
+void reset_level()
+{
+    auto state = get_state(active_level);
+    auto map = get_map(active_level);
+
+    state->bbs.clear();
+    state->selected_bb = -1;
+    state->selected_region = -1;
+    state->selected_location = -1;
+    state->accesses.clear();
+    state->regions.clear();
+
+    region_t main_region;
+    main_region.name = "Main";
+    state->regions.push_back(main_region);
+    for (int i = 0, len = (int)map->sectors.size(); i < len; ++i)
+        state->regions[0].sectors.insert(i);
+
+    Point rules_pos = {
+        (int)map->bb[0] - RULES_W * 2,
+        (int)map->bb[1] + ((int)map->bb[3] - (int)map->bb[1]) / 2
+    };
+    state->regions[0].rules.x = rules_pos.x;
+    state->regions[0].rules.y = rules_pos.y;
+    state->regions[0].rules.connections.push_back({-1});
+    state->regions[0].rules.connections.push_back({-2});
+
+    state->exit_rules.x = rules_pos.x;
+    state->exit_rules.y = rules_pos.y + RULES_H * 3;
+
+    state->world_rules.x = rules_pos.x;
+    state->world_rules.y = rules_pos.y - RULES_H * 3;
+    state->world_rules.connections.push_back({0});
+
+    // Check for keycards, and create colored regions
+    bool keycards[3] = {false, false, false};
+    for (int i = 0; i < (int)map->things.size(); ++i)
+    {
+        const auto& thing = map->things[i];
+        if (thing.flags & 0x0010)
+        {
+            continue; // Thing is not in single player
+        }
+        switch (thing.type)
+        {
+            case 5:
+            case 40:
+                keycards[0] = true;
+                break;
+            case 6:
+            case 39:
+                keycards[1] = true;
+                break;
+            case 13:
+            case 38:
+                keycards[2] = true;
+                break;
+        }
+    }
+
+    if (keycards[0])
+    {
+        region_t region;
+        region.name = "Blue";
+        region.tint = Color(0, 0, 1);
+        region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
+        region.rules.y = rules_pos.y - RULES_H * 3;
+        state->regions.push_back(region);
+    }
+    if (keycards[1])
+    {
+        region_t region;
+        region.name = "Yellow";
+        region.tint = Color(1, 1, 0);
+        region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
+        region.rules.y = rules_pos.y;
+        state->regions.push_back(region);
+    }
+    if (keycards[2])
+    {
+        region_t region;
+        region.name = "Red";
+        region.tint = Color(1, 0, 0);
+        region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
+        region.rules.y = rules_pos.y + RULES_H * 3;
+        state->regions.push_back(region);
+    }
+
+    push_undo();
+}
+
+
 void update_shortcuts()
 {
     auto ctrl = OInputPressed(OKeyLeftControl);
@@ -778,6 +870,7 @@ void update_shortcuts()
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeyDelete)) delete_selected();
     if (ctrl && !shift && !alt && OInputJustPressed(OKeyS)) save();
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeySpaceBar)) regen();
+    if (ctrl && !shift && !alt && OInputJustPressed(OKeyR)) reset_level();
 }
 
 
