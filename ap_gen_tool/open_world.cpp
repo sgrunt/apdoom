@@ -176,11 +176,30 @@ struct map_history_t
 };
 
 
-static int active_ep = 0;
-static int active_map = 0;
-static map_state_t map_states[EP_COUNT][MAP_COUNT];
-static map_view_t map_views[EP_COUNT][MAP_COUNT];
-static map_history_t map_histories[EP_COUNT][MAP_COUNT];
+struct level_index_t
+{
+    int ep = 0;
+    int map = 0;
+    int d2_map = -1;
+};
+
+
+struct meta_t // Bad name, but whatever
+{
+    map_state_t state;
+    map_view_t view;
+    map_history_t history;
+};
+
+
+struct metas_t
+{
+    meta_t d1_metas[EP_COUNT][MAP_COUNT];
+    meta_t d2_metas[D2_MAP_COUNT];
+};
+
+level_index_t active_level;
+metas_t metas;
 static state_t state = state_t::idle;
 static tool_t tool = tool_t::locations;
 static Vector2 mouse_pos;
@@ -199,7 +218,7 @@ static HCURSOR we_cursor = 0;
 static HCURSOR ns_cursor = 0;
 static HCURSOR nswe_cursor = 0;
 static bool generating = true;
-static map_state_t* flat_levels[EP_COUNT * MAP_COUNT];
+static map_state_t* flat_levels[EP_COUNT * MAP_COUNT]; // For DOOM1 open world
 static int gen_step_count = 0;
 static bool painted = false;
 static int moving_rule = -3;
@@ -218,6 +237,43 @@ static const std::vector<int> REQUIREMENTS = {
     5, 40, 6, 39, 13, 38,
     2005, 2001, 2002, 2003, 2004, 2006
 };
+
+
+const char* get_level_name(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return level_names[idx.ep][idx.map];
+    return d2_level_names[idx.d2_map];
+}
+
+
+map_state_t* get_state(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return &metas.d1_metas[idx.ep][idx.map].state;
+    return &metas.d2_metas[idx.d2_map].state;
+}
+
+map_view_t* get_view(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return &metas.d1_metas[idx.ep][idx.map].view;
+    return &metas.d2_metas[idx.d2_map].view;
+}
+
+map_history_t* get_history(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return &metas.d1_metas[idx.ep][idx.map].history;
+    return &metas.d2_metas[idx.d2_map].history;
+}
+
+map_t* get_map(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return &maps[idx.ep][idx.map];
+    return &d2_maps[idx.d2_map];
+}
 
 
 const char* get_doom_type_name(int doom_type)
@@ -244,6 +300,7 @@ const char* get_doom_type_name(int doom_type)
         case 2003: return "Rocket launcher";
         case 2001: return "Shotgun";
         case 2026: return "Computer area map";
+        case 85: return "Super Shotgun";
     }
     return "ERROR";
 }
@@ -329,214 +386,226 @@ void save()
 {
     Json::Value _json;
 
-    Json::Value eps_json(Json::arrayValue);
+
+    std::vector<level_index_t> level_idxes;
     for (int ep = 0; ep < EP_COUNT; ++ep)
-    {
-        Json::Value maps_json(Json::arrayValue);
         for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
+            level_idxes.push_back({ep, lvl, -1});
+    for (int lvl = 0; lvl < D2_MAP_COUNT; ++lvl)
+        level_idxes.push_back({-1, -1, lvl});
+
+
+    Json::Value eps_json(Json::arrayValue);
+    for (const auto& level_idx : level_idxes)
+    {
+        Json::Value _map_json;
+        Json::Value bbs_json(Json::arrayValue);
+        auto state = get_state(level_idx);
+        for (const auto& bb : state->bbs)
         {
-            Json::Value _map_json;
-            Json::Value bbs_json(Json::arrayValue);
-            for (const auto& bb : map_states[ep][lvl].bbs)
-            {
-                Json::Value bb_json(Json::arrayValue);
-                bb_json.append(bb.x1);
-                bb_json.append(bb.y1);
-                bb_json.append(bb.x2);
-                bb_json.append(bb.y2);
-                bb_json.append(bb.region);
-                bbs_json.append(bb_json);
-            }
-            _map_json["bbs"] = bbs_json;
-
-            Json::Value regions_json(Json::arrayValue);
-            for (const auto& region : map_states[ep][lvl].regions)
-            {
-                Json::Value region_json;
-                region_json["name"] = region.name;
-                region_json["tint"] = onut::serializeFloat4(&region.tint.r);
-
-                Json::Value sectors_json(Json::arrayValue);
-                for (auto sectori : region.sectors)
-                    sectors_json.append(sectori);
-                region_json["sectors"] = sectors_json;
-
-                region_json["rules"] = serialize_rules(region.rules);
-
-                regions_json.append(region_json);
-            }
-            _map_json["regions"] = regions_json;
-
-            Json::Value accesses_json(Json::arrayValue);
-            for (auto access : map_states[ep][lvl].accesses)
-            {
-                accesses_json.append(access);
-            }
-            _map_json["accesses"] = accesses_json;
-
-            Json::Value locations_json(Json::arrayValue);
-            for (const auto& kv : map_states[ep][lvl].locations)
-            {
-                Json::Value location_json;
-                location_json["index"] = kv.first;
-                location_json["death_logic"] = kv.second.death_logic;
-                location_json["name"] = kv.second.name;
-                location_json["description"] = kv.second.description;
-                locations_json.append(location_json);
-            }
-            _map_json["locations"] = locations_json;
-
-            _map_json["world_rules"] = serialize_rules(map_states[ep][lvl].world_rules);
-            _map_json["exit_rules"] = serialize_rules(map_states[ep][lvl].exit_rules);
-
-            maps_json.append(_map_json);
+            Json::Value bb_json(Json::arrayValue);
+            bb_json.append(bb.x1);
+            bb_json.append(bb.y1);
+            bb_json.append(bb.x2);
+            bb_json.append(bb.y2);
+            bb_json.append(bb.region);
+            bbs_json.append(bb_json);
         }
-        eps_json.append(maps_json);
+        _map_json["bbs"] = bbs_json;
+
+        Json::Value regions_json(Json::arrayValue);
+        for (const auto& region : state->regions)
+        {
+            Json::Value region_json;
+            region_json["name"] = region.name;
+            region_json["tint"] = onut::serializeFloat4(&region.tint.r);
+
+            Json::Value sectors_json(Json::arrayValue);
+            for (auto sectori : region.sectors)
+                sectors_json.append(sectori);
+            region_json["sectors"] = sectors_json;
+
+            region_json["rules"] = serialize_rules(region.rules);
+
+            regions_json.append(region_json);
+        }
+        _map_json["regions"] = regions_json;
+
+        Json::Value accesses_json(Json::arrayValue);
+        for (auto access : state->accesses)
+        {
+            accesses_json.append(access);
+        }
+        _map_json["accesses"] = accesses_json;
+
+        Json::Value locations_json(Json::arrayValue);
+        for (const auto& kv : state->locations)
+        {
+            Json::Value location_json;
+            location_json["index"] = kv.first;
+            location_json["death_logic"] = kv.second.death_logic;
+            location_json["name"] = kv.second.name;
+            location_json["description"] = kv.second.description;
+            locations_json.append(location_json);
+        }
+        _map_json["locations"] = locations_json;
+
+        _map_json["world_rules"] = serialize_rules(state->world_rules);
+        _map_json["exit_rules"] = serialize_rules(state->exit_rules);
+
+        _map_json["ep"] = level_idx.ep;
+        _map_json["map"] = level_idx.map;
+        _map_json["d2_map"] = level_idx.d2_map;
+
+        eps_json.append(_map_json);
     }
 
-    _json["episodes"] = eps_json;
+    _json["maps"] = eps_json;
 
-    std::string filename = OArguments[2] + std::string("\\regions.json");
+    std::string filename = OArguments[3] + std::string("\\regions.json");
     onut::saveJson(_json, filename, false);
 }
 
 
+// TODO, FIX
 void load()
 {
     Json::Value json;
-    std::string filename = OArguments[2] + std::string("\\regions.json");
+    std::string filename = OArguments[3] + std::string("\\regions.json");
     if (!onut::loadJson(json, filename))
     {
         onut::showMessageBox("Warning", "Warning: File not found. Saving will break shit.\n" + filename);
         return;
     }
 
-    for (int ep = 0; ep < EP_COUNT; ++ep)
+    Json::Value json_maps = json["maps"];
+
+    for (const auto& _map_json : json_maps)
     {
-        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
+        int ep = _map_json["ep"].asInt();
+        int lvl = _map_json["map"].asInt();
+        int d2_map = _map_json["d2_map"].asInt();
+        auto _map_state = get_state({ep, lvl, d2_map});
+
+        const auto& bbs_json = _map_json["bbs"];
+        for (const auto& bb_json : bbs_json)
         {
-            auto& _map_state = map_states[ep][lvl];
-            auto& _map_json = json["episodes"][ep][lvl];
-
-            const auto& bbs_json = _map_json["bbs"];
-            for (const auto& bb_json : bbs_json)
-            {
-                _map_state.bbs.push_back({
-                    bb_json[0].asInt(),
-                    bb_json[1].asInt(),
-                    bb_json[2].asInt(),
-                    bb_json[3].asInt(),
-                    bb_json.isValidIndex(4) ? bb_json[4].asInt() : -1,
-                });
-            }
-
-            const auto& regions_json = _map_json["regions"];
-            for (const auto& region_json : regions_json)
-            {
-                region_t region;
-
-                region.name = region_json.get("name", "BAD_NAME").asString();
-                onut::deserializeFloat4(&region.tint.r, region_json["tint"]);
-
-                const auto& sectors_json = region_json["sectors"];
-                for (const auto& sector_json : sectors_json)
-                    region.sectors.insert(sector_json.asInt());
-
-                region.rules = deserialize_rules(region_json["rules"]);
-
-                _map_state.regions.push_back(region);
-            }
-
-            const auto& accesses_json = _map_json["accesses"];
-            for (const auto& access_json : accesses_json)
-            {
-                _map_state.accesses.insert(access_json.asInt());
-            }
-
-            // Default locations from maps
-            const auto& map = maps[ep][lvl];
-            for (int i = 0; i < (int)map.things.size(); ++i)
-            {
-                const auto& thing = map.things[i];
-                if (thing.flags & 0x0010)
-                {
-                    continue; // Thing is not in single player
-                }
-                switch (thing.type)
-                {
-                    case 5:
-                    case 40:
-                    case 6:
-                    case 39:
-                    case 13:
-                    case 38:
-                    case 2018:
-                    case 8:
-                    case 2019:
-                    case 2023:
-                    case 2022:
-                    case 2024:
-                    case 2013:
-                    case 2006:
-                    case 2002:
-                    case 2005:
-                    case 2004:
-                    case 2003:
-                    case 2001:
-                    case 2026:
-                    {
-                        location_t location;
-                        _map_state.locations[i] = location;
-                        break;
-                    }
-                }
-            }
-            
-            const auto& locations_json = _map_json["locations"];
-            for (const auto& location_json : locations_json)
-            {
-                location_t location;
-                location.death_logic = location_json["death_logic"].asBool();
-                location.name = location_json["name"].asString();
-                location.description = location_json["description"].asString();
-                _map_state.locations[location_json["index"].asInt()] = location;
-            }
-
-            _map_state.world_rules = deserialize_rules(_map_json["world_rules"]);
-            _map_state.exit_rules = deserialize_rules(_map_json["exit_rules"]);
+            _map_state->bbs.push_back({
+                bb_json[0].asInt(),
+                bb_json[1].asInt(),
+                bb_json[2].asInt(),
+                bb_json[3].asInt(),
+                bb_json.isValidIndex(4) ? bb_json[4].asInt() : -1,
+            });
         }
+
+        const auto& regions_json = _map_json["regions"];
+        for (const auto& region_json : regions_json)
+        {
+            region_t region;
+
+            region.name = region_json.get("name", "BAD_NAME").asString();
+            onut::deserializeFloat4(&region.tint.r, region_json["tint"]);
+
+            const auto& sectors_json = region_json["sectors"];
+            for (const auto& sector_json : sectors_json)
+                region.sectors.insert(sector_json.asInt());
+
+            region.rules = deserialize_rules(region_json["rules"]);
+
+            _map_state->regions.push_back(region);
+        }
+
+        const auto& accesses_json = _map_json["accesses"];
+        for (const auto& access_json : accesses_json)
+        {
+            _map_state->accesses.insert(access_json.asInt());
+        }
+
+        // Default locations from maps
+        auto map = get_map({ep, lvl, d2_map});
+        for (int i = 0; i < (int)map->things.size(); ++i)
+        {
+            const auto& thing = map->things[i];
+            if (thing.flags & 0x0010)
+            {
+                continue; // Thing is not in single player
+            }
+            switch (thing.type)
+            {
+                case 5:
+                case 40:
+                case 6:
+                case 39:
+                case 13:
+                case 38:
+                case 2018:
+                case 8:
+                case 2019:
+                case 2023:
+                case 2022:
+                case 2024:
+                case 2013:
+                case 2006:
+                case 2002:
+                case 2005:
+                case 2004:
+                case 2003:
+                case 2001:
+                case 2026:
+                case 85:
+                {
+                    location_t location;
+                    _map_state->locations[i] = location;
+                    break;
+                }
+            }
+        }
+            
+        const auto& locations_json = _map_json["locations"];
+        for (const auto& location_json : locations_json)
+        {
+            location_t location;
+            location.death_logic = location_json["death_logic"].asBool();
+            location.name = location_json["name"].asString();
+            location.description = location_json["description"].asString();
+            _map_state->locations[location_json["index"].asInt()] = location;
+        }
+
+        _map_state->world_rules = deserialize_rules(_map_json["world_rules"]);
+        _map_state->exit_rules = deserialize_rules(_map_json["exit_rules"]);
     }
 }
 
 
 void update_window_title()
 {
-    oWindow->setCaption(level_names[active_ep][active_map]);
+    oWindow->setCaption(get_level_name(active_level));
 }
 
 
 // Undo/Redo shit
 void push_undo()
 {
-    if (map_history->history_point < (int)map_histories[active_ep][active_map].history.size() - 1)
+    if (map_history->history_point < (int)map_history->history.size() - 1)
         map_history->history.erase(map_history->history.begin() + (map_history->history_point + 1), map_history->history.end());
     map_history->history.push_back(*map_state);
     map_history->history_point = (int)map_history->history.size() - 1;
 }
 
 
-void select_map(int ep, int map)
+void select_map(int ep, int map, int d2_map)
 {
     mouse_hover_sector = -1;
     mouse_hover_bb = -1;
     set_rule_rule = -3;
     set_rule_connection = -1;
     mouse_hover_location = -1;
-    active_ep = ep;
-    active_map = map;
-    map_state = &map_states[active_ep][active_map];
-    map_view = &map_views[active_ep][active_map];
-    map_history = &map_histories[active_ep][active_map];
+
+    active_level = {ep, map, d2_map};
+    map_state = get_state(active_level);
+    map_view = get_view(active_level);
+    map_history = get_history(active_level);
 
     update_window_title();
     if (map_history->history.empty())
@@ -577,7 +646,7 @@ void initSettings()
 }
 
 
-void regen()
+void regen() // Doom1 only
 {
     gen_step_count = 0;
     generating = true;
@@ -588,7 +657,7 @@ void regen()
         {
             auto map = &maps[ep][lvl];
             auto mid = Vector2((float)(map->bb[2] + map->bb[0]) / 2, (float)(map->bb[3] + map->bb[1]) / 2);
-            map_states[ep][lvl].pos = -mid + onut::rand2f(Vector2(-1000, -1000), Vector2(1000, 1000));
+            get_state({ep, lvl, -1})->pos = -mid + onut::rand2f(Vector2(-1000, -1000), Vector2(1000, 1000));
         }
     }
 }
@@ -618,6 +687,7 @@ void init()
 
     init_maps();
 
+    // Doom1 only
     for (int ep = 0; ep < EP_COUNT; ++ep)
     {
         for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
@@ -629,19 +699,16 @@ void init()
             //);
 
             auto map = &maps[ep][lvl];
-            flat_levels[ep * MAP_COUNT + lvl] = &map_states[ep][lvl];
-            map_views[ep][lvl].cam_pos = Vector2((float)(map->bb[2] + map->bb[0]) / 2, -(float)(map->bb[3] + map->bb[1]) / 2);
+            flat_levels[ep * MAP_COUNT + lvl] = get_state({ep, lvl, -1});
+            get_view({ep, lvl, -1})->cam_pos = Vector2((float)(map->bb[2] + map->bb[0]) / 2, -(float)(map->bb[3] + map->bb[1]) / 2);
         }
     }
 
     // Load states
     load();
-    select_map(0, 0);
+    select_map(0, 0, -1);
 
     regen();
-
-    sector_at(0, 0, &maps[0][0]);
-    // 56508168
 }
 
 
@@ -652,7 +719,7 @@ void shutdown() // lol
 
 void add_bounding_box()
 {
-    auto map = &maps[active_ep][active_map];
+    auto map = get_map(active_level);
     map_state->bbs.push_back({map->bb[0], map->bb[1], map->bb[2], map->bb[3]});
     map_state->selected_bb = (int)map_state->bbs.size() - 1;
     push_undo();
@@ -764,7 +831,7 @@ int get_bb_at(const Vector2& pos, float zoom, int &edge)
 
 int get_loc_at(const Vector2& pos)
 {
-    auto map = &maps[active_ep][active_map];
+    auto map = get_map(active_level);
 
     int index = 0;
     for (const auto& thing : map->things)
@@ -1088,7 +1155,7 @@ void update()
                 {
                     int x = (int)mouse_pos.x;
                     int y = (int)-mouse_pos.y;
-                    mouse_hover_sector = sector_at(x, y, &maps[active_ep][active_map]);
+                    mouse_hover_sector = sector_at(x, y, get_map(active_level));
 
                     if ((OInputJustReleased(OMouse1) || OInputJustReleased(OMouse2)) && painted)
                     {
@@ -1119,7 +1186,7 @@ void update()
                     {
                         // Fill selected region
                         for (auto& region : map_state->regions) region.sectors.clear();
-                        for (int i = 0, len = (int)maps[active_ep][active_map].sectors.size(); i < len; ++i)
+                        for (int i = 0, len = (int)get_map(active_level)->sectors.size(); i < len; ++i)
                             map_state->regions[map_state->selected_region].sectors.insert(i);
                         painted = true;
                     }
@@ -1347,10 +1414,10 @@ void draw_guides()
 }
 
 
-region_t* get_region_for_sector(int ep, int lvl, int sector)
+region_t* get_region_for_sector(int ep, int lvl, int d2_map, int sector)
 {
-    auto& map_state = map_states[ep][lvl];
-    for (auto& region : map_state.regions)
+    auto map_state = get_state({ep, lvl, d2_map});
+    for (auto& region : map_state->regions)
     {
         if (region.sectors.count(sector))
         {
@@ -1527,7 +1594,7 @@ void draw_rules()
 }
 
 
-void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tools)
+void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bool draw_tools)
 {
     Color bound_color(1.0f);
     Color step_color(0.35f);
@@ -1535,7 +1602,7 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
 
     auto pb = oPrimitiveBatch.get();
     auto sb = oSpriteBatch.get();
-    auto map = &maps[ep][lvl];
+    auto map = get_map({ep, lvl, d2_map});
     oRenderer->renderStates.backFaceCull = false;
 
     auto transform = 
@@ -1550,7 +1617,7 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
         int i = 0;
         for (const auto& sector : map->sectors)
         {
-            region_t* region = get_region_for_sector(ep, lvl, i);
+            region_t* region = get_region_for_sector(ep, lvl, d2_map, i);
             if (region)
             {
                 Color color = region->tint * 0.5f;
@@ -1624,13 +1691,14 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
     }
 
     // Bounding boxes
+    auto state = get_state({ep, lvl, d2_map});
     if (draw_tools && tool == tool_t::bb)
     {
         int i = 0;
-        for (const auto& bb : map_states[ep][lvl].bbs)
+        for (const auto& bb : state->bbs)
         {
             Color color = bb_color;
-            if (bb.region != -1 && bb.region < (int)map_states[ep][lvl].regions.size()) color = map_states[ep][lvl].regions[bb.region].tint;
+            if (bb.region != -1 && bb.region < (int)state->regions.size()) color = state->regions[bb.region].tint;
             //if (i == map_state->selected_bb) color = Color(1, 0, 0);
             pb->draw(Vector2(bb.x1, -bb.y1), color); pb->draw(Vector2(bb.x1, -bb.y2), color);
             pb->draw(Vector2(bb.x1, -bb.y2), color); pb->draw(Vector2(bb.x2, -bb.y2), color);
@@ -1646,9 +1714,9 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
     if (draw_tools && tool == tool_t::bb)
     {
         sb->begin(transform);
-        if (map_states[ep][lvl].selected_bb != -1)
+        if (state->selected_bb != -1)
         {
-            const auto& bb = map_states[ep][lvl].bbs[map_states[ep][lvl].selected_bb];
+            const auto& bb = state->bbs[state->selected_bb];
             sb->drawRect(nullptr, Rect(bb.x1, -bb.y1 - (bb.y2 - bb.y1), bb.x2 - bb.x1, bb.y2 - bb.y1), Color(0.5f, 0, 0, 0.5f));
         }
         sb->end();
@@ -1664,9 +1732,9 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
             Rect rect((float)thing->x - 32.0f, (float)-thing->y - 32.0f, 64.0f, 64.0f);
             sb->drawOutterOutlineRect(rect, 2.0f / map_view->cam_zoom, Color(1, 1, 0));
         }
-        if (map_states[ep][lvl].selected_location != -1)
+        if (state->selected_location != -1)
         {
-            auto thing = &map->things[map_states[ep][lvl].selected_location];
+            auto thing = &map->things[state->selected_location];
             Rect rect((float)thing->x - 32.0f, (float)-thing->y - 32.0f, 64.0f, 64.0f);
             sb->drawOutterOutlineRect(rect, 2.0f / map_view->cam_zoom, Color(1, 0, 0));
         }
@@ -1709,6 +1777,7 @@ void draw_level(int ep, int lvl, const Vector2& pos, float angle, bool draw_tool
             case 2003:
             case 2001:
             case 2026:
+            case 85:
                 sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
                 break;
         }
@@ -1730,13 +1799,13 @@ void render()
     switch (state)
     {
         case state_t::gen:
-        case state_t::gen_panning:
+        case state_t::gen_panning: // Doom1 only
         {
             for (int ep = 0; ep < EP_COUNT; ++ep)
             {
                 for (int map = 0; map < MAP_COUNT; ++map)
                 {
-                    draw_level(ep, map, map_states[ep][map].pos, map_states[ep][map].angle, true);
+                    draw_level(ep, map, -1, metas.d1_metas[ep][map].state.pos, metas.d1_metas[ep][map].state.angle, true);
                 }
             }
             sb->begin();
@@ -1746,7 +1815,7 @@ void render()
         }
         default:
         {
-            draw_level(active_ep, active_map, {0, 0}, 0, true);
+            draw_level(active_level.ep, active_level.map, active_level.d2_map, {0, 0}, 0, true);
             draw_rules();
             break;
         }
@@ -1799,17 +1868,29 @@ void renderUI()
         if (ImGui::MenuItem("Add Bounding Box")) add_bounding_box();
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("Maps"))
+    if (ImGui::BeginMenu("Doom Maps"))
     {
         for (int ep = 0; ep < EP_COUNT; ++ep)
         {
             for (int map = 0; map < MAP_COUNT; ++map)
             {
-                bool selected = ep == active_ep && map == active_map;
+                bool selected = ep == active_level.ep && map == active_level.map;
                 if (ImGui::MenuItem(level_names[ep][map], nullptr, &selected))
                 {
-                    select_map(ep, map);
+                    select_map(ep, map, -1);
                 }
+            }
+        }
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Doom2 Maps"))
+    {
+        for (int map = 0; map < D2_MAP_COUNT; ++map)
+        {
+            bool selected = map == active_level.d2_map;
+            if (ImGui::MenuItem(get_level_name({-1, -1, map}), nullptr, &selected))
+            {
+                select_map(-1, -1, map);
             }
         }
         ImGui::EndMenu();
@@ -2045,7 +2126,7 @@ void renderUI()
             if (map_state->selected_location != -1)
             {
                 ImGui::Text("Thing Index: %i", map_state->selected_location);
-                ImGui::Text("Thing Type: %s", get_doom_type_name(maps[active_ep][active_map].things[map_state->selected_location].type));
+                ImGui::Text("Thing Type: %s", get_doom_type_name(get_map(active_level)->things[map_state->selected_location].type));
 
                 auto& location = map_state->locations[map_state->selected_location];
                 

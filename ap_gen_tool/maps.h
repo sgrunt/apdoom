@@ -7,6 +7,8 @@
 #define EP_COUNT 4
 #define MAP_COUNT 9
 
+#define D2_MAP_COUNT 32
+
 
 static const char* level_names[EP_COUNT][MAP_COUNT] = {
     {
@@ -53,6 +55,49 @@ static const char* level_names[EP_COUNT][MAP_COUNT] = {
         "Unto the Cruel (E4M8)",
         "Fear (E4M9)"
     }
+};
+
+
+static const char* d2_level_names[D2_MAP_COUNT] = {
+    // Episode 1: The Space Station
+    "Entryway (MAP01)",
+    "Underhalls (MAP02)",
+    "The Gantlet (MAP03)",
+    "The Focus (MAP04)",
+    "The Waste Tunnels (MAP05)",
+    "The Crusher (MAP06)",
+    "Dead Simple (MAP07)",
+    "Tricks and Traps (MAP08)",
+    "The Pit (MAP09)",
+    "Refueling Base (MAP10)",
+    "Circle of Death (MAP11)", // 'O' of Destruction!1 ?
+    
+    // Episode 2: The City
+    "The Factory (MAP12)",
+    "Downtown (MAP13)",
+    "The Inmost Dens (MAP14)",
+    "Industrial Zone (MAP15)", // (Exit to secret level)
+    "Suburbs (MAP16)",
+    "Tenements (MAP17)",
+    "The Courtyard (MAP18)",
+    "The Citadel (MAP19)",
+    "Gotcha! (MAP20)",
+
+    // Episode 3: Hell
+    "Nirvana (MAP21)",
+    "The Catacombs (MAP22)",
+    "Barrels o' Fun (MAP23)",
+    "The Chasm (MAP24)",
+    "Bloodfalls (MAP25)",
+    "The Abandoned Mines (MAP26)",
+    "Monster Condo (MAP27)",
+    "The Spirit World (MAP28)",
+    "The Living End (MAP29)",
+    "Icon of Sin (MAP30)",
+
+    // Secret levels:
+    "Wolfenstein2 (MAP31)", // (Exit to super secret level, IDKFA in BFG Edition)
+    "Grosse2 (MAP32)" // (Keen in BFG Edition)
 };
 
 
@@ -194,6 +239,7 @@ struct map_t
 
 
 extern map_t maps[EP_COUNT][MAP_COUNT];
+extern map_t d2_maps[D2_MAP_COUNT];
 
 
 void init_maps();

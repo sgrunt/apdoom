@@ -51,6 +51,7 @@ struct map_directory_t
 
 
 map_t maps[EP_COUNT][MAP_COUNT];
+map_t d2_maps[D2_MAP_COUNT];
 
 
 template<typename T>
@@ -287,13 +288,13 @@ static void triangulate_sector(const std::vector<wall_t>& map_walls, map_t* map,
 }
 
 
-void init_maps()
+void init_wad(const char* filename)
 {
     // Load DOOM.WAD
-    FILE* f = fopen(OArguments[0].c_str(), "rb");
+    FILE* f = fopen(filename, "rb");
     if (!f)
     {
-        onut::showMessageBox("Error", "Cannot open file: " + OArguments[0]);
+        onut::showMessageBox("Error", std::string("Cannot open file: ") + filename);
         exit(1); // Hard kill
     }
     
@@ -302,7 +303,7 @@ void init_maps()
     fread(&header, sizeof(header), 1, f);
     if (strncmp(header.identification, "PWAD", 4) != 0 && strncmp(header.identification, "IWAD", 4) != 0)
     {
-        onut::showMessageBox("Error", "Invalid IWAD or PWAD");
+        onut::showMessageBox("Error", std::string("Invalid IWAD or PWAD: ") + filename);
         exit(1); // Hard kill
     }
     
@@ -315,18 +316,31 @@ void init_maps()
     for (int i = 0, len = (int)directory.size(); i < len; ++i)
     {
         const auto &dir_entry = directory[i];
-        if (strlen(dir_entry.name) == 4 && dir_entry.name[0] == 'E' && dir_entry.name[2] == 'M')
         {
-            // That's a level!
-            auto ep = dir_entry.name[1] - '0';
-            auto lvl = dir_entry.name[3] - '0';
-            if (ep < 1 || ep > EP_COUNT || lvl < 1 || lvl > MAP_COUNT)
+            map_t* map = nullptr;
+
+            // DOOM 1
+            if (strlen(dir_entry.name) == 4 && dir_entry.name[0] == 'E' && dir_entry.name[2] == 'M')
             {
-                // ok.. not a level
-                continue;
+                // That's a level!
+                auto ep = dir_entry.name[1] - '0';
+                auto lvl = dir_entry.name[3] - '0';
+                if (!(ep < 1 || ep > EP_COUNT || lvl < 1 || lvl > MAP_COUNT))
+                {
+                    map = &maps[ep - 1][lvl - 1];
+                }
             }
 
-            auto map = &maps[ep - 1][lvl - 1];
+            // DOOM 2
+            if (!map)
+            {
+                if (strlen(dir_entry.name) == 5 && strncmp(dir_entry.name, "MAP", 3) == 0)
+                {
+                    auto lvl = std::atoi(dir_entry.name + 3) - 1;
+                    map = &d2_maps[lvl];
+                }
+            }
+            if (!map) continue;
 
             ++i;
             for (; i < len; ++i)
@@ -419,99 +433,18 @@ void init_maps()
             {
                 triangulate_sector(map_walls, map, j);
             }
-
-#if 0
-            // Triangulate
-            struct wall_t
-            {
-                int v1, v2;
-            };
-            std::vector<wall_t> walls;
-            map->sectors.resize(map->map_sectors.size());
-            for (int j = 0; j < (int)map->subsectors.size(); ++j)
-            {
-                const auto& map_subsector = map->map_subsectors[j];
-                const auto& subsector = map->subsectors[j];
-                auto& sector = map->sectors[subsector.sector];
-
-                walls.clear();
-                for (int k = 0, lenk = map_subsector.numsegs; k < lenk; ++k)
-                {
-                    //
-                    const auto& map_seg = map->map_segs[k + map_subsector.firstseg];
-                    const auto& next_map_seg = map->map_segs[(k + 1) % lenk + map_subsector.firstseg];
-                    walls.push_back({map_seg.v1, map_seg.v2});
-                    if (map_seg.v2 != next_map_seg.v1)
-                        walls.push_back({map_seg.v2, next_map_seg.v1});
-                    //sector.vertices.push_back(map_seg.v1);
-                    //sector.vertices.push_back(map_seg.v2);
-                    //sector.vertices.push_back(map_seg.v2);
-                    //sector.vertices.push_back(next_map_seg.v1);
-                }
-                
-
-                //walls.clear();
-                //for (int k = map_subsector.firstseg, lenk = map_subsector.firstseg + map_subsector.numsegs; k < lenk; ++k)
-                //{
-                //    const auto& map_seg = map->map_segs[k];
-                //    walls.push_back({(int)map_seg.v1, (int)map_seg.v2});
-                //}
-
-                // Reorder walls so they form a loop
-                if (walls.size() >= 3)
-                {
-                    std::vector<int> vertices;
-                    vertices.push_back(walls[0].v1);
-                    vertices.push_back(walls[0].v2);
-                    walls.erase(walls.begin());
-                    while (!walls.empty())
-                    {
-                        bool found = false;
-                        int last_v2 = vertices.back();
-                        for (int k = 0; k < (int)walls.size(); ++k)
-                        {
-                            const auto& wall = walls[k];
-                            if (wall.v1 == last_v2)
-                            {
-                                vertices.push_back(wall.v2);
-                                found = true;
-                                walls.erase(walls.begin() + k);
-                                --k;
-                                break;
-                            }
-                            else if (wall.v2 == last_v2)
-                            {
-                                vertices.push_back(wall.v1);
-                                found = true;
-                                walls.erase(walls.begin() + k);
-                                --k;
-                                break;
-                            }
-                        }
-                        if (!found) break;
-                    }
-
-                    if (vertices.size() >= 3)
-                    {
-                        sector.vertices.push_back(vertices[0]);
-                        sector.vertices.push_back(vertices[1]);
-                        sector.vertices.push_back(vertices[2]);
-                        for (int v = 3, lenv = (int)vertices.size(); v < lenv; ++v)
-                        {
-                            sector.vertices.push_back(vertices[0]);
-                            sector.vertices.push_back(vertices[v - 1]);
-                            sector.vertices.push_back(vertices[v]);
-                        }
-                    }
-                }
-            }
-#endif
-
         }
     }
 
     // close file
     fclose(f);
+}
+
+
+void init_maps()
+{
+    init_wad(OArguments[0].c_str());
+    init_wad(OArguments[1].c_str());
 }
 
 
