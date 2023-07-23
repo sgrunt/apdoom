@@ -238,6 +238,24 @@ struct map_t
 };
 
 
+struct level_index_t
+{
+    int ep = 0;
+    int map = 0;
+    int d2_map = -1;
+
+    bool operator==(const level_index_t& other) const
+    {
+        return ep == other.ep && map == other.map && d2_map == other.d2_map;
+    }
+
+    bool operator!() const
+    {
+        return ep < 0 && map < 0 && d2_map < 0;
+    }
+};
+
+
 extern map_t maps[EP_COUNT][MAP_COUNT];
 extern map_t d2_maps[D2_MAP_COUNT];
 
@@ -245,3 +263,5 @@ extern map_t d2_maps[D2_MAP_COUNT];
 void init_maps();
 int sector_at(int x, int y, map_t* map);
 subsector_t* point_in_subsector(int x, int y, map_t* map);
+const char* get_level_name(const level_index_t& idx);
+map_t* get_map(const level_index_t& idx);

@@ -456,3 +456,19 @@ int sector_at(int x, int y, map_t* map)
     auto subsector = point_in_subsector(x, y, map);
     return subsector->sector;
 }
+
+
+const char* get_level_name(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return level_names[idx.ep][idx.map];
+    return d2_level_names[idx.d2_map];
+}
+
+
+map_t* get_map(const level_index_t& idx)
+{
+    if (idx.d2_map == -1)
+        return &maps[idx.ep][idx.map];
+    return &d2_maps[idx.d2_map];
+}

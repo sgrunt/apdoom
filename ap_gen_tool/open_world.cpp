@@ -176,14 +176,6 @@ struct map_history_t
 };
 
 
-struct level_index_t
-{
-    int ep = 0;
-    int map = 0;
-    int d2_map = -1;
-};
-
-
 struct meta_t // Bad name, but whatever
 {
     map_state_t state;
@@ -239,14 +231,6 @@ static const std::vector<int> REQUIREMENTS = {
 };
 
 
-const char* get_level_name(const level_index_t& idx)
-{
-    if (idx.d2_map == -1)
-        return level_names[idx.ep][idx.map];
-    return d2_level_names[idx.d2_map];
-}
-
-
 map_state_t* get_state(const level_index_t& idx)
 {
     if (idx.d2_map == -1)
@@ -266,13 +250,6 @@ map_history_t* get_history(const level_index_t& idx)
     if (idx.d2_map == -1)
         return &metas.d1_metas[idx.ep][idx.map].history;
     return &metas.d2_metas[idx.d2_map].history;
-}
-
-map_t* get_map(const level_index_t& idx)
-{
-    if (idx.d2_map == -1)
-        return &maps[idx.ep][idx.map];
-    return &d2_maps[idx.d2_map];
 }
 
 
@@ -300,7 +277,8 @@ const char* get_doom_type_name(int doom_type)
         case 2003: return "Rocket launcher";
         case 2001: return "Shotgun";
         case 2026: return "Computer area map";
-        case 85: return "Super Shotgun";
+        case 82: return "Super Shotgun";
+        case 83: return "Megasphere";
     }
     return "ERROR";
 }
@@ -553,7 +531,8 @@ void load()
                 case 2003:
                 case 2001:
                 case 2026:
-                case 85:
+                case 82:
+                case 83:
                 {
                     location_t location;
                     _map_state->locations[i] = location;
@@ -1870,7 +1849,8 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
             case 2003:
             case 2001:
             case 2026:
-            case 85:
+            case 82:
+            case 83:
                 sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
                 break;
         }
@@ -1947,10 +1927,15 @@ void renderUI()
     {
         if (ImGui::MenuItem("Save")) save();
         ImGui::Separator();
-        if (ImGui::MenuItem("Generate"))
+        if (ImGui::MenuItem("Generate Ultimate DOOM"))
         {
             save();
-            generate();
+            generate(game_t::doom);
+        }
+        if (ImGui::MenuItem("Generate DOOM II"))
+        {
+            save();
+            generate(game_t::doom2);
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Exit")) OQuit();

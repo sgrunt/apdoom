@@ -30,6 +30,7 @@
 
 #include "maps.h"
 #include "ids_remap.h"
+#include "generate.h"
 
 #include <algorithm>
 
@@ -56,8 +57,7 @@ struct ap_item_t
 {
     int64_t id;
     std::string name;
-    int ep;
-    int lvl;
+    level_index_t idx;
     int doom_type;
     int count;
     int progression_count;
@@ -71,8 +71,7 @@ struct ap_location_t
     int64_t id;
     std::string name;
     int x, y;
-    int ep;
-    int lvl;
+    level_index_t idx;
     int doom_thing_index;
     int doom_type;
     std::vector<int64_t> required_items;
@@ -100,8 +99,7 @@ struct level_sector_t
 struct level_t
 {
     char name[9];
-    int ep;
-    int lvl;
+    level_index_t idx;
     std::vector<level_sector_t> sectors;
     int starting_sector = -1;
     bool keys[3] = {false};
@@ -167,8 +165,7 @@ void add_loc(const std::string& name, const map_thing_t& thing, level_t* level, 
     ap_location_t loc;
     loc.id = location_next_id++;
     loc.name = loc_name;
-    loc.ep = level->ep;
-    loc.lvl = level->lvl;
+    loc.idx = level->idx;
     loc.doom_thing_index = index;
     loc.doom_type = thing.type; // Index can be a risky one. We could replace the item by it's type if it's unique enough
     loc.x = x << 16;
@@ -192,8 +189,7 @@ void add_loc(const std::string& name, level_t* level)
     ap_location_t loc;
     loc.id = location_next_id++;
     loc.name = loc_name;
-    loc.ep = level->ep;
-    loc.lvl = level->lvl;
+    loc.idx = level->idx;
     loc.doom_thing_index = -1;
     loc.doom_type = -1;
     loc.x = -1;
@@ -220,8 +216,7 @@ int64_t add_unique(const std::string& name, const map_thing_t& thing, level_t* l
         ap_item_t item;
         item.id = item_next_id++;
         item.name = name;
-        item.ep = level->ep;
-        item.lvl = level->lvl;
+        item.idx = level->idx;
         item.doom_type = thing.type;
         item.count = 1;
         total_item_count++;
@@ -244,8 +239,7 @@ ap_item_t& add_item(const std::string& name, int doom_type, int count, item_clas
     ap_item_t item;
     item.id = item_next_id++;
     item.name = name;
-    item.ep = level ? level->ep : -1;
-    item.lvl = level ? level->lvl : -1;
+    item.idx = level ? level->idx : level_index_t{-2,-2,-2};
     item.doom_type = doom_type;
     item.count = count;
     item.progression_count = progression_count;
@@ -277,7 +271,7 @@ std::string escape_csv(const std::string& str)
 }
 
 
-int generate()
+int generate(game_t game)
 {
     OLog("AP Gen Tool");
 
@@ -288,6 +282,11 @@ int generate()
     }
 
     std::string py_out_dir = OArguments[2] + std::string("\\");
+    switch (game)
+    {
+        case game_t::doom: py_out_dir += "doom_1993\\"; break;
+        case game_t::doom2: py_out_dir += "doom_ii\\"; break;
+    }
     std::string cpp_out_dir = OArguments[3] + std::string("\\");
     std::string pop_tracker_data_dir = OArguments[4] + std::string("\\");
 
@@ -305,6 +304,8 @@ int generate()
     add_item("Chainsaw", 2005, 1, PROGRESSION, "Weapons");
     add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
     add_item("BFG9000", 2006, 1, PROGRESSION, "Weapons");
+    if (game == game_t::doom2)
+        add_item("Super Shotgun", 82, 1, PROGRESSION, "Weapons");
 
     // Make backpack progression item (Idea, gives more than one, with less increase each time)
     add_item("Backpack", 8, 1, PROGRESSION, "");
@@ -315,6 +316,8 @@ int generate()
     add_item("Invulnerability", 2022, 0, FILLER, "Powerups");
     add_item("Partial invisibility", 2024, 0, FILLER, "Powerups");
     add_item("Supercharge", 2013, 0, FILLER, "Powerups");
+    if (game == game_t::doom2)
+        add_item("Megasphere", 83, 0, FILLER, "Powerups");
 
     // Junk items
     add_item("Medikit", 2012, 0, FILLER, "");
@@ -324,140 +327,165 @@ int generate()
     add_item("Energy cell pack", 17, 0, FILLER, "Ammos");
 
     std::vector<level_t*> levels;
-    for (int ep = 0; ep < EP_COUNT; ++ep)
+    switch (game)
     {
-        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
-        {
-            map_t* map = &maps[ep][lvl];
-            level_t* level = new level_t();
-            level->name[0] = 'E';
-            level->name[1] = '1' + ep;
-            level->name[2] = 'M';
-            level->name[3] = '1' + lvl;
-            level->name[4] = '\0';
-            level->map = map;
-            level->ep = ep + 1;
-            level->lvl = lvl + 1;
-            levels.push_back(level);
-        }
+        case game_t::doom:
+            for (int ep = 0; ep < EP_COUNT; ++ep)
+            {
+                for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
+                {
+                    level_t* level = new level_t();
+                    sprintf(level->name, "E%iM%i", ep + 1, lvl + 1);
+                    level->idx = {ep, lvl, -1};
+                    level->map = get_map(level->idx);
+                    levels.push_back(level);
+                }
+            }
+            break;
+        case game_t::doom2:
+            for (int i = 0; i < D2_MAP_COUNT; ++i)
+            {
+                level_t* level = new level_t();
+                sprintf(level->name, "MAP%02i", i + 1);
+                level->idx = {-1, -1, i};
+                level->map = get_map(level->idx);
+                levels.push_back(level);
+            }
+            break;
     }
+
+    auto get_level = [&levels](const level_index_t& idx) -> level_t*
+    {
+        if (idx.d2_map == -1)
+            return levels[idx.ep * MAP_COUNT + idx.map];
+        return levels[idx.d2_map];
+    };
     
     // Keycard n such
     item_next_id = item_id_base + 200;
-    const auto& episodes_json = levels_json["episodes"];
-    int ep = 0;
-    for (const auto& episode_json : episodes_json)
+    const auto& maps_json = levels_json["maps"];
+    for (const auto& level_json : maps_json)
     {
-        int lvl = 0;
-        for (const auto& level_json : episode_json)
+        int ep = level_json["ep"].asInt();
+        int lvl = level_json["map"].asInt();
+        int d2_map = level_json["d2_map"].asInt();
+        level_index_t level_idx = {ep, lvl, d2_map};
+
+        switch (game)
         {
-            auto level = levels[ep * MAP_COUNT + lvl];
+            case game_t::doom:
+                if (ep == -1) continue;
+                break;
+            case game_t::doom2:
+                if (d2_map == -1) continue;
+                break;
+        }
 
-            level->sectors.resize(maps[ep][lvl].sectors.size());
-            std::string lvl_prefix = level_names[ep][lvl] + std::string(" - ");
-            int i = 0;
+        auto level = get_level(level_idx);
+        auto map = get_map(level_idx);
 
-            for (const auto& thing : level->map->things)
+        level->sectors.resize(map->sectors.size());
+        std::string lvl_prefix = get_level_name(level_idx) + std::string(" - ");
+        int i = 0;
+
+        for (const auto& thing : level->map->things)
+        {
+            if (thing.flags & 0x0010)
             {
-                if (thing.flags & 0x0010)
-                {
-                    ++i;
-                    continue; // Thing is not in single player
-                }
-                switch (thing.type)
-                {
-                    // Uniques
-                    case 5:
-                        level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                        level->keys[0] = true;
-                        break;
-                    case 40:
-                        level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                        level->keys[0] = true;
-                        level->use_skull[0] = true;
-                        break;
-                    case 6:
-                        level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                        level->keys[1] = true;
-                        break;
-                    case 39:
-                        level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                        level->keys[1] = true;
-                        level->use_skull[1] = true;
-                        break;
-                    case 13:
-                        level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                        level->keys[2] = true;
-                        break;
-                    case 38:
-                        level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                        level->keys[2] = true;
-                        level->use_skull[2] = true;
-                        break;
-
-                    // Locations
-                    case 2018: add_loc(lvl_prefix + "Armor", thing, level, i, thing.x, thing.y); break;
-                    case 8: add_loc(lvl_prefix + "Backpack", thing, level, i, thing.x, thing.y); break;
-                    case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i, thing.x, thing.y); break;
-                    case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i, thing.x, thing.y); break;
-                    case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i, thing.x, thing.y); break;
-                    case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i, thing.x, thing.y); break;
-                    case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i, thing.x, thing.y); break;
-                    case 2006: add_loc(lvl_prefix + "BFG9000", thing, level, i, thing.x, thing.y); break;
-                    case 2002: add_loc(lvl_prefix + "Chaingun", thing, level, i, thing.x, thing.y); break;
-                    case 2005: add_loc(lvl_prefix + "Chainsaw", thing, level, i, thing.x, thing.y); break;
-                    case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i, thing.x, thing.y); break;
-                    case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i, thing.x, thing.y); break;
-                    case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i, thing.x, thing.y); break;
-                    case 2026: add_loc(lvl_prefix + "Computer area map", thing, level, i, thing.x, thing.y); break;
-                }
                 ++i;
+                continue; // Thing is not in single player
             }
-
-            const auto& regions_json = level_json["regions"];
-            int region_i = 0;
-            bool connects_to_exit = false;
-
-            for (const auto& region_json : regions_json)
+            switch (thing.type)
             {
-                std::string region_name = level_names[ep][lvl] + std::string(" ") + region_json["name"].asString();
+                // Uniques
+                case 5:
+                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[0] = true;
+                    break;
+                case 40:
+                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[0] = true;
+                    level->use_skull[0] = true;
+                    break;
+                case 6:
+                    level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[1] = true;
+                    break;
+                case 39:
+                    level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[1] = true;
+                    level->use_skull[1] = true;
+                    break;
+                case 13:
+                    level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[2] = true;
+                    break;
+                case 38:
+                    level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[2] = true;
+                    level->use_skull[2] = true;
+                    break;
 
-                const auto& rules_json = region_json["rules"];
-                const auto& connections_json = rules_json["connections"];
-                for (const auto& connection_json : connections_json)
+                // Locations
+                case 2018: add_loc(lvl_prefix + "Armor", thing, level, i, thing.x, thing.y); break;
+                case 8: add_loc(lvl_prefix + "Backpack", thing, level, i, thing.x, thing.y); break;
+                case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i, thing.x, thing.y); break;
+                case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i, thing.x, thing.y); break;
+                case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i, thing.x, thing.y); break;
+                case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i, thing.x, thing.y); break;
+                case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i, thing.x, thing.y); break;
+                case 2006: add_loc(lvl_prefix + "BFG9000", thing, level, i, thing.x, thing.y); break;
+                case 2002: add_loc(lvl_prefix + "Chaingun", thing, level, i, thing.x, thing.y); break;
+                case 2005: add_loc(lvl_prefix + "Chainsaw", thing, level, i, thing.x, thing.y); break;
+                case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i, thing.x, thing.y); break;
+                case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i, thing.x, thing.y); break;
+                case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i, thing.x, thing.y); break;
+                case 2026: add_loc(lvl_prefix + "Computer area map", thing, level, i, thing.x, thing.y); break;
+                case 82: add_loc(lvl_prefix + "Super Shotgun", thing, level, i, thing.x, thing.y); break;
+                case 83: add_loc(lvl_prefix + "Megasphere", thing, level, i, thing.x, thing.y); break;
+            }
+            ++i;
+        }
+
+        const auto& regions_json = level_json["regions"];
+        int region_i = 0;
+        bool connects_to_exit = false;
+
+        for (const auto& region_json : regions_json)
+        {
+            std::string region_name = get_level_name(level_idx) + std::string(" ") + region_json["name"].asString();
+
+            const auto& rules_json = region_json["rules"];
+            const auto& connections_json = rules_json["connections"];
+            for (const auto& connection_json : connections_json)
+            {
+                int target_region = connection_json["target_region"].asInt();
+                if (target_region == -2)
                 {
-                    int target_region = connection_json["target_region"].asInt();
-                    if (target_region == -2)
-                    {
-                        connects_to_exit = true;
-                        ap_location_t complete_loc;
-                        complete_loc.doom_thing_index = -1;
-                        complete_loc.doom_type = -1;
-                        complete_loc.ep = ep + 1;
-                        complete_loc.lvl = lvl + 1;
-                        complete_loc.x = -1;
-                        complete_loc.y = -1;
-                        complete_loc.name = lvl_prefix + "Exit";
-                        complete_loc.region_name = region_name;
-                        complete_loc.id = location_next_id++;
-                        ap_locations.push_back(complete_loc);
-                        break;
-                    }
-                    if (connects_to_exit) break;
+                    connects_to_exit = true;
+                    ap_location_t complete_loc;
+                    complete_loc.doom_thing_index = -1;
+                    complete_loc.doom_type = -1;
+                    complete_loc.idx = level_idx;
+                    complete_loc.x = -1;
+                    complete_loc.y = -1;
+                    complete_loc.name = lvl_prefix + "Exit";
+                    complete_loc.region_name = region_name;
+                    complete_loc.id = location_next_id++;
+                    ap_locations.push_back(complete_loc);
+                    break;
                 }
                 if (connects_to_exit) break;
             }
-
-            ++lvl;
+            if (connects_to_exit) break;
         }
-        ++ep;
     }
 
     // Lastly, add level items. We want to add more levels in the future and not shift all existing item IDs
     item_next_id = item_id_base + 400;
     for (auto level : levels)
     {
-        const char* lvl_name = level_names[level->ep - 1][level->lvl - 1];
+        const char* lvl_name = get_level_name(level->idx);
         std::string lvl_prefix = lvl_name + std::string(" - ");
 
         add_item(lvl_name, -1, 1, PROGRESSION, "Levels", 0, level);
@@ -467,74 +495,70 @@ int generate()
 
     OLog(std::to_string(total_loc_count) + " locations\n" + std::to_string(total_item_count - 3) + " items");
 
-    //--- Remap location's IDs for backward compatibility with 0.3.9
+    if (game == game_t::doom)
     {
-        int64_t next_location_id = 0;
-        std::vector<int> unmapped_locations;
-        int i = 0;
-        for (const auto &kv : LOCATIONS_TO_LEGACY_IDS)
-            next_location_id = std::max(next_location_id, kv.second + 1);
-        for (auto& location : ap_locations)
+        //--- Remap location's IDs for backward compatibility with 0.3.9
         {
-            auto it = LOCATIONS_TO_LEGACY_IDS.find(location.name);
-            if (it != LOCATIONS_TO_LEGACY_IDS.end())
-                location.id = LOCATIONS_TO_LEGACY_IDS[location.name];
-            else
-                unmapped_locations.push_back(i);
-            ++i;
+            int64_t next_location_id = 0;
+            std::vector<int> unmapped_locations;
+            int i = 0;
+            for (const auto &kv : LOCATIONS_TO_LEGACY_IDS)
+                next_location_id = std::max(next_location_id, kv.second + 1);
+            for (auto& location : ap_locations)
+            {
+                auto it = LOCATIONS_TO_LEGACY_IDS.find(location.name);
+                if (it != LOCATIONS_TO_LEGACY_IDS.end())
+                    location.id = LOCATIONS_TO_LEGACY_IDS[location.name];
+                else
+                    unmapped_locations.push_back(i);
+                ++i;
+            }
+            for (auto unmapped_location : unmapped_locations)
+                ap_locations[unmapped_location].id = next_location_id++;
+
+            // Sort by id so it's clean in AP
+            std::sort(ap_locations.begin(), ap_locations.end(), [](const ap_location_t& a, const ap_location_t& b) { return a.id < b.id; });
         }
-        for (auto unmapped_location : unmapped_locations)
-            ap_locations[unmapped_location].id = next_location_id++;
 
-        // Sort by id so it's clean in AP
-        std::sort(ap_locations.begin(), ap_locations.end(), [](const ap_location_t& a, const ap_location_t& b) { return a.id < b.id; });
-    }
-
-    //--- Remap item's IDs for backward compatibility with 0.3.9
-    {
-        int64_t next_itemn_id = 0;
-        std::vector<int> unmapped_items;
-        int i = 0;
-        for (const auto &kv : ITEMS_TO_LEGACY_IDS)
-            next_itemn_id = std::max(next_itemn_id, kv.second + 1);
-        for (auto& item : ap_items)
+        //--- Remap item's IDs for backward compatibility with 0.3.9
         {
-            auto it = ITEMS_TO_LEGACY_IDS.find(item.name);
-            if (it != ITEMS_TO_LEGACY_IDS.end())
-                item.id = ITEMS_TO_LEGACY_IDS[item.name];
-            else
-                unmapped_items.push_back(i);
-            ++i;
-        }
-        for (auto unmapped_item : unmapped_items)
-            ap_items[unmapped_item].id = next_itemn_id++;
+            int64_t next_itemn_id = 0;
+            std::vector<int> unmapped_items;
+            int i = 0;
+            for (const auto &kv : ITEMS_TO_LEGACY_IDS)
+                next_itemn_id = std::max(next_itemn_id, kv.second + 1);
+            for (auto& item : ap_items)
+            {
+                auto it = ITEMS_TO_LEGACY_IDS.find(item.name);
+                if (it != ITEMS_TO_LEGACY_IDS.end())
+                    item.id = ITEMS_TO_LEGACY_IDS[item.name];
+                else
+                    unmapped_items.push_back(i);
+                ++i;
+            }
+            for (auto unmapped_item : unmapped_items)
+                ap_items[unmapped_item].id = next_itemn_id++;
 
-        // Sort by id so it's clean in AP
-        std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+            // Sort by id so it's clean in AP
+            std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+        }
     }
 
     // Fill in locations into level's sectors
     for (int i = 0, len = (int)ap_locations.size(); i < len; ++i)
     {
         auto& loc = ap_locations[i];
-        for (const auto& level : levels)
+        if (loc.doom_thing_index < 0) continue;
+        auto level = get_level(loc.idx);
+        auto subsector = point_in_subsector(loc.x, loc.y, get_map(loc.idx));
+        if (subsector)
         {
-            if (loc.lvl == level->lvl &&
-                loc.ep == level->ep &&
-                loc.doom_thing_index >= 0)
-            {
-                auto subsector = point_in_subsector(loc.x, loc.y, &maps[loc.ep - 1][loc.lvl - 1]);
-                if (subsector)
-                {
-                    level->sectors[subsector->sector].locations.push_back(i);
-                    loc.sector = subsector->sector;
-                }
-                else
-                {
-                    OLogE("Cannot find sector for location: " + loc.name);
-                }
-                break;
-            }
+            level->sectors[subsector->sector].locations.push_back(i);
+            loc.sector = subsector->sector;
+        }
+        else
+        {
+            OLogE("Cannot find sector for location: " + loc.name);
         }
     }
 
@@ -554,13 +578,13 @@ class ItemDict(TypedDict, total=False): \n\
     classification: ItemClassification \n\
     count: int \n\
     name: str \n\
-    doom_type: int # Unique numerical id used to spawn the item. -1 is level item, -2 is level complete item. \n\
-    episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n\
-    map: int \n\
+    doom_type: int # Unique numerical id used to spawn the item. -1 is level item, -2 is level complete item. \n");
+        if (game == game_t::doom)
+            fprintf(fout, "    episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n");
+        fprintf(fout, "    map: int \n\
 \n\
 \n\
 ");
-        //     progression_count: int \n\
 
         fprintf(fout, "item_table: Dict[int, ItemDict] = {\n");
         for (const auto& item : ap_items)
@@ -576,11 +600,17 @@ class ItemDict(TypedDict, total=False): \n\
                 case PROGRESSION_SKIP_BALANCING: fprintf(fout, "'classification': ItemClassification.progression_skip_balancing"); break;
             }
             fprintf(fout, ",\n             'count': %i", item.count);
-            //fprintf(fout, ",\n             'progression_count': %i", item.progression_count);
             fprintf(fout, ",\n             'name': '%s'", item.name.c_str());
             fprintf(fout, ",\n             'doom_type': %i", item.doom_type);
-            fprintf(fout, ",\n             'episode': %i", item.ep);
-            fprintf(fout, ",\n             'map': %i", item.lvl);
+            if (game == game_t::doom)
+            {
+                fprintf(fout, ",\n             'episode': %i", item.idx.ep + 1);
+                fprintf(fout, ",\n             'map': %i", item.idx.map + 1);
+            }
+            else
+            {
+                fprintf(fout, ",\n             'map': %i", item.idx.d2_map + 1);
+            }
             fprintf(fout, "},\n");
         }
         fprintf(fout, "}\n\n\n");
@@ -617,86 +647,97 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "regions:List[RegionDict] = [\n");
 
         // Regions
-        const auto& episodes_json = levels_json["episodes"];
-        int ep = 0;
-        for (const auto& episode_json : episodes_json)
+        bool first = true;
+        const auto& maps_json = levels_json["maps"];
+        for (const auto& level_json : maps_json)
         {
-            int lvl = 0;
-            for (const auto& level_json : episode_json)
+            int ep = level_json["ep"].asInt();
+            int lvl = level_json["map"].asInt();
+            int d2_map = level_json["d2_map"].asInt();
+            level_index_t level_idx = {ep, lvl, d2_map};
+
+            switch (game)
             {
-                const auto& world_connections_json = level_json["world_rules"]["connections"];
-
-                std::string level_name = level_names[ep][lvl];
-                if (ep != 0 || lvl != 0) fprintf(fout, "\n");
-                fprintf(fout, "    # %s\n", level_name.c_str());
-
-                const auto& regions_json = level_json["regions"];
-                int region_i = 0;
-                for (const auto& region_json : regions_json)
-                {
-                    std::string region_name = level_name + " " + region_json["name"].asString();
-
-                    // Create locations
-                    const auto& sectors_json = region_json["sectors"];
-                    for (const auto& sector_json : sectors_json)
-                    {
-                        int sectori = sector_json.asInt();
-                        const auto& locs = levels[ep * MAP_COUNT + lvl]->sectors[sectori].locations;
-                        for (auto loci : locs)
-                        {
-                            ap_locations[loci].region_name = region_name;
-                        }
-                    }
-                    bool connects_to_exit = false;
-                    bool connects_to_hub = false;
-
-                    for (const auto& world_connection_json : world_connections_json)
-                    {
-                        auto target_region = world_connection_json["target_region"].asInt();
-                        if (target_region == region_i) connects_to_hub = true;
-                    }
-
-                    // Build the region dicts
-                    std::vector<std::string> connections;
-                    const auto& rules_json = region_json["rules"];
-                    const auto& connections_json = rules_json["connections"];
-                    for (const auto& connection_json : connections_json)
-                    {
-                        int target_region = connection_json["target_region"].asInt();
-                        if (target_region == -2)
-                        {
-                            connects_to_exit = true;
-                            continue;
-                        }
-                        if (target_region == -1)
-                        {
-                            continue;
-                        }
-
-                        connections.push_back("\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\"");
-                    }
-                    fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
-                    fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
-                    if (connections.empty())
-                    {
-                        fprintf(fout, "     \"connections\":[]},\n");
-                    }
-                    else if (connections.size() == 1)
-                    {
-                        fprintf(fout, "     \"connections\":[%s]},\n", connections[0].c_str());
-                    }
-                    else
-                    {
-                        fprintf(fout, "     \"connections\":[\n");
-                        fprintf(fout, "        %s", onut::join(connections, ",\n        ").c_str());
-                        fprintf(fout, "]},\n");
-                    }
-
-                    ++region_i;
-                }
-                ++lvl;
+                case game_t::doom:
+                    if (ep == -1) continue;
+                    break;
+                case game_t::doom2:
+                    if (d2_map == -1) continue;
+                    break;
             }
-            ++ep;
+
+            const auto& world_connections_json = level_json["world_rules"]["connections"];
+
+            std::string level_name = get_level_name(level_idx);
+            if (!first) fprintf(fout, "\n");
+            first = false;
+            fprintf(fout, "    # %s\n", level_name.c_str());
+
+            const auto& regions_json = level_json["regions"];
+            int region_i = 0;
+            for (const auto& region_json : regions_json)
+            {
+                std::string region_name = level_name + " " + region_json["name"].asString();
+
+                // Create locations
+                const auto& sectors_json = region_json["sectors"];
+                for (const auto& sector_json : sectors_json)
+                {
+                    int sectori = sector_json.asInt();
+                    auto level = get_level(level_idx);
+                    const auto& locs = level->sectors[sectori].locations;
+                    for (auto loci : locs)
+                    {
+                        ap_locations[loci].region_name = region_name;
+                    }
+                }
+                bool connects_to_exit = false;
+                bool connects_to_hub = false;
+
+                for (const auto& world_connection_json : world_connections_json)
+                {
+                    auto target_region = world_connection_json["target_region"].asInt();
+                    if (target_region == region_i) connects_to_hub = true;
+                }
+
+                // Build the region dicts
+                std::vector<std::string> connections;
+                const auto& rules_json = region_json["rules"];
+                const auto& connections_json = rules_json["connections"];
+                for (const auto& connection_json : connections_json)
+                {
+                    int target_region = connection_json["target_region"].asInt();
+                    if (target_region == -2)
+                    {
+                        connects_to_exit = true;
+                        continue;
+                    }
+                    if (target_region == -1)
+                    {
+                        continue;
+                    }
+
+                    connections.push_back("\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\"");
+                }
+                fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
+                fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
+                if (connections.empty())
+                {
+                    fprintf(fout, "     \"connections\":[]},\n");
+                }
+                else if (connections.size() == 1)
+                {
+                    fprintf(fout, "     \"connections\":[%s]},\n", connections[0].c_str());
+                }
+                else
+                {
+                    fprintf(fout, "     \"connections\":[\n");
+                    fprintf(fout, "        %s", onut::join(connections, ",\n        ").c_str());
+                    fprintf(fout, "]},\n");
+                }
+
+                ++region_i;
+            }
         }
         fprintf(fout, "]\n");
 
@@ -713,9 +754,10 @@ class ItemDict(TypedDict, total=False): \n\
 \n\
 \n\
 class LocationDict(TypedDict, total=False): \n\
-    name: str \n\
-    episode: int \n\
-    map: int \n\
+    name: str \n");
+        if (game == game_t::doom)
+            fprintf(fout, "    episode: int \n");
+        fprintf(fout, "    map: int \n\
     index: int # Thing index as it is stored in the wad file. \n\
     doom_type: int # In case index end up unreliable, we can use doom type. Maps have often only one of each important things. \n\
     region: str \n\
@@ -729,8 +771,15 @@ class LocationDict(TypedDict, total=False): \n\
         {
             fprintf(fout, "    %llu: {", loc.id);
             fprintf(fout, "'name': '%s'", loc.name.c_str());
-            fprintf(fout, ",\n             'episode': %i", loc.ep);
-            fprintf(fout, ",\n             'map': %i", loc.lvl);
+            if (game == game_t::doom)
+            {
+                fprintf(fout, ",\n             'episode': %i", loc.idx.ep + 1);
+                fprintf(fout, ",\n             'map': %i", loc.idx.map + 1);
+            }
+            else
+            {
+                fprintf(fout, ",\n             'map': %i", loc.idx.d2_map + 1);
+            }
             fprintf(fout, ",\n             'index': %i", loc.doom_thing_index);
             fprintf(fout, ",\n             'doom_type': %i", loc.doom_type);
             fprintf(fout, ",\n             'region': \"%s\"", loc.region_name.c_str());
@@ -743,7 +792,7 @@ class LocationDict(TypedDict, total=False): \n\
         std::map<std::string, std::set<std::string>> location_name_groups;
         for (const auto& loc : ap_locations)
         {
-            location_name_groups[level_names[loc.ep - 1][loc.lvl - 1]].insert(loc.name);
+            location_name_groups[get_level_name(loc.idx)].insert(loc.name);
         }
         for (const auto& kv : location_name_groups)
         {
@@ -758,31 +807,39 @@ class LocationDict(TypedDict, total=False): \n\
 
         // Death logic locations
         fprintf(fout, "death_logic_locations = [\n");
-        const auto& episodes_json = levels_json["episodes"];
-        int ep = 0;
-        for (const auto& episode_json : episodes_json)
+        const auto& maps_json = levels_json["maps"];
+        for (const auto& level_json : maps_json)
         {
-            int lvl = 0;
-            for (const auto& level_json : episode_json)
+            int ep = level_json["ep"].asInt();
+            int lvl = level_json["map"].asInt();
+            int d2_map = level_json["d2_map"].asInt();
+            level_index_t level_idx = {ep, lvl, d2_map};
+
+            switch (game)
             {
-                const auto& locations_json = level_json["locations"];
-                for (const auto& location_json : locations_json)
+                case game_t::doom:
+                    if (ep == -1) continue;
+                    break;
+                case game_t::doom2:
+                    if (d2_map == -1) continue;
+                    break;
+            }
+
+            const auto& locations_json = level_json["locations"];
+            for (const auto& location_json : locations_json)
+            {
+                auto idx = location_json["index"].asInt();
+                if (location_json["death_logic"].asBool())
                 {
-                    auto idx = location_json["index"].asInt();
-                    if (location_json["death_logic"].asBool())
+                    for (const auto& location : ap_locations)
                     {
-                        for (const auto& location : ap_locations)
+                        if (location.idx == level_idx && location.doom_thing_index == idx)
                         {
-                            if (location.lvl - 1 == lvl && location.ep - 1 == ep && location.doom_thing_index == idx)
-                            {
-                                fprintf(fout, "    \"%s\",\n", location.name.c_str());
-                            }
+                            fprintf(fout, "    \"%s\",\n", location.name.c_str());
                         }
                     }
                 }
-                ++lvl;
             }
-            ++ep;
         }
         fprintf(fout, "]\n");
 
@@ -799,7 +856,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "map_names: List[str] = [");
         for (auto level : levels)
         {
-            fprintf(fout, "\n    '%s',", level_names[level->ep - 1][level->lvl - 1]);
+            fprintf(fout, "\n    '%s',", get_level_name(level->idx));
         }
         fprintf(fout, "\n]\n");
 
@@ -807,6 +864,7 @@ class LocationDict(TypedDict, total=False): \n\
     }
 
     // Now generate apdoom_def.h so the game can map the IDs
+    if (game == game_t::doom)
     {
         FILE* fout = fopen((cpp_out_dir + "apdoom_def.h").c_str(), "w");
         
@@ -818,7 +876,7 @@ class LocationDict(TypedDict, total=False): \n\
         std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table;
         for (const auto& loc : ap_locations)
         {
-            location_table[loc.ep][loc.lvl][loc.doom_thing_index] = loc.id;
+            location_table[loc.idx.ep + 1][loc.idx.map + 1][loc.doom_thing_index] = loc.id;
         }
 
         // locations
@@ -850,7 +908,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "const std::map<int64_t, ap_item_t> item_doom_type_table = {\n");
         for (const auto& item : ap_items)
         {
-            fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, item.ep, item.lvl);
+            fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, item.idx.ep + 1, item.idx.map + 1);
         }
         fprintf(fout, "};\n\n\n");
 
@@ -862,40 +920,35 @@ class LocationDict(TypedDict, total=False): \n\
             fprintf(fout, "    {\n");
             for (int map = 0; map < MAP_COUNT; ++map)
             {
-                for (auto level : levels)
+                auto level = get_level({ep, map, -1});
+                int64_t loc_id = 0;
+                for (const auto& loc : ap_locations)
                 {
-                    if (level->ep - 1== ep && level->lvl - 1 == map)
+                    if (loc.idx == level->idx)
                     {
-                        int64_t loc_id = 0;
-                        for (const auto& loc : ap_locations)
+                        if (loc.doom_type == -1)
                         {
-                            if (loc.ep == level->ep && loc.lvl == level->lvl)
-                            {
-                                if (loc.doom_type == -1)
-                                {
-                                    loc_id = loc.id;
-                                    break;
-                                }
-                            }
+                            loc_id = loc.id;
+                            break;
                         }
-                        fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
-                                level->keys[0] ? "true" : "false", 
-                                level->keys[1] ? "true" : "false", 
-                                level->keys[2] ? "true" : "false", 
-                                level->use_skull[0] ? 1 : 0, 
-                                level->use_skull[1] ? 1 : 0, 
-                                level->use_skull[2] ? 1 : 0, 
-                                level->location_count,
-                                (int)level->map->things.size());
-                        int idx = 0;
-                        for (const auto& thing : level->map->things)
-                        {
-                            fprintf(fout, "            {%i, %i},\n", thing.type, idx);
-                            ++idx;
-                        }
-                        fprintf(fout, "        }},\n");
                     }
                 }
+                fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
+                        level->keys[0] ? "true" : "false", 
+                        level->keys[1] ? "true" : "false", 
+                        level->keys[2] ? "true" : "false", 
+                        level->use_skull[0] ? 1 : 0, 
+                        level->use_skull[1] ? 1 : 0, 
+                        level->use_skull[2] ? 1 : 0, 
+                        level->location_count,
+                        (int)level->map->things.size());
+                int idx = 0;
+                for (const auto& thing : level->map->things)
+                {
+                    fprintf(fout, "            {%i, %i},\n", thing.type, idx);
+                    ++idx;
+                }
+                fprintf(fout, "        }},\n");
             }
             fprintf(fout, "    },\n");
         }
@@ -904,6 +957,7 @@ class LocationDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 
+#if 0 // Pointless to generate this
     // We generate some stuff for doom also, C header.
     {
         FILE* fout = fopen((cpp_out_dir + "apdoom_c_def.h").c_str(), "w");
@@ -935,6 +989,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "#endif\n");
         fclose(fout);
     }
+#endif
 
     // Generate Rules.py from regions.json (Manually entered data)
     {
@@ -950,120 +1005,128 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "    player = doom_1993_world.player\n");
         fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
 
-        const auto& episodes_json = levels_json["episodes"];
-        int ep = 0;
-        for (const auto& episode_json : episodes_json)
+        const auto& maps_json = levels_json["maps"];
+        for (const auto& level_json : maps_json)
         {
-            int lvl = 0;
-            for (const auto& level_json : episode_json)
+            int ep = level_json["ep"].asInt();
+            int lvl = level_json["map"].asInt();
+            int d2_map = level_json["d2_map"].asInt();
+            level_index_t level_idx = {ep, lvl, d2_map};
+
+            switch (game)
             {
-                const auto& world_connections_json = level_json["world_rules"]["connections"];
+                case game_t::doom:
+                    if (ep == -1) continue;
+                    break;
+                case game_t::doom2:
+                    if (d2_map == -1) continue;
+                    break;
+            }
 
-                std::string level_name = level_names[ep][lvl];
-                fprintf(fout, "    # %s\n", level_name.c_str());
+            const auto& world_connections_json = level_json["world_rules"]["connections"];
 
-                const auto& regions_json = level_json["regions"];
-                int region_i = 0;
-                bool has_rules = false;
-                for (const auto& region_json : regions_json)
+            std::string level_name = get_level_name(level_idx);
+            fprintf(fout, "    # %s\n", level_name.c_str());
+
+            const auto& regions_json = level_json["regions"];
+            int region_i = 0;
+            bool has_rules = false;
+            for (const auto& region_json : regions_json)
+            {
+                std::string region_name = level_name + " " + region_json["name"].asString();
+
+                // Hub rules
+                for (const auto& world_connection_json : world_connections_json)
                 {
-                    std::string region_name = level_name + " " + region_json["name"].asString();
-
-                    // Hub rules
-                    for (const auto& world_connection_json : world_connections_json)
+                    auto world_target_region = world_connection_json["target_region"].asInt();
+                    if (world_target_region == region_i)
                     {
-                        auto world_target_region = world_connection_json["target_region"].asInt();
-                        if (world_target_region == region_i)
-                        {
-                            const auto& world_requirements_and_json = world_connection_json["requirements_and"];
-                            const auto& world_requirements_or_json = world_connection_json["requirements_or"];
-
-                            has_rules = true;
-
-                            std::vector<std::string> ands = {"state.has(\"" + level_name + "\", player, 1)"};
-                            std::vector<std::string> ors;
-
-                            for (const auto& requirement_and_json: world_requirements_and_json)
-                            {
-                                int doom_type = requirement_and_json.asInt();
-                                ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
-                            }
-                            for (const auto& requirement_or_json: world_requirements_or_json)
-                            {
-                                int doom_type = requirement_or_json.asInt();
-                                ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
-                            }
-
-                            fprintf(fout, "    set_rule(world.get_entrance(\"Hub -> %s\", player), lambda state:\n", region_name.c_str());
-
-                            if (ands.empty())
-                                fprintf(fout, "        %s)\n", onut::join(ors, " or\n        ").c_str());
-                            else if (ors.empty())
-                                fprintf(fout, "        %s)\n", onut::join(ands, " and\n        ").c_str());
-                            else
-                                fprintf(fout, "       (%s) and\n       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
-                        }
-                    }
-
-                    std::vector<std::string> connections;
-                    const auto& rules_json = region_json["rules"];
-                    const auto& connections_json = rules_json["connections"];
-                    for (const auto& connection_json : connections_json)
-                    {
-                        int target_region = connection_json["target_region"].asInt();
-                        if (target_region == -2)
-                        {
-                            continue;
-                        }
-                        if (target_region == -1)
-                        {
-                            continue;
-                        }
-
-                        const auto& requirements_and_json = connection_json["requirements_and"];
-                        const auto& requirements_or_json = connection_json["requirements_or"];
-
-                        if (requirements_and_json.empty() && requirements_or_json.empty()) continue;
+                        const auto& world_requirements_and_json = world_connection_json["requirements_and"];
+                        const auto& world_requirements_or_json = world_connection_json["requirements_or"];
 
                         has_rules = true;
 
-                        std::vector<std::string> ands;
+                        std::vector<std::string> ands = {"state.has(\"" + level_name + "\", player, 1)"};
                         std::vector<std::string> ors;
 
-                        for (const auto& requirement_and_json: requirements_and_json)
+                        for (const auto& requirement_and_json: world_requirements_and_json)
                         {
                             int doom_type = requirement_and_json.asInt();
                             ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
-                        for (const auto& requirement_or_json: requirements_or_json)
+                        for (const auto& requirement_or_json: world_requirements_or_json)
                         {
                             int doom_type = requirement_or_json.asInt();
                             ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
 
-                        auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();
-                        fprintf(fout, "    set_rule(world.get_entrance(\"%s -> %s\", player), lambda state:\n", region_name.c_str(), target_name.c_str());
-                        
+                        fprintf(fout, "    set_rule(world.get_entrance(\"Hub -> %s\", player), lambda state:\n", region_name.c_str());
+
                         if (ands.empty())
                             fprintf(fout, "        %s)\n", onut::join(ors, " or\n        ").c_str());
                         else if (ors.empty())
                             fprintf(fout, "        %s)\n", onut::join(ands, " and\n        ").c_str());
                         else
-                            fprintf(fout, "       (%s) and       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
+                            fprintf(fout, "       (%s) and\n       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
                     }
-                    ++region_i;
                 }
-                if (!has_rules)
+
+                std::vector<std::string> connections;
+                const auto& rules_json = region_json["rules"];
+                const auto& connections_json = rules_json["connections"];
+                for (const auto& connection_json : connections_json)
                 {
-                    fprintf(fout, "    # No rules...\n\n");
+                    int target_region = connection_json["target_region"].asInt();
+                    if (target_region == -2)
+                    {
+                        continue;
+                    }
+                    if (target_region == -1)
+                    {
+                        continue;
+                    }
+
+                    const auto& requirements_and_json = connection_json["requirements_and"];
+                    const auto& requirements_or_json = connection_json["requirements_or"];
+
+                    if (requirements_and_json.empty() && requirements_or_json.empty()) continue;
+
+                    has_rules = true;
+
+                    std::vector<std::string> ands;
+                    std::vector<std::string> ors;
+
+                    for (const auto& requirement_and_json: requirements_and_json)
+                    {
+                        int doom_type = requirement_and_json.asInt();
+                        ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                    }
+                    for (const auto& requirement_or_json: requirements_or_json)
+                    {
+                        int doom_type = requirement_or_json.asInt();
+                        ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                    }
+
+                    auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();
+                    fprintf(fout, "    set_rule(world.get_entrance(\"%s -> %s\", player), lambda state:\n", region_name.c_str(), target_name.c_str());
+                        
+                    if (ands.empty())
+                        fprintf(fout, "        %s)\n", onut::join(ors, " or\n        ").c_str());
+                    else if (ors.empty())
+                        fprintf(fout, "        %s)\n", onut::join(ands, " and\n        ").c_str());
+                    else
+                        fprintf(fout, "       (%s) and       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
                 }
-                else
-                {
-                    fprintf(fout, "\n");
-                }
-                ++lvl;
+                ++region_i;
             }
-            ++ep;
+            if (!has_rules)
+            {
+                fprintf(fout, "    # No rules...\n\n");
+            }
+            else
+            {
+                fprintf(fout, "\n");
+            }
         }
 
         fclose(fout);
@@ -1071,31 +1134,45 @@ class LocationDict(TypedDict, total=False): \n\
 
     // Generate location CSV that will be used for names
     {
-        FILE* fout = fopen((pop_tracker_data_dir + "location_names.csv").c_str(), "w");
-        fprintf(fout, "Map,Type,Index,Name,Description\n");
-        int ep = 0;
-        for (const auto& episode_json : episodes_json)
+        FILE* fout = nullptr;
+        switch (game)
         {
-            int lvl = 0;
-            for (const auto& level_json : episode_json)
+            case game_t::doom: fout = fopen((pop_tracker_data_dir + "location_names.csv").c_str(), "w"); break;
+            case game_t::doom2: fout = fopen((pop_tracker_data_dir + "d2_location_names.csv").c_str(), "w"); break;
+        }
+        fprintf(fout, "Map,Type,Index,Name,Description\n");
+        const auto& maps_json = levels_json["maps"];
+        for (const auto& level_json : maps_json)
+        {
+            int ep = level_json["ep"].asInt();
+            int lvl = level_json["map"].asInt();
+            int d2_map = level_json["d2_map"].asInt();
+            level_index_t level_idx = {ep, lvl, d2_map};
+
+            switch (game)
             {
-                fprintf(fout, ",,,,\n");
-
-                const auto& locations_json = level_json["locations"];
-                for (const auto& location_json : locations_json)
-                {
-                    std::string level_name = level_names[ep][lvl];
-                    int index = location_json["index"].asInt();
-
-                    fprintf(fout, "%s,", level_name.c_str());
-                    fprintf(fout, "%s,", get_doom_type_name(maps[ep][lvl].things[index].type));
-                    fprintf(fout, "%i,", index);
-                    fprintf(fout, "%s,", escape_csv(location_json["name"].asString()).c_str());
-                    fprintf(fout, "%s,\n", escape_csv(location_json["description"].asString()).c_str());
-                }
-                ++lvl;
+                case game_t::doom:
+                    if (ep == -1) continue;
+                    break;
+                case game_t::doom2:
+                    if (d2_map == -1) continue;
+                    break;
             }
-            ++ep;
+
+            fprintf(fout, ",,,,\n");
+
+            const auto& locations_json = level_json["locations"];
+            for (const auto& location_json : locations_json)
+            {
+                std::string level_name = get_level_name(level_idx);
+                int index = location_json["index"].asInt();
+
+                fprintf(fout, "%s,", level_name.c_str());
+                fprintf(fout, "%s,", get_doom_type_name(get_map(level_idx)->things[index].type));
+                fprintf(fout, "%i,", index);
+                fprintf(fout, "%s,", escape_csv(location_json["name"].asString()).c_str());
+                fprintf(fout, "%s,\n", escape_csv(location_json["description"].asString()).c_str());
+            }
         }
         fclose(fout);
     }
