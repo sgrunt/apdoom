@@ -935,6 +935,8 @@ int get_loc_at(const Vector2& pos)
             case 2003:
             case 2001:
             case 2026:
+            case 82:
+            case 83:
             {
                 Rect rect((float)thing.x - 32.0f, (float)-thing.y - 32.0f, 64.0f, 64.0f);
                 if (rect.Contains(pos))

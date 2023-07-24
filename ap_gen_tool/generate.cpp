@@ -957,6 +957,100 @@ class LocationDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 
+    // Now generate apdoom2_def.h so the game can map the IDs
+    if (game == game_t::doom2)
+    {
+        FILE* fout = fopen((cpp_out_dir + "apdoom2_def.h").c_str(), "w");
+        
+        fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
+        fprintf(fout, "#pragma once\n\n");
+        fprintf(fout, "#include \"apdoom.h\"\n");
+        fprintf(fout, "#include <map>\n\n\n");
+
+        std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table;
+        for (const auto& loc : ap_locations)
+        {
+            location_table[loc.idx.ep + 1][loc.idx.map + 1][loc.doom_thing_index] = loc.id;
+        }
+
+        // locations
+        fprintf(fout, "const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {\n");
+        for (const auto& kv1 : location_table)
+        {
+            fprintf(fout, "    {%i, {\n", kv1.first);
+            for (const auto& kv2 : kv1.second)
+            {
+                fprintf(fout, "        {%i, {\n", kv2.first);
+                for (const auto& kv3 : kv2.second)
+                {
+                    fprintf(fout, "            {%i, %lli},\n", kv3.first, kv3.second);
+                }
+                fprintf(fout, "        }},\n");
+            }
+            fprintf(fout, "    }},\n");
+        }
+        fprintf(fout, "};\n\n\n");
+        
+        // items
+        fprintf(fout, "// Map item id\n");
+        fprintf(fout, "struct ap_item_t\n");
+        fprintf(fout, "{\n");
+        fprintf(fout, "    int doom_type;\n");
+        fprintf(fout, "    int ep; // If doom_type is a keycard\n");
+        fprintf(fout, "    int map; // If doom_type is a keycard\n");
+        fprintf(fout, "};\n\n");
+        fprintf(fout, "const std::map<int64_t, ap_item_t> item_doom_type_table = {\n");
+        for (const auto& item : ap_items)
+        {
+            fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, item.idx.ep + 1, item.idx.map + 1);
+        }
+        fprintf(fout, "};\n\n\n");
+
+        // Level infos
+        fprintf(fout, "ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n");
+        fprintf(fout, "{\n");
+        for (int ep = 0; ep < EP_COUNT; ++ep)
+        {
+            fprintf(fout, "    {\n");
+            for (int map = 0; map < MAP_COUNT; ++map)
+            {
+                auto level = get_level({ep, map, -1});
+                int64_t loc_id = 0;
+                for (const auto& loc : ap_locations)
+                {
+                    if (loc.idx == level->idx)
+                    {
+                        if (loc.doom_type == -1)
+                        {
+                            loc_id = loc.id;
+                            break;
+                        }
+                    }
+                }
+                fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
+                        level->keys[0] ? "true" : "false", 
+                        level->keys[1] ? "true" : "false", 
+                        level->keys[2] ? "true" : "false", 
+                        level->use_skull[0] ? 1 : 0, 
+                        level->use_skull[1] ? 1 : 0, 
+                        level->use_skull[2] ? 1 : 0, 
+                        level->location_count,
+                        (int)level->map->things.size());
+                int idx = 0;
+                for (const auto& thing : level->map->things)
+                {
+                    fprintf(fout, "            {%i, %i},\n", thing.type, idx);
+                    ++idx;
+                }
+                fprintf(fout, "        }},\n");
+            }
+            fprintf(fout, "    },\n");
+        }
+        fprintf(fout, "};\n");
+
+        fclose(fout);
+    }
+
 #if 0 // Pointless to generate this
     // We generate some stuff for doom also, C header.
     {

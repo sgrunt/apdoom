@@ -86,7 +86,7 @@ static const char* d2_level_names[D2_MAP_COUNT] = {
     // Episode 3: Hell
     "Nirvana (MAP21)",
     "The Catacombs (MAP22)",
-    "Barrels o' Fun (MAP23)",
+    "Barrels o Fun (MAP23)",
     "The Chasm (MAP24)",
     "Bloodfalls (MAP25)",
     "The Abandoned Mines (MAP26)",

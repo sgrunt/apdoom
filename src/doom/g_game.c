@@ -1181,6 +1181,18 @@ static void G_CrispyScreenShot()
 	crispy->screenshotmsg = 2;
 }
 
+ap_level_info_t* get_level_info();
+ap_level_info_t* get_level_state()
+{
+    if (gamemode == commercial)
+    {
+        return &ap_state.d2_level_states[gamemap - 1];
+    }
+    else
+    {
+        return &ap_state.level_states[gameepisode - 1][gamemap - 1];
+    }
+}
 
 void set_ap_player_states()
 {
@@ -1211,13 +1223,13 @@ void set_ap_player_states()
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 
     // Cards
-    p->cards[0] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] && !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
-    p->cards[1] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] && !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
-    p->cards[2] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] && !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
+    p->cards[0] = get_level_state()->keys[0] && !get_level_info()->use_skull[0];
+    p->cards[1] = get_level_state()->keys[1] && !get_level_info()->use_skull[1];
+    p->cards[2] = get_level_state()->keys[2] && !get_level_info()->use_skull[2];
     // Skulls (redundant)
-    p->cards[3] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[0] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
-    p->cards[4] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[1] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
-    p->cards[5] = ap_state.level_states[gameepisode - 1][gamemap - 1].keys[2] && ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
+    p->cards[3] = get_level_state()->keys[0] && get_level_info()->use_skull[0];
+    p->cards[4] = get_level_state()->keys[1] && get_level_info()->use_skull[1];
+    p->cards[5] = get_level_state()->keys[2] && get_level_info()->use_skull[2];
     
     // mo
     if (p->mo)

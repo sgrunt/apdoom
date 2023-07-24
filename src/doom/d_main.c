@@ -159,8 +159,16 @@ void on_ap_victory()
     extern const char* finaleflat;
     extern boolean finalfullscreenbg;
     finalfullscreenbg = true;
-    finaletext = "You've done it, you've saved the multiworld. Completely out of logic, the mighty RNG has bestowed you the gift of bringing Daisy back to life in this reality and in the next. Clearing the remaining evil forces on Mars can wait for now, you must make up the lost time with your pet rabbit.";
-    finaleflat = "PFUB1";
+    if (gamemode == commercial)
+    {
+        finaletext = "You wont APDOOM II.";
+        finaleflat = "INTERPIC";
+    }
+    else
+    {
+        finaletext = "You've done it, you've saved the multiworld. Completely out of logic, the mighty RNG has bestowed you the gift of bringing Daisy back to life in this reality and in the next. Clearing the remaining evil forces on Mars can wait for now, you must make up the lost time with your pet rabbit.";
+        finaleflat = "PFUB1";
+    }
     F_StartFinale();
 }
 
@@ -168,12 +176,24 @@ void on_ap_victory()
 boolean P_GiveArmor(player_t* player, int armortype);
 boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
+ap_level_info_t* get_level_info()
+{
+    if (gamemode == commercial)
+    {
+        return &ap_d2_level_infos[gamemap - 1];
+    }
+    else
+    {
+        return &ap_level_infos[gameepisode - 1][gamemap - 1];
+    }
+}
 
 // Kind of a copy of P_TouchSpecialThing
 void on_ap_give_item(int doom_type, int ep, int map)
 {
     player_t* player = &players[consoleplayer];
     int sound = sfx_itemup;
+    ap_level_info_t* level_info = get_level_info();
 
     switch (doom_type)
     {
@@ -184,8 +204,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
             {
                 if (!player->cards[it_bluecard] && !player->cards[it_blueskull])
                 {
-                    player->cards[it_bluecard] = !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
-                    player->cards[it_blueskull] = ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[0];
+                    player->cards[it_bluecard] = !level_info->use_skull[0];
+                    player->cards[it_blueskull] = level_info->use_skull[0];
                     player->message = DEH_String(GOTBLUECARD);
                     sound = sfx_keyup;
                 }
@@ -197,8 +217,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
             {
                 if (!player->cards[it_yellowcard] && !player->cards[it_yellowskull])
                 {
-                    player->cards[it_yellowcard] = !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
-                    player->cards[it_yellowskull] = ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[1];
+                    player->cards[it_yellowcard] = !level_info->use_skull[1];
+                    player->cards[it_yellowskull] = level_info->use_skull[1];
 	                player->message = DEH_String(GOTYELWCARD);
                     sound = sfx_keyup;
                 }
@@ -210,8 +230,8 @@ void on_ap_give_item(int doom_type, int ep, int map)
             {
                 if (!player->cards[it_redcard] && !player->cards[it_redskull])
                 {
-                    player->cards[it_redcard] = !ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
-                    player->cards[it_redskull] = ap_level_infos[gameepisode - 1][gamemap - 1].use_skull[2];
+                    player->cards[it_redcard] = !level_info->use_skull[2];
+                    player->cards[it_redskull] = level_info->use_skull[2];
 	                player->message = DEH_String(GOTREDCARD);
                     sound = sfx_keyup;
                 }
@@ -269,6 +289,11 @@ void on_ap_give_item(int doom_type, int ep, int map)
 	        player->message = DEH_String(GOTBFG9000);
 	        sound = sfx_wpnup;	
             break;
+        case 82:
+            P_GiveWeapon(player, wp_supershotgun, false);
+	        player->message = DEH_String(GOTSHOTGUN2);
+	        sound = sfx_wpnup;	
+            break;
 
         // Powerups
         case 2018:
@@ -310,6 +335,18 @@ void on_ap_give_item(int doom_type, int ep, int map)
             player->message = DEH_String(GOTINVIS);
             if (gameversion > exe_doom_1_2)
                 sound = sfx_getpow;
+            break;
+        case 83: // Megasphere
+	        if (gamemode != commercial)
+	            return;
+	        player->health = deh_megasphere_health;
+	        player->mo->health = player->health;
+                // We always give armor type 2 for the megasphere; dehacked only 
+                // affects the MegaArmor.
+	        P_GiveArmor (player, 2);
+	        player->message = DEH_String(GOTMSPHERE);
+	        if (gameversion > exe_doom_1_2)
+	            sound = sfx_getpow;
             break;
 
         // Junk
@@ -1700,10 +1737,24 @@ void D_DoomMain (void)
         password = myargv[password_arg_id + 1];
     }
 
+    GameMission_t mission = doom;
+    if (M_CheckParm("-game"))
+    {
+        int game_arg_id = M_CheckParmWithArgs("-game", 1);
+        if (!game_arg_id)
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-game' parameter requires an argument.");
+        const char* game_name = myargv[game_arg_id + 1];
+        if (strcmp(game_name, "doom") == 0) mission = doom;
+        if (strcmp(game_name, "doom2") == 0) mission = doom2;
+    }
+
     // Initialize AP
     ap_settings_t settings;
     settings.ip = myargv[apserver_arg_id + 1];
-    settings.game = "DOOM 1993";
+    if (mission == doom)
+        settings.game = "DOOM 1993";
+    else if (mission == doom2)
+        settings.game = "DOOM II";
     settings.player_name = myargv[applayer_arg_id + 1];
     settings.passwd = password;
     settings.message_callback = on_ap_message;

@@ -27,7 +27,7 @@ extern "C"
 
 
 #define APDOOM_MAJOR 0
-#define APDOOM_MINOR 6
+#define APDOOM_MINOR 7
 #define APDOOM_PATCH 0
 #define APDOOM_STR(x) APDOOM_STR2(x)
 #define APDOOM_STR2(x) #x
@@ -44,6 +44,7 @@ extern "C"
 #define AP_EPISODE_COUNT 4
 #endif
 #define AP_LEVEL_COUNT 9
+#define AP_D2_LEVEL_COUNT 32
 #define AP_NUM_POWERS 6
 #define AP_NUM_AMMO 4
 #define AP_NUM_WEAPONS 9
@@ -102,6 +103,7 @@ typedef struct
 typedef struct
 {
     ap_level_state_t level_states[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
+    ap_level_state_t d2_level_states[AP_D2_LEVEL_COUNT];
     ap_player_state_t player_state;
     int ep; // Useful when reloading, to load directly where we left
     int map;
@@ -131,6 +133,7 @@ typedef struct
 extern ap_level_info_t ap_level_infos[1][AP_LEVEL_COUNT];
 #else
 extern ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
+extern ap_level_info_t ap_d2_level_infos[AP_D2_LEVEL_COUNT];
 #endif
 extern ap_state_t ap_state;
 extern int ap_is_in_game; // Don't give items when in menu (Or when dead on the ground).

@@ -225,6 +225,9 @@ int apdoom_init(ap_settings_t* settings)
 		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
 			for (int k = 0; k < AP_CHECK_MAX; ++k)
 				ap_state.level_states[ep][map].checks[k] = -1;
+	for (int map = 0; map < AP_D2_LEVEL_COUNT; ++map)
+		for (int k = 0; k < AP_CHECK_MAX; ++k)
+			ap_state.d2_level_states[map].checks[k] = -1;
 
 	ap_settings = *settings;
 
