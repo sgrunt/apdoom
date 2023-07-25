@@ -642,6 +642,8 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "class RegionDict(TypedDict, total=False): \n");
         fprintf(fout, "    name: str\n");
         fprintf(fout, "    connects_to_hub: bool\n");
+        if (game == game_t::doom)
+            fprintf(fout, "    episode: int\n");
         fprintf(fout, "    connections: List[str]\n\n\n");
 
         fprintf(fout, "regions:List[RegionDict] = [\n");
@@ -721,6 +723,8 @@ class ItemDict(TypedDict, total=False): \n\
                 }
                 fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
                 fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
+                if (game == game_t::doom)
+                    fprintf(fout, "     \"episode\":%i,\n", level_idx.ep + 1);
                 if (connections.empty())
                 {
                     fprintf(fout, "     \"connections\":[]},\n");
@@ -1094,12 +1098,16 @@ class LocationDict(TypedDict, total=False): \n\
         
         fprintf(fout, "if TYPE_CHECKING:\n");
         fprintf(fout, "    from . import DOOM1993World\n\n\n");
-
-        fprintf(fout, "def set_rules(doom_1993_world: \"DOOM1993World\"):\n");
-        fprintf(fout, "    player = doom_1993_world.player\n");
-        fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
+        
+        if (game == game_t::doom2)
+        {
+            fprintf(fout, "def set_rules(doom_1993_world: \"DOOM1993World\"):\n");
+            fprintf(fout, "    player = doom_1993_world.player\n");
+            fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
+        }
 
         const auto& maps_json = levels_json["maps"];
+        int prev_ep = -1;
         for (const auto& level_json : maps_json)
         {
             int ep = level_json["ep"].asInt();
@@ -1115,6 +1123,14 @@ class LocationDict(TypedDict, total=False): \n\
                 case game_t::doom2:
                     if (d2_map == -1) continue;
                     break;
+            }
+
+            if (game == game_t::doom)
+            {
+                if (ep != prev_ep)
+                {
+                    fprintf(fout, "\ndef set_episode%i_rules(player, world):\n", ep + 1);
+                }
             }
 
             const auto& world_connections_json = level_json["world_rules"]["connections"];
@@ -1220,6 +1236,18 @@ class LocationDict(TypedDict, total=False): \n\
             else
             {
                 fprintf(fout, "\n");
+            }
+        }
+
+        if (game == game_t::doom)
+        {
+            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\", included_episodes):\n");
+            fprintf(fout, "    player = doom_1993_world.player\n");
+            fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
+            for (int ep = 0; ep < 4; ++ep)
+            {
+                fprintf(fout, "    if included_episodes[%i]:\n", ep);
+                fprintf(fout, "        set_episode%i_rules(player, world)\n", ep + 1);
             }
         }
 
