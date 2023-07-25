@@ -962,6 +962,7 @@ class LocationDict(TypedDict, total=False): \n\
     }
 
     // Now generate apdoom2_def.h so the game can map the IDs
+#if 0
     if (game == game_t::doom2)
     {
         FILE* fout = fopen((cpp_out_dir + "apdoom2_def.h").c_str(), "w");
@@ -1011,7 +1012,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "};\n\n\n");
 
         // Level infos
-        fprintf(fout, "ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n");
+        fprintf(fout, "ap_level_info_t ap_level_infos[AP_D2_LEVEL_COUNT] = \n");
         fprintf(fout, "{\n");
         for (int ep = 0; ep < EP_COUNT; ++ep)
         {
@@ -1054,6 +1055,7 @@ class LocationDict(TypedDict, total=False): \n\
 
         fclose(fout);
     }
+#endif
 
 #if 0 // Pointless to generate this
     // We generate some stuff for doom also, C header.
@@ -1097,11 +1099,11 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "from worlds.generic.Rules import set_rule\n\n");
         
         fprintf(fout, "if TYPE_CHECKING:\n");
-        fprintf(fout, "    from . import DOOM1993World\n\n\n");
+        fprintf(fout, "    from . import DOOM1993World\n\n");
         
         if (game == game_t::doom2)
         {
-            fprintf(fout, "def set_rules(doom_1993_world: \"DOOM1993World\"):\n");
+            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\"):\n");
             fprintf(fout, "    player = doom_1993_world.player\n");
             fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
         }
@@ -1129,6 +1131,7 @@ class LocationDict(TypedDict, total=False): \n\
             {
                 if (ep != prev_ep)
                 {
+                    prev_ep = ep;
                     fprintf(fout, "\ndef set_episode%i_rules(player, world):\n", ep + 1);
                 }
             }
