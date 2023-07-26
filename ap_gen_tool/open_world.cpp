@@ -50,6 +50,8 @@ struct rule_connection_t
     int target_region = -1;
     std::vector<int> requirements_or;
     std::vector<int> requirements_and;
+    bool deathlogic = false;
+    bool pro = false;
 };
 
 
@@ -141,6 +143,7 @@ static region_t exit_region = {
 struct location_t
 {
     bool death_logic = false;
+    bool unreachable = false;
     std::string name;
     std::string description;
 };
@@ -202,6 +205,8 @@ static map_state_t* map_state = nullptr;
 static map_view_t* map_view = nullptr;
 static map_history_t* map_history = nullptr;
 static OTextureRef ap_icon;
+static OTextureRef ap_deathlogic_icon;
+static OTextureRef ap_unreachable_icon;
 static int mouse_hover_bb = -1;
 static int mouse_hover_sector = -1;
 static int moving_edge = -1;
@@ -316,6 +321,9 @@ Json::Value serialize_rules(const rule_region_t& rules)
             connection_json["requirements_and"] = requirements_json;
         }
 
+        connection_json["death_logic"] = connection.deathlogic;
+        connection_json["pro"] = connection.pro;
+
         connections_json.append(connection_json);
     }
     json["connections"] = connections_json;
@@ -352,6 +360,9 @@ rule_region_t deserialize_rules(const Json::Value& json)
                 connection.requirements_and.push_back(requirement_json.asInt());
             }
         }
+
+        connection.deathlogic = connection_json["death_logic"].asBool();
+        connection.pro = connection_json["pro"].asBool();
 
         rules.connections.push_back(connection);
     }
@@ -422,6 +433,7 @@ void save()
             Json::Value location_json;
             location_json["index"] = kv.first;
             location_json["death_logic"] = kv.second.death_logic;
+            location_json["unreachable"] = kv.second.unreachable;
             location_json["name"] = kv.second.name;
             location_json["description"] = kv.second.description;
             locations_json.append(location_json);
@@ -546,6 +558,7 @@ void load()
         {
             location_t location;
             location.death_logic = location_json["death_logic"].asBool();
+            location.unreachable = location_json["unreachable"].asBool();
             location.name = location_json["name"].asString();
             location.description = location_json["description"].asString();
             _map_state->locations[location_json["index"].asInt()] = location;
@@ -656,6 +669,8 @@ void init()
     REQUIREMENT_TEXTURES[2003] = OGetTexture("Rocket launcher.png");
     REQUIREMENT_TEXTURES[2004] = OGetTexture("Plasma gun.png");
     REQUIREMENT_TEXTURES[2006] = OGetTexture("BFG9000.png");
+    REQUIREMENT_TEXTURES[-1] = OGetTexture("deathlogic.png");
+    REQUIREMENT_TEXTURES[-2] = OGetTexture("pro.png");
 
     arrow_cursor = LoadCursor(nullptr, IDC_ARROW);
     nswe_cursor = LoadCursor(nullptr, IDC_SIZEALL);
@@ -663,6 +678,8 @@ void init()
     ns_cursor = LoadCursor(nullptr, IDC_SIZENS);
     
     ap_icon = OGetTexture("ap.png");
+    ap_deathlogic_icon = OGetTexture("deathlogic.png");
+    ap_unreachable_icon = OGetTexture("unreachable.png");
 
     init_maps();
 
@@ -1595,7 +1612,10 @@ void draw_connections_requirements(const rule_region_t& rules, int rule_idx)
         dir.Normalize();
         Vector2 right(-dir.y, dir.x);
 
-        Vector2 pos = (to - from) * 0.5f + right * REQUIREMENT_SIZE - dir * ((float)(connection.requirements_or.size() + connection.requirements_and.size()) * 0.5f * REQUIREMENT_SIZE - 0.5f * REQUIREMENT_SIZE);
+        auto count = connection.requirements_or.size() + connection.requirements_and.size();
+        if (connection.deathlogic) ++count;
+        if (connection.pro) ++count;
+        Vector2 pos = (to - from) * 0.5f + right * REQUIREMENT_SIZE - dir * ((float)(count) * 0.5f * REQUIREMENT_SIZE - 0.5f * REQUIREMENT_SIZE);
         for (auto requirement : connection.requirements_or)
         {
             sb->drawSprite(REQUIREMENT_TEXTURES[requirement], pos + from, Color::White, 0.0f, 2.0f);
@@ -1604,6 +1624,16 @@ void draw_connections_requirements(const rule_region_t& rules, int rule_idx)
         for (auto requirement : connection.requirements_and)
         {
             sb->drawSprite(REQUIREMENT_TEXTURES[requirement], pos + from, Color::White, 0.0f, 2.0f);
+            pos += dir * REQUIREMENT_SIZE;
+        }
+        if (connection.deathlogic)
+        {
+            sb->drawSprite(REQUIREMENT_TEXTURES[-1], pos + from, Color::White, 0.0f, 2.0f);
+            pos += dir * REQUIREMENT_SIZE;
+        }
+        if (connection.pro)
+        {
+            sb->drawSprite(REQUIREMENT_TEXTURES[-2], pos + from, Color::White, 0.0f, 2.0f);
             pos += dir * REQUIREMENT_SIZE;
         }
 
@@ -1826,8 +1856,11 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
     // Items
     sb->begin(transform);
     oRenderer->renderStates.sampleFiltering = OFilterNearest;
+    i = -1;
+    auto map_state = get_state({ep, lvl, d2_map});
     for (const auto& thing : map->things)
     {
+        ++i;
         if (thing.flags & 0x0010) continue; // Thing is not in single player
         switch (thing.type)
         {
@@ -1853,8 +1886,16 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
             case 2026:
             case 82:
             case 83:
-                sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
+            {
+                //ap_deathlogic_icon
+                if (map_state->locations[i].death_logic)
+                    sb->drawSprite(ap_deathlogic_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
+                else
+                    sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
+                if (map_state->locations[i].unreachable)
+                    sb->drawSprite(ap_unreachable_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
                 break;
+            }
         }
     }
     sb->end();
@@ -2126,6 +2167,11 @@ void renderUI()
                     {
                         auto& connection = rules->connections[set_rule_connection];
 
+                        if (ImGui::Checkbox("Death Logic", &connection.deathlogic))
+                            push_undo();
+                        if (ImGui::Checkbox("Pro", &connection.pro))
+                            push_undo();
+
                         ImGui::Columns(2);
                         ImGui::Text("OR");
                         ImGui::NextColumn();
@@ -2211,6 +2257,11 @@ void renderUI()
                 auto& location = map_state->locations[map_state->selected_location];
                 
                 if (ImGui::Checkbox("Death Logic", &location.death_logic))
+                {
+                    push_undo();
+                }
+                
+                if (ImGui::Checkbox("Unreachable", &location.unreachable))
                 {
                     push_undo();
                 }
