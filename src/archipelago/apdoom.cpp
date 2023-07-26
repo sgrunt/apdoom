@@ -28,6 +28,7 @@
 
 
 #include "apdoom_def.h"
+#include "apdoom2_def.h"
 #include "Archipelago.h"
 #include <json/json.h>
 #include <memory.h>
