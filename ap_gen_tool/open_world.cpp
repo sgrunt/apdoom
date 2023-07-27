@@ -52,6 +52,16 @@ struct rule_connection_t
     std::vector<int> requirements_and;
     bool deathlogic = false;
     bool pro = false;
+
+    bool operator==(const rule_connection_t& other) const
+    {
+        return 
+            target_region == other.target_region &&
+            requirements_or == other.requirements_or &&
+            requirements_and == other.requirements_and &&
+            deathlogic == other.deathlogic &&
+            pro == other.pro;
+    }
 };
 
 
@@ -59,6 +69,14 @@ struct rule_region_t
 {
     int x = 0, y = 0;
     std::vector<rule_connection_t> connections;
+
+    bool operator==(const rule_region_t& other) const
+    {
+        return 
+            x == other.x &&
+            y == other.y &&
+            connections == other.connections;
+    }
 };
 
 
@@ -113,6 +131,16 @@ struct bb_t
             (float)(y1 + y2) * 0.5f
         };
     }
+
+    bool operator==(const bb_t& other) const
+    {
+        return 
+            x1 == other.x1 &&
+            y1 == other.y1 &&
+            x2 == other.x2 &&
+            y2 == other.y2 &&
+            region == other.region;
+    }
 };
 
 
@@ -122,6 +150,15 @@ struct region_t
     std::set<int> sectors;
     Color tint = Color::White;
     rule_region_t rules;
+
+    bool operator==(const region_t& other) const
+    {
+        return 
+            name == other.name &&
+            sectors == other.sectors &&
+            tint == other.tint &&
+            rules == other.rules;
+    }
 };
 
 
@@ -146,6 +183,15 @@ struct location_t
     bool unreachable = false;
     std::string name;
     std::string description;
+
+    bool operator==(const location_t& other) const
+    {
+        return 
+            death_logic == other.death_logic &&
+            unreachable == other.unreachable &&
+            name == other.name &&
+            description == other.description;
+    }
 };
 
 
@@ -162,6 +208,18 @@ struct map_state_t
     rule_region_t exit_rules;
     std::set<int> accesses;
     std::map<int, location_t> locations;
+    bool different = false;
+
+    bool operator==(const map_state_t& other) const
+    {
+        return 
+            bbs == other.bbs &&
+            regions == other.regions &&
+            world_rules == other.world_rules &&
+            exit_rules == other.exit_rules &&
+            accesses == other.accesses &&
+            locations == other.locations;
+    }
 };
 
 
@@ -195,6 +253,15 @@ struct metas_t
 
 level_index_t active_level;
 metas_t metas;
+metas_t metas_new;
+
+enum class active_source_t
+{
+    current,
+    target
+};
+
+static active_source_t active_source = active_source_t::current;
 static state_t state = state_t::idle;
 static tool_t tool = tool_t::locations;
 static Vector2 mouse_pos;
@@ -236,25 +303,39 @@ static const std::vector<int> REQUIREMENTS = {
 };
 
 
-map_state_t* get_state(const level_index_t& idx)
+metas_t* get_active_metas()
 {
+    switch (active_source)
+    {
+        case active_source_t::current: return &metas;
+        case active_source_t::target: return &metas_new;
+    }
+}
+
+
+map_state_t* get_state(const level_index_t& idx, metas_t* p_metas = nullptr)
+{
+    if (!p_metas) p_metas = get_active_metas();
     if (idx.d2_map == -1)
-        return &metas.d1_metas[idx.ep][idx.map].state;
-    return &metas.d2_metas[idx.d2_map].state;
+        return &p_metas->d1_metas[idx.ep][idx.map].state;
+    return &p_metas->d2_metas[idx.d2_map].state;
 }
 
 map_view_t* get_view(const level_index_t& idx)
 {
+    auto p_metas = &metas;
     if (idx.d2_map == -1)
-        return &metas.d1_metas[idx.ep][idx.map].view;
-    return &metas.d2_metas[idx.d2_map].view;
+        return &p_metas->d1_metas[idx.ep][idx.map].view;
+    return &p_metas->d2_metas[idx.d2_map].view;
 }
 
 map_history_t* get_history(const level_index_t& idx)
 {
+    auto p_metas = &metas;
+    if (!p_metas) p_metas = get_active_metas();
     if (idx.d2_map == -1)
-        return &metas.d1_metas[idx.ep][idx.map].history;
-    return &metas.d2_metas[idx.d2_map].history;
+        return &p_metas->d1_metas[idx.ep][idx.map].history;
+    return &p_metas->d2_metas[idx.d2_map].history;
 }
 
 
@@ -389,7 +470,7 @@ void save()
     {
         Json::Value _map_json;
         Json::Value bbs_json(Json::arrayValue);
-        auto state = get_state(level_idx);
+        auto state = get_state(level_idx, &metas);
         for (const auto& bb : state->bbs)
         {
             Json::Value bb_json(Json::arrayValue);
@@ -457,15 +538,22 @@ void save()
 }
 
 
-// TODO, FIX <- ?
-void load()
+void load(const std::string& file, metas_t* out_metas)
 {
     Json::Value json;
-    std::string filename = OArguments[3] + std::string("\\regions.json");
+    std::string filename = OArguments[3] + std::string("\\") + file;
     if (!onut::loadJson(json, filename))
     {
-        onut::showMessageBox("Warning", "Warning: File not found. Saving will break shit.\n" + filename);
+        if (out_metas == &metas)
+        {
+            onut::showMessageBox("Warning", "Warning: File not found. Saving will break shit.\n" + filename);
+        }
         return;
+    }
+
+    if (out_metas == &metas_new)
+    {
+        *out_metas = {};
     }
 
     Json::Value json_maps = json["maps"];
@@ -475,7 +563,7 @@ void load()
         int ep = _map_json["ep"].asInt();
         int lvl = _map_json["map"].asInt();
         int d2_map = _map_json["d2_map"].asInt();
-        auto _map_state = get_state({ep, lvl, d2_map});
+        auto _map_state = get_state({ep, lvl, d2_map}, out_metas);
 
         const auto& bbs_json = _map_json["bbs"];
         for (const auto& bb_json : bbs_json)
@@ -595,7 +683,7 @@ void select_map(int ep, int map, int d2_map)
     mouse_hover_location = -1;
 
     active_level = {ep, map, d2_map};
-    map_state = get_state(active_level);
+    map_state = get_state(active_level, get_active_metas());
     map_view = get_view(active_level);
     map_history = get_history(active_level);
 
@@ -655,8 +743,28 @@ void regen() // Doom1 only
 }
 
 
+std::vector<level_index_t> get_all_levels_idx()
+{
+    std::vector<level_index_t> ret;
+    for (int ep = 0; ep < EP_COUNT; ++ep)
+    {
+        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
+        {
+            ret.push_back({ep, lvl, -1});
+        }
+    }
+    for (int lvl = 0; lvl < D2_MAP_COUNT; ++lvl)
+    {
+        ret.push_back({-1, -1, lvl});
+    }
+    return ret;
+}
+
+
 void init()
 {
+    oGenerateMipmaps = false;
+
     REQUIREMENT_TEXTURES[5] = OGetTexture("Blue keycard.png");
     REQUIREMENT_TEXTURES[40] = OGetTexture("Blue skull key.png");
     REQUIREMENT_TEXTURES[6] = OGetTexture("Yellow keycard.png");
@@ -701,7 +809,19 @@ void init()
     }
 
     // Load states
-    load();
+    load("regions.json", &metas);
+    metas_new = metas;
+    load("regions_new.json", &metas_new);
+
+    // Mark dirty levels
+    auto levels_idx = get_all_levels_idx();
+    for (const auto& idx : levels_idx)
+    {
+        auto a = get_state(idx, &metas);
+        auto b = get_state(idx, &metas_new);
+        a->different = !(*a == *b);
+    }
+
     select_map(0, 0, -1);
 
     regen();
@@ -867,6 +987,16 @@ void update_shortcuts()
     if (ctrl && !shift && !alt && OInputJustPressed(OKeyS)) save();
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeySpaceBar)) regen();
     if (ctrl && !shift && !alt && OInputJustPressed(OKeyR)) reset_level();
+    if (!ctrl && !shift && !alt && OInputJustPressed(OKeyF1))
+    {
+        active_source = active_source_t::current;
+        map_state = get_state(active_level, get_active_metas());
+    }
+    if (!ctrl && !shift && !alt && OInputJustPressed(OKeyF2))
+    {
+        active_source = active_source_t::target;
+        map_state = get_state(active_level, get_active_metas());
+    }
 }
 
 
@@ -1507,7 +1637,7 @@ void draw_guides()
 
 region_t* get_region_for_sector(int ep, int lvl, int d2_map, int sector)
 {
-    auto map_state = get_state({ep, lvl, d2_map});
+    auto map_state = get_state({ep, lvl, d2_map}, get_active_metas());
     for (auto& region : map_state->regions)
     {
         if (region.sectors.count(sector))
@@ -1795,7 +1925,7 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
     }
 
     // Bounding boxes
-    auto state = get_state({ep, lvl, d2_map});
+    auto state = get_state({ep, lvl, d2_map}, get_active_metas());
     if (draw_tools && tool == tool_t::bb)
     {
         int i = 0;
@@ -1857,7 +1987,6 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
     sb->begin(transform);
     oRenderer->renderStates.sampleFiltering = OFilterNearest;
     i = -1;
-    auto map_state = get_state({ep, lvl, d2_map});
     for (const auto& thing : map->things)
     {
         ++i;
@@ -1905,6 +2034,7 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
 void render()
 {
     oRenderer->clear(Color::Black);
+    oRenderer->renderStates.sampleFiltering = OFilterNearest;
     auto pb = oPrimitiveBatch.get();
     auto sb = oSpriteBatch.get();
 
@@ -1933,6 +2063,13 @@ void render()
         {
             draw_level(active_level.ep, active_level.map, active_level.d2_map, {0, 0}, 0, true);
             draw_rules();
+
+            if (active_source == active_source_t::target)
+            {
+                sb->begin();
+                sb->drawInnerOutlineRect(Rect(0, 20, OScreenWf - 1, OScreenHf - 20 - 1), 4.0f, Color(1, 0, 0));
+                sb->end();
+            }
             break;
         }
     }
@@ -1989,6 +2126,33 @@ void renderUI()
         if (ImGui::MenuItem("Add Bounding Box")) add_bounding_box();
         ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("Diff"))
+    {
+        {
+            bool selected = active_source == active_source_t::current;
+            if (ImGui::MenuItem("Show Current", "F1", &selected))
+            {
+                active_source = active_source_t::current;
+                map_state = get_state(active_level, get_active_metas());
+            }
+        }
+        {
+            bool selected = active_source == active_source_t::target;
+            if (ImGui::MenuItem("Show Target", "F2", &selected))
+            {
+                active_source = active_source_t::target;
+                map_state = get_state(active_level, get_active_metas());
+            }
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Apply Target"))
+        {
+            *get_state(active_level, &metas) = *get_state(active_level, &metas_new);
+            map_state = get_state(active_level);
+            push_undo();
+        }
+        ImGui::EndMenu();
+    }
     if (ImGui::BeginMenu("Doom Maps"))
     {
         for (int ep = 0; ep < EP_COUNT; ++ep)
@@ -1996,7 +2160,7 @@ void renderUI()
             for (int map = 0; map < MAP_COUNT; ++map)
             {
                 bool selected = ep == active_level.ep && map == active_level.map;
-                if (ImGui::MenuItem(level_names[ep][map], nullptr, &selected))
+                if (ImGui::MenuItem((std::string(level_names[ep][map]) + (get_state({ep, map, -1}, &metas)->different ? "*" : "")).c_str(), nullptr, &selected))
                 {
                     select_map(ep, map, -1);
                 }
@@ -2009,7 +2173,7 @@ void renderUI()
         for (int map = 0; map < D2_MAP_COUNT; ++map)
         {
             bool selected = map == active_level.d2_map;
-            if (ImGui::MenuItem(get_level_name({-1, -1, map}), nullptr, &selected))
+            if (ImGui::MenuItem((std::string(get_level_name({-1, -1, map})) + (get_state({-1, -1, map}, &metas)->different ? "*" : "")).c_str(), nullptr, &selected))
             {
                 select_map(-1, -1, map);
             }
