@@ -723,7 +723,7 @@ class ItemDict(TypedDict, total=False): \n\
                         continue;
                     }
 
-                    auto pro = connection_json["target_region"].asBool();
+                    auto pro = connection_json["pro"].asBool();
                     connections.push_back("{\"target\":\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\",\"pro\":" + (pro?"True":"False") + "}");
                 }
                 fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
