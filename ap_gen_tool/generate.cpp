@@ -639,12 +639,16 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "from typing import List\n");
         fprintf(fout, "from BaseClasses import TypedDict\n\n");
 
-        fprintf(fout, "class RegionDict(TypedDict, total=False): \n");
+        fprintf(fout, "class ConnectionDict(TypedDict, total=False):\n");
+        fprintf(fout, "    target: str\n");
+        fprintf(fout, "    pro: bool\n\n");
+
+        fprintf(fout, "class RegionDict(TypedDict, total=False):\n");
         fprintf(fout, "    name: str\n");
         fprintf(fout, "    connects_to_hub: bool\n");
         if (game == game_t::doom)
             fprintf(fout, "    episode: int\n");
-        fprintf(fout, "    connections: List[str]\n\n\n");
+        fprintf(fout, "    connections: List[ConnectionDict]\n\n\n");
 
         fprintf(fout, "regions:List[RegionDict] = [\n");
 
@@ -719,7 +723,8 @@ class ItemDict(TypedDict, total=False): \n\
                         continue;
                     }
 
-                    connections.push_back("\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\"");
+                    auto pro = connection_json["target_region"].asBool();
+                    connections.push_back("{\"target\":\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\",\"pro\":" + (pro?"True":"False") + "}");
                 }
                 fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
                 fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
@@ -1090,7 +1095,7 @@ class LocationDict(TypedDict, total=False): \n\
         
         if (game == game_t::doom2)
         {
-            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\"):\n");
+            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\", pro):\n");
             fprintf(fout, "    player = doom_1993_world.player\n");
             fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
         }
@@ -1119,7 +1124,7 @@ class LocationDict(TypedDict, total=False): \n\
                 if (ep != prev_ep)
                 {
                     prev_ep = ep;
-                    fprintf(fout, "\ndef set_episode%i_rules(player, world):\n", ep + 1);
+                    fprintf(fout, "\ndef set_episode%i_rules(player, world, pro):\n", ep + 1);
                 }
             }
 
@@ -1188,6 +1193,7 @@ class LocationDict(TypedDict, total=False): \n\
 
                     const auto& requirements_and_json = connection_json["requirements_and"];
                     const auto& requirements_or_json = connection_json["requirements_or"];
+                    auto pro = connection_json["pro"].asBool();
 
                     if (requirements_and_json.empty() && requirements_or_json.empty()) continue;
 
@@ -1195,6 +1201,13 @@ class LocationDict(TypedDict, total=False): \n\
 
                     std::vector<std::string> ands;
                     std::vector<std::string> ors;
+
+                    std::string indent = "";
+                    if (pro )
+                    {
+                        indent = "    ";
+                        fprintf(fout, "    if pro:\n");
+                    }
 
                     for (const auto& requirement_and_json: requirements_and_json)
                     {
@@ -1208,14 +1221,14 @@ class LocationDict(TypedDict, total=False): \n\
                     }
 
                     auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();
-                    fprintf(fout, "    set_rule(world.get_entrance(\"%s -> %s\", player), lambda state:\n", region_name.c_str(), target_name.c_str());
+                    fprintf(fout, "%s    set_rule(world.get_entrance(\"%s -> %s\", player), lambda state:\n", indent.c_str(), region_name.c_str(), target_name.c_str());
                         
                     if (ands.empty())
-                        fprintf(fout, "        %s)\n", onut::join(ors, " or\n        ").c_str());
+                        fprintf(fout, "%s        %s)\n", indent.c_str(), onut::join(ors, " or\n        ").c_str());
                     else if (ors.empty())
-                        fprintf(fout, "        %s)\n", onut::join(ands, " and\n        ").c_str());
+                        fprintf(fout, "%s        %s)\n", indent.c_str(), onut::join(ands, " and\n        ").c_str());
                     else
-                        fprintf(fout, "       (%s) and       (%s))\n", onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
+                        fprintf(fout, "%s       (%s) and       (%s))\n", indent.c_str(), onut::join(ands, " and\n        ").c_str(), onut::join(ors, " or\n        ").c_str());
                 }
                 ++region_i;
             }
@@ -1231,13 +1244,13 @@ class LocationDict(TypedDict, total=False): \n\
 
         if (game == game_t::doom)
         {
-            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\", included_episodes):\n");
+            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\", included_episodes, pro):\n");
             fprintf(fout, "    player = doom_1993_world.player\n");
             fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
             for (int ep = 0; ep < 4; ++ep)
             {
                 fprintf(fout, "    if included_episodes[%i]:\n", ep);
-                fprintf(fout, "        set_episode%i_rules(player, world)\n", ep + 1);
+                fprintf(fout, "        set_episode%i_rules(player, world, pro)\n", ep + 1);
             }
         }
 
