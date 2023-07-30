@@ -457,6 +457,13 @@ static void json_get_int(const Json::Value& json, int& out_or_default)
 }
 
 
+static void json_get_bool_or(const Json::Value& json, int& out_or_default)
+{
+	if (json.isInt())
+		out_or_default |= json.asInt();
+}
+
+
 void load_state()
 {
 	std::string filename = ap_save_dir_name + "/apstate.json";
@@ -479,7 +486,7 @@ void load_state()
 	for (int i = 0; i < AP_NUM_POWERS; ++i)
 		json_get_int(json["player"]["powers"][i], ap_state.player_state.powers[i]);
 	for (int i = 0; i < AP_NUM_WEAPONS; ++i)
-		json_get_int(json["player"]["weapon_owned"][i], ap_state.player_state.weapon_owned[i]);
+		json_get_bool_or(json["player"]["weapon_owned"][i], ap_state.player_state.weapon_owned[i]);
 	for (int i = 0; i < AP_NUM_AMMO; ++i)
 		json_get_int(json["player"]["ammo"][i], ap_state.player_state.ammo[i]);
 	for (int i = 0; i < AP_NUM_AMMO; ++i)
@@ -500,18 +507,18 @@ void load_state()
 		{
 			for (int j = 0; j < ap_map_count; ++j)
 			{
-				json_get_int(json["episodes"][i][j]["completed"], ap_state.level_states[i][j].completed);
-				json_get_int(json["episodes"][i][j]["keys0"], ap_state.level_states[i][j].keys[0]);
-				json_get_int(json["episodes"][i][j]["keys1"], ap_state.level_states[i][j].keys[1]);
-				json_get_int(json["episodes"][i][j]["keys2"], ap_state.level_states[i][j].keys[2]);
-				json_get_int(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
-				json_get_int(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
-				json_get_int(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
+				json_get_bool_or(json["episodes"][i][j]["completed"], ap_state.level_states[i][j].completed);
+				json_get_bool_or(json["episodes"][i][j]["keys0"], ap_state.level_states[i][j].keys[0]);
+				json_get_bool_or(json["episodes"][i][j]["keys1"], ap_state.level_states[i][j].keys[1]);
+				json_get_bool_or(json["episodes"][i][j]["keys2"], ap_state.level_states[i][j].keys[2]);
+				json_get_bool_or(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
+				json_get_bool_or(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
+				json_get_bool_or(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
 
 				int k = 0;
 				for (const auto& json_check : json["episodes"][i][j]["checks"])
 				{
-					json_get_int(json_check, ap_state.level_states[i][j].checks[k++]);
+					json_get_bool_or(json_check, ap_state.level_states[i][j].checks[k++]);
 				}
 			}
 		}
@@ -520,18 +527,18 @@ void load_state()
 	{
 		for (int j = 0; j < ap_map_count; ++j)
 		{
-			json_get_int(json["maps"][j]["completed"], ap_state.d2_level_states[j].completed);
-			json_get_int(json["maps"][j]["keys0"], ap_state.d2_level_states[j].keys[0]);
-			json_get_int(json["maps"][j]["keys1"], ap_state.d2_level_states[j].keys[1]);
-			json_get_int(json["maps"][j]["keys2"], ap_state.d2_level_states[j].keys[2]);
-			json_get_int(json["maps"][j]["check_count"], ap_state.d2_level_states[j].check_count);
-			json_get_int(json["maps"][j]["has_map"], ap_state.d2_level_states[j].has_map);
-			json_get_int(json["maps"][j]["unlocked"], ap_state.d2_level_states[j].unlocked);
+			json_get_bool_or(json["maps"][j]["completed"], ap_state.d2_level_states[j].completed);
+			json_get_bool_or(json["maps"][j]["keys0"], ap_state.d2_level_states[j].keys[0]);
+			json_get_bool_or(json["maps"][j]["keys1"], ap_state.d2_level_states[j].keys[1]);
+			json_get_bool_or(json["maps"][j]["keys2"], ap_state.d2_level_states[j].keys[2]);
+			json_get_bool_or(json["maps"][j]["check_count"], ap_state.d2_level_states[j].check_count);
+			json_get_bool_or(json["maps"][j]["has_map"], ap_state.d2_level_states[j].has_map);
+			json_get_bool_or(json["maps"][j]["unlocked"], ap_state.d2_level_states[j].unlocked);
 
 			int k = 0;
 			for (const auto& json_check : json["maps"][j]["checks"])
 			{
-				json_get_int(json_check, ap_state.d2_level_states[j].checks[k++]);
+				json_get_bool_or(json_check, ap_state.d2_level_states[j].checks[k++]);
 			}
 		}
 	}
@@ -556,7 +563,7 @@ void load_state()
 		ap_progressive_locations.insert(prog_json.asInt64());
 	}
 	
-	json_get_int(json["victory"], ap_state.victory);
+	json_get_bool_or(json["victory"], ap_state.victory);
 }
 
 
@@ -786,6 +793,9 @@ void f_itemrecv(int64_t item_id, bool notify_player)
         case 2005:
 			ap_state.player_state.weapon_owned[7] = 1;	
             break;
+		case 82:
+			ap_state.player_state.weapon_owned[8] = 1;
+			break;
 	}
 
 	// Is it a level?
