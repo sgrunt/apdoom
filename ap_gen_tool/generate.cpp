@@ -120,6 +120,8 @@ std::map<std::string, std::set<std::string>> item_name_groups;
 std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
 std::map<std::string, ap_item_t*> item_map;
 
+static bool has_ssg = false;
+
 const char* get_doom_type_name(int doom_type);
 
 static std::string get_requirement_name(const std::string& level_name, int doom_type)
@@ -288,12 +290,14 @@ int generate(game_t game)
             item_id_base = 350000;
             item_next_id = item_id_base;
             location_next_id = 351000;
+            has_ssg = false;
             break;
         case game_t::doom2:
             py_out_dir += "doom_ii\\";
             item_id_base = 360000;
             item_next_id = item_id_base;
             location_next_id = 361000;
+            has_ssg = true;
             break;
     }
     std::string cpp_out_dir = OArguments[3] + std::string("\\");
@@ -1174,12 +1178,14 @@ class LocationDict(TypedDict, total=False): \n\
                         for (const auto& requirement_and_json: world_requirements_and_json)
                         {
                             int doom_type = requirement_and_json.asInt();
-                            ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                            if (has_ssg && doom_type == 2001) ands.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
+                            else ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
                         for (const auto& requirement_or_json: world_requirements_or_json)
                         {
                             int doom_type = requirement_or_json.asInt();
-                            ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                            if (has_ssg && doom_type == 2001) ors.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
+                            else ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
 
                         fprintf(fout, "    set_rule(world.get_entrance(\"Hub -> %s\", player), lambda state:\n", region_name.c_str());
@@ -1229,12 +1235,14 @@ class LocationDict(TypedDict, total=False): \n\
                     for (const auto& requirement_and_json: requirements_and_json)
                     {
                         int doom_type = requirement_and_json.asInt();
-                        ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        if (has_ssg && doom_type == 2001) ands.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
+                        else ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                     }
                     for (const auto& requirement_or_json: requirements_or_json)
                     {
                         int doom_type = requirement_or_json.asInt();
-                        ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        if (has_ssg && doom_type == 2001) ors.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
+                        else ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                     }
 
                     auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();

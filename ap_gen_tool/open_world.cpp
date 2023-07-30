@@ -339,6 +339,9 @@ map_history_t* get_history(const level_index_t& idx)
 }
 
 
+const char* ERROR_STR = "ERROR";
+
+
 const char* get_doom_type_name(int doom_type)
 {
     switch (doom_type)
@@ -366,7 +369,7 @@ const char* get_doom_type_name(int doom_type)
         case 82: return "Super Shotgun";
         case 83: return "Megasphere";
     }
-    return "ERROR";
+    return ERROR_STR;
 }
 
 
@@ -2407,7 +2410,17 @@ void renderUI()
 
         if (ImGui::Begin("Map"))
         {
-
+            auto map = get_map(active_level);
+            for (const auto& thing : map->things)
+            {
+                if (thing.flags & 0x0010)
+                {
+                    continue; // Thing is not in single player
+                }
+                auto str = get_doom_type_name(thing.type);
+                if (str == ERROR_STR) continue;
+                ImGui::Text("%s", str);
+            }
         }
         ImGui::End();
 
