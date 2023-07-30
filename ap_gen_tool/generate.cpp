@@ -135,7 +135,7 @@ static std::string get_requirement_name(const std::string& level_name, int doom_
         case 13: return level_name + " - Red keycard";
         case 38: return level_name + " - Red skull key";
         case 2005: return "Chainsaw";
-        case 2001: return "Shotgun";
+        case 2001: return has_ssg ? "Super Shotgun" : "Shotgun";
         case 2002: return "Chaingun";
         case 2003: return "Rocket launcher";
         case 2004: return "Plasma gun";
@@ -1178,14 +1178,12 @@ class LocationDict(TypedDict, total=False): \n\
                         for (const auto& requirement_and_json: world_requirements_and_json)
                         {
                             int doom_type = requirement_and_json.asInt();
-                            if (has_ssg && doom_type == 2001) ands.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
-                            else ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                            ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
                         for (const auto& requirement_or_json: world_requirements_or_json)
                         {
                             int doom_type = requirement_or_json.asInt();
-                            if (has_ssg && doom_type == 2001) ors.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
-                            else ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                            ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
 
                         fprintf(fout, "    set_rule(world.get_entrance(\"Hub -> %s\", player), lambda state:\n", region_name.c_str());
@@ -1235,14 +1233,12 @@ class LocationDict(TypedDict, total=False): \n\
                     for (const auto& requirement_and_json: requirements_and_json)
                     {
                         int doom_type = requirement_and_json.asInt();
-                        if (has_ssg && doom_type == 2001) ands.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
-                        else ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                     }
                     for (const auto& requirement_or_json: requirements_or_json)
                     {
                         int doom_type = requirement_or_json.asInt();
-                        if (has_ssg && doom_type == 2001) ors.push_back("(state.has(\"Shotgun\", player, 1) or state.has(\"Super Shotgun\", player, 1))");
-                        else ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                     }
 
                     auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();
