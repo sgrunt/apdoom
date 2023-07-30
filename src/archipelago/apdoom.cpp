@@ -162,8 +162,22 @@ int AP_FileExists(const char *filename)
 }
 
 
+struct ap_level_index_t
+{
+	int ep;
+	int map;
+};
+
+enum class ap_game_t
+{
+	doom,
+	doom2
+};
+
+
 ap_state_t ap_state;
 int ap_is_in_game = 0;
+ap_game_t ap_game;
 
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
@@ -173,6 +187,9 @@ static std::set<int64_t> ap_progressive_locations;
 static bool ap_initialized = false;
 static std::vector<std::string> ap_cached_messages;
 static std::string ap_save_dir_name;
+static bool ap_is_episodic = true;
+static int ap_episode_count = -1;
+static int ap_map_count = -1;
 
 
 void f_itemclr();
@@ -190,6 +207,48 @@ void f_two_ways_keydoors(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
+
+
+ap_level_info_t* ap_get_level_info(int ep, int map)
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return &ap_level_infos[ep - 1][map - 1];
+		case ap_game_t::doom2: return &ap_d2_level_infos[map - 1];
+	}
+}
+
+
+ap_level_state_t* ap_get_level_state(int ep, int map)
+{
+	if (ap_is_episodic)
+		return &ap_state.level_states[ep - 1][map - 1];
+	else
+		return &ap_state.d2_level_states[map - 1];
+}
+
+
+static const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>>& get_episodic_location_table()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom:
+		{
+			return location_table;
+		}
+	}
+}
+
+static const std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>& get_location_table()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom2:
+		{
+			return d2_location_table;
+		}
+	}
+}
 
 
 std::string string_to_hex(const char* str)
@@ -213,6 +272,27 @@ std::string string_to_hex(const char* str)
 int apdoom_init(ap_settings_t* settings)
 {
 	memset(&ap_state, 0, sizeof(ap_state));
+
+	if (strcmp(settings->game, "DOOM 1993") == 0)
+	{
+		ap_game = ap_game_t::doom;
+		ap_is_episodic = true;
+		ap_episode_count = AP_EPISODE_COUNT;
+		ap_map_count = AP_LEVEL_COUNT;
+	}
+	else if (strcmp(settings->game, "DOOM II") == 0)
+	{
+		ap_game = ap_game_t::doom2;
+		ap_is_episodic = false;
+		ap_episode_count = -1;
+		ap_map_count = AP_D2_LEVEL_COUNT;
+	}
+	else
+	{
+		printf("APDOOM: Invalid game: %s\n", settings->game);
+		return 0;
+	}
+
 	ap_state.player_state.health = 100;
 	ap_state.player_state.ready_weapon = 1;
 	ap_state.player_state.weapon_owned[0] = 1; // Fist
@@ -222,13 +302,15 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.max_ammo[1] = 50;
 	ap_state.player_state.max_ammo[2] = 300;
 	ap_state.player_state.max_ammo[3] = 50;
-	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
-		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
+	if (ap_is_episodic)
+		for (int ep = 0; ep < ap_episode_count; ++ep)
+			for (int map = 0; map < ap_map_count; ++map)
+				for (int k = 0; k < AP_CHECK_MAX; ++k)
+					ap_state.level_states[ep][map].checks[k] = -1;
+	else
+		for (int map = 0; map < ap_map_count; ++map)
 			for (int k = 0; k < AP_CHECK_MAX; ++k)
-				ap_state.level_states[ep][map].checks[k] = -1;
-	for (int map = 0; map < AP_D2_LEVEL_COUNT; ++map)
-		for (int k = 0; k < AP_CHECK_MAX; ++k)
-			ap_state.d2_level_states[map].checks[k] = -1;
+				ap_state.d2_level_states[map].checks[k] = -1;
 
 	ap_settings = *settings;
 
@@ -286,23 +368,43 @@ int apdoom_init(ap_settings_t* settings)
 		}
 	}
 
-	// If none episode is selected, select the first one
-	int ep_count = 0;
-	for (int i = 0; i < AP_EPISODE_COUNT; ++i)
-		if (ap_state.episodes[i])
-			ep_count++;
-	if (!ep_count)
-		ap_state.episodes[0] = 1;
+	// If none episode is selected, select the first one.
+	if (ap_is_episodic)
+	{
+		int ep_count = 0;
+		for (int i = 0; i < ap_episode_count; ++i)
+			if (ap_state.episodes[i])
+				ep_count++;
+		if (!ep_count)
+			ap_state.episodes[0] = 1;
+	}
 
 	// Scout locations to see which are progressive
 	if (ap_progressive_locations.empty())
 	{
 		std::vector<int64_t> location_scouts;
-		for (const auto& kv1 : location_table)
+
+		if (ap_is_episodic)
 		{
-			if (!ap_state.episodes[kv1.first - 1])
-				continue;
-			for (const auto& kv2 : kv1.second)
+			const auto& loc_table = get_episodic_location_table();
+			for (const auto& kv1 : loc_table)
+			{
+				if (!ap_state.episodes[kv1.first - 1])
+					continue;
+				for (const auto& kv2 : kv1.second)
+				{
+					for (const auto& kv3 : kv2.second)
+					{
+						if (kv3.first == -1) continue;
+						location_scouts.push_back(kv3.second);
+					}
+				}
+			}
+		}
+		else
+		{
+			const auto& loc_table = get_location_table();
+			for (const auto& kv2 : loc_table)
 			{
 				for (const auto& kv3 : kv2.second)
 				{
@@ -311,6 +413,7 @@ int apdoom_init(ap_settings_t* settings)
 				}
 			}
 		}
+
 		AP_SendLocationScouts(location_scouts, 0);
 
 		// Wait for location infos
@@ -391,22 +494,44 @@ void load_state()
 	}
 
 	// Level states
-	for (int i = 0; i < AP_EPISODE_COUNT; ++i)
+	if (ap_is_episodic)
 	{
-		for (int j = 0; j < AP_LEVEL_COUNT; ++j)
+		for (int i = 0; i < ap_episode_count; ++i)
 		{
-			json_get_int(json["episodes"][i][j]["completed"], ap_state.level_states[i][j].completed);
-			json_get_int(json["episodes"][i][j]["keys0"], ap_state.level_states[i][j].keys[0]);
-			json_get_int(json["episodes"][i][j]["keys1"], ap_state.level_states[i][j].keys[1]);
-			json_get_int(json["episodes"][i][j]["keys2"], ap_state.level_states[i][j].keys[2]);
-			json_get_int(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
-			json_get_int(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
-			json_get_int(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
+			for (int j = 0; j < ap_map_count; ++j)
+			{
+				json_get_int(json["episodes"][i][j]["completed"], ap_state.level_states[i][j].completed);
+				json_get_int(json["episodes"][i][j]["keys0"], ap_state.level_states[i][j].keys[0]);
+				json_get_int(json["episodes"][i][j]["keys1"], ap_state.level_states[i][j].keys[1]);
+				json_get_int(json["episodes"][i][j]["keys2"], ap_state.level_states[i][j].keys[2]);
+				json_get_int(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
+				json_get_int(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
+				json_get_int(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
+
+				int k = 0;
+				for (const auto& json_check : json["episodes"][i][j]["checks"])
+				{
+					json_get_int(json_check, ap_state.level_states[i][j].checks[k++]);
+				}
+			}
+		}
+	}
+	else
+	{
+		for (int j = 0; j < ap_map_count; ++j)
+		{
+			json_get_int(json["maps"][j]["completed"], ap_state.d2_level_states[j].completed);
+			json_get_int(json["maps"][j]["keys0"], ap_state.d2_level_states[j].keys[0]);
+			json_get_int(json["maps"][j]["keys1"], ap_state.d2_level_states[j].keys[1]);
+			json_get_int(json["maps"][j]["keys2"], ap_state.d2_level_states[j].keys[2]);
+			json_get_int(json["maps"][j]["check_count"], ap_state.d2_level_states[j].check_count);
+			json_get_int(json["maps"][j]["has_map"], ap_state.d2_level_states[j].has_map);
+			json_get_int(json["maps"][j]["unlocked"], ap_state.d2_level_states[j].unlocked);
 
 			int k = 0;
-			for (const auto& json_check : json["episodes"][i][j]["checks"])
+			for (const auto& json_check : json["maps"][j]["checks"])
 			{
-				json_get_int(json_check, ap_state.level_states[i][j].checks[k++]);
+				json_get_int(json_check, ap_state.d2_level_states[j].checks[k++]);
 			}
 		}
 	}
@@ -417,11 +542,14 @@ void load_state()
 		ap_item_queue.push_back(item_id_json.asInt64());
 	}
 
-	json_get_int(json["ep"], ap_state.ep);
+	if (ap_is_episodic)
+	{
+		json_get_int(json["ep"], ap_state.ep);
+		int i = 0;
+		for (auto& ep : ap_state.episodes)
+			json_get_int(json["enabled_episodes"][i++], ep);
+	}
 	json_get_int(json["map"], ap_state.map);
-	int i = 0;
-	for (auto& ep : ap_state.episodes)
-		json_get_int(json["enabled_episodes"][i++], ep);
 
 	for (const auto& prog_json : json["progressive_locations"])
 	{
@@ -429,6 +557,59 @@ void load_state()
 	}
 	
 	json_get_int(json["victory"], ap_state.victory);
+}
+
+
+Json::Value serialize_level(int ep, int map)
+{
+	auto level_state = ap_get_level_state(ep, map);
+
+	Json::Value json_level;
+
+	json_level["completed"] = level_state->completed;
+	json_level["keys0"] = level_state->keys[0];
+	json_level["keys1"] = level_state->keys[1];
+	json_level["keys2"] = level_state->keys[2];
+	json_level["check_count"] = level_state->check_count;
+	json_level["has_map"] = level_state->has_map;
+	json_level["unlocked"] = level_state->unlocked;
+
+	Json::Value json_checks(Json::arrayValue);
+	for (int k = 0; k < AP_CHECK_MAX; ++k)
+	{
+		if (level_state->checks[k] == -1)
+			continue;
+		json_checks.append(level_state->checks[k]);
+	}
+	json_level["checks"] = json_checks;
+
+	return json_level;
+}
+
+
+std::vector<ap_level_index_t> get_level_indices()
+{
+	std::vector<ap_level_index_t> ret;
+
+	if (ap_is_episodic)
+	{
+		for (int i = 0; i < ap_episode_count; ++i)
+		{
+			for (int j = 0; j < ap_map_count; ++j)
+			{
+				ret.push_back({i + 1, j + 1});
+			}
+		}
+	}
+	else
+	{
+		for (int j = 0; j < ap_map_count; ++j)
+		{
+			ret.push_back({-1, j + 1});
+		}
+	}
+
+	return ret;
 }
 
 
@@ -477,36 +658,29 @@ void save_state()
 	json["player"] = json_player;
 
 	// Level states
-	Json::Value json_episodes(Json::arrayValue);
-	for (int i = 0; i < AP_EPISODE_COUNT; ++i)
+	if (ap_is_episodic)
+	{
+		Json::Value json_episodes(Json::arrayValue);
+		for (int i = 0; i < ap_episode_count; ++i)
+		{
+			Json::Value json_levels(Json::arrayValue);
+			for (int j = 0; j < ap_map_count; ++j)
+			{
+				json_levels.append(serialize_level(i + 1, j + 1));
+			}
+			json_episodes.append(json_levels);
+		}
+		json["episodes"] = json_episodes;
+	}
+	else
 	{
 		Json::Value json_levels(Json::arrayValue);
-		for (int j = 0; j < AP_LEVEL_COUNT; ++j)
+		for (int j = 0; j < ap_map_count; ++j)
 		{
-			Json::Value json_level;
-
-			json_level["completed"] = ap_state.level_states[i][j].completed;
-			json_level["keys0"] = ap_state.level_states[i][j].keys[0];
-			json_level["keys1"] = ap_state.level_states[i][j].keys[1];
-			json_level["keys2"] = ap_state.level_states[i][j].keys[2];
-			json_level["check_count"] = ap_state.level_states[i][j].check_count;
-			json_level["has_map"] = ap_state.level_states[i][j].has_map;
-			json_level["unlocked"] = ap_state.level_states[i][j].unlocked;
-
-			Json::Value json_checks(Json::arrayValue);
-			for (int k = 0; k < AP_CHECK_MAX; ++k)
-			{
-				if (ap_state.level_states[i][j].checks[k] == -1)
-					continue;
-				json_checks.append(ap_state.level_states[i][j].checks[k]);
-			}
-			json_level["checks"] = json_checks;
-
-			json_levels.append(json_level);
+			json_levels.append(serialize_level(-1, j + 1));
 		}
-		json_episodes.append(json_levels);
+		json["maps"] = json_levels;
 	}
-	json["episodes"] = json_episodes;
 
 	// Item queue
 	Json::Value json_item_queue(Json::arrayValue);
@@ -516,12 +690,14 @@ void save_state()
 	}
 	json["item_queue"] = json_item_queue;
 
-	json["ep"] = ap_state.ep;
+	if (ap_is_episodic)
+	{
+		json["ep"] = ap_state.ep;
+		int i = 0;
+		for (auto ep : ap_state.episodes)
+			json["enabled_episodes"][i++] = ep ? true : false;
+	}
 	json["map"] = ap_state.map;
-
-	int i = 0;
-	for (auto ep : ap_state.episodes)
-		json["enabled_episodes"][i++] = ep ? true : false;
 
 	// Progression items (So we don't scout everytime we connect)
 	for (auto loc_id : ap_progressive_locations)
@@ -541,32 +717,45 @@ void f_itemclr()
 }
 
 
+static const std::map<int64_t, ap_item_t>& get_item_type_table()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return item_doom_type_table;
+		case ap_game_t::doom2: return d2_item_doom_type_table;
+	}
+}
+
+
 void f_itemrecv(int64_t item_id, bool notify_player)
 {
-	auto it = item_doom_type_table.find(item_id);
-	if (it == item_doom_type_table.end())
+	const auto& item_type_table = get_item_type_table();
+	auto it = item_type_table.find(item_id);
+	if (it == item_type_table.end())
 		return; // Skip
 	ap_item_t item = it->second;
+
+	auto level_state = ap_get_level_state(item.ep, item.map);
 
 	switch (item.doom_type)
 	{
 		// Is it a key?
 		case 5:
 		case 40:
-			ap_state.level_states[item.ep - 1][item.map - 1].keys[0] = 1;
+			level_state->keys[0] = 1;
 			break;
 		case 6:
 		case 39:
-			ap_state.level_states[item.ep - 1][item.map - 1].keys[1] = 1;
+			level_state->keys[1] = 1;
 			break;
 		case 13:
 		case 38:
-			ap_state.level_states[item.ep - 1][item.map - 1].keys[2] = 1;
+			level_state->keys[2] = 1;
 			break;
 
 		// Map
 		case 2026:
-			ap_state.level_states[item.ep - 1][item.map - 1].has_map = 1;
+			level_state->has_map = 1;
 			break;
 
 		// Backpack
@@ -602,7 +791,7 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	// Is it a level?
 	if (item.doom_type == -1)
 	{
-		ap_state.level_states[item.ep - 1][item.map - 1].unlocked = 1;
+		level_state->unlocked = 1;
 	}
 
 
@@ -619,40 +808,75 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 }
 
 
+bool find_location(int64_t loc_id, int &ep, int &map, int &index)
+{
+	ep = -1;
+	map = -1;
+	index = -1;
+
+	if (ap_is_episodic)
+	{
+		const auto& loc_table = get_episodic_location_table();
+		for (const auto& loc_map_table : loc_table)
+		{
+			for (const auto& loc_index_table : loc_map_table.second)
+			{
+				for (const auto& loc_index : loc_index_table.second)
+				{
+					if (loc_index.second == loc_id)
+					{
+						ep = loc_map_table.first;
+						map = loc_index_table.first;
+						index = loc_index.first;
+						break;
+					}
+				}
+				if (ep != -1) break;
+			}
+			if (ep != -1) break;
+		}
+		return (ep > 0);
+	}
+	else
+	{
+		//const std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>> d2_location_table;
+		const auto& loc_table = get_location_table();
+		for (const auto& loc_index_table : loc_table)
+		{
+			for (const auto& loc_index : loc_index_table.second)
+			{
+				if (loc_index.second == loc_id)
+				{
+					ep = -1;
+					map = loc_index_table.first;
+					index = loc_index.first;
+					break;
+				}
+			}
+			if (map != -1) break;
+		}
+		return (map > 0);
+	}
+}
+
+
 void f_locrecv(int64_t loc_id)
 {
 	// Find where this location is
 	int ep = -1;
 	int map = -1;
 	int index = -1;
-	for (const auto& loc_map_table : location_table)
-	{
-		for (const auto& loc_index_table : loc_map_table.second)
-		{
-			for (const auto& loc_index : loc_index_table.second)
-			{
-				if (loc_index.second == loc_id)
-				{
-					ep = loc_map_table.first;
-					map = loc_index_table.first;
-					index = loc_index.first;
-					break;
-				}
-			}
-			if (ep != -1) break;
-		}
-		if (ep != -1) break;
-	}
-	if (ep == -1)
+	if (!find_location(loc_id, ep, map, index))
 	{
 		printf("APDOOM: In f_locrecv, loc id not found: %i\n", (int)loc_id);
 		return; // Loc not found
 	}
 
-	// Make sure we didn't already check if
-	for (int i = 0; i < ap_state.level_states[ep - 1][map - 1].check_count; ++i)
+	// Make sure we didn't already check it
+	auto level_state = ap_get_level_state(ep, map);
+	for (int i = 0; i < level_state->check_count; ++i)
 	{
-		if (ap_state.level_states[ep - 1][map - 1].checks[i] == index)
+		if (level_state->checks[i] == index)
 		{
 			return; // Don't print anything
 		}
@@ -660,8 +884,8 @@ void f_locrecv(int64_t loc_id)
 
 	if (index < 0) return;
 
-	ap_state.level_states[ep - 1][map - 1].checks[ap_state.level_states[ep - 1][map - 1].check_count] = index;
-	ap_state.level_states[ep - 1][map - 1].check_count++;
+	level_state->checks[level_state->check_count] = index;
+	level_state->check_count++;
 }
 
 
@@ -731,48 +955,92 @@ const char* apdoom_get_seed()
 
 void apdoom_check_location(int ep, int map, int index)
 {
-	auto it1 = location_table.find(ep);
-	if (it1 == location_table.end()) return;
-
-	auto it2 = it1->second.find(map);
-	if (it2 == it1->second.end()) return;
-
-	auto it3 = it2->second.find(index);
-	if (it3 == it2->second.end()) return;
-
-	int64_t id = it3->second;
-
-	if (index >= 0)
+	if (ap_is_episodic)
 	{
-		ap_state.level_states[ep - 1][map - 1].checks[ap_state.level_states[ep - 1][map - 1].check_count] = index;
-		ap_state.level_states[ep - 1][map - 1].check_count++;
-	}
+		const auto& loc_table = get_episodic_location_table();
 
-	AP_SendItem(id);
+		auto it1 = loc_table.find(ep);
+		if (it1 == loc_table.end()) return;
+
+		auto it2 = it1->second.find(map);
+		if (it2 == it1->second.end()) return;
+
+		auto it3 = it2->second.find(index);
+		if (it3 == it2->second.end()) return;
+
+		int64_t id = it3->second;
+
+		if (index >= 0)
+		{
+			auto level_state = ap_get_level_state(ep, map);
+			level_state->checks[level_state->check_count] = index;
+			level_state->check_count++;
+		}
+		AP_SendItem(id);
+	}
+	else
+	{
+		const auto& loc_table = get_location_table();
+
+		auto it2 = loc_table.find(map);
+		if (it2 == loc_table.end()) return;
+
+		auto it3 = it2->second.find(index);
+		if (it3 == it2->second.end()) return;
+
+		int64_t id = it3->second;
+
+		if (index >= 0)
+		{
+			auto level_state = ap_get_level_state(-1, map);
+			level_state->checks[level_state->check_count] = index;
+			level_state->check_count++;
+		}
+		AP_SendItem(id);
+	}
 }
 
 
 int apdoom_is_location_progression(int ep, int map, int index)
 {
-	auto it1 = location_table.find(ep);
-	if (it1 == location_table.end()) return 0;
+	if (ap_is_episodic)
+	{
+		const auto& loc_table = get_episodic_location_table();
 
-	auto it2 = it1->second.find(map);
-	if (it2 == it1->second.end()) return 0;
+		auto it1 = loc_table.find(ep);
+		if (it1 == loc_table.end()) return 0;
 
-	auto it3 = it2->second.find(index);
-	if (it3 == it2->second.end()) return 0;
+		auto it2 = it1->second.find(map);
+		if (it2 == it1->second.end()) return 0;
 
-	int64_t id = it3->second;
+		auto it3 = it2->second.find(index);
+		if (it3 == it2->second.end()) return 0;
 
-	return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
+		int64_t id = it3->second;
+
+		return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
+	}
+	else
+	{
+		const auto& loc_table = get_location_table();
+
+		auto it2 = loc_table.find(map);
+		if (it2 == loc_table.end()) return 0;
+
+		auto it3 = it2->second.find(index);
+		if (it3 == it2->second.end()) return 0;
+
+		int64_t id = it3->second;
+
+		return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
+	}
 }
 
 
 void apdoom_complete_level(int ep, int map)
 {
 	//if (ap_state.level_states[ep - 1][map - 1].completed) return; // Already completed
-    ap_state.level_states[ep - 1][map - 1].completed = 1;
+    ap_get_level_state(ep, map)->completed = 1;
 	apdoom_check_location(ep, map, -1); // -1 is complete location
 }
 
@@ -781,14 +1049,25 @@ void apdoom_check_victory()
 {
 	if (ap_state.victory) return;
 
-	for (int ep = 0; ep < AP_EPISODE_COUNT; ++ep)
+	if (ap_is_episodic)
 	{
-		if (!ap_state.episodes[ep]) continue;
-		for (int map = 0; map < AP_LEVEL_COUNT; ++map)
+		for (int ep = 0; ep < ap_episode_count; ++ep)
 		{
-			if (!ap_state.level_states[ep][map].completed) return;
+			if (!ap_state.episodes[ep]) continue;
+			for (int map = 0; map < ap_map_count; ++map)
+			{
+				if (!ap_state.level_states[ep][map].completed) return;
+			}
 		}
 	}
+	else
+	{
+		for (int map = 0; map < ap_map_count; ++map)
+		{
+			if (!ap_state.d2_level_states[map].completed) return;
+		}
+	}
+
 	ap_state.victory = 1;
 
 	AP_StoryComplete();

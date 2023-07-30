@@ -1181,19 +1181,6 @@ static void G_CrispyScreenShot()
 	crispy->screenshotmsg = 2;
 }
 
-ap_level_info_t* get_level_info();
-ap_level_info_t* get_level_state()
-{
-    if (gamemode == commercial)
-    {
-        return &ap_state.d2_level_states[gamemap - 1];
-    }
-    else
-    {
-        return &ap_state.level_states[gameepisode - 1][gamemap - 1];
-    }
-}
-
 void set_ap_player_states()
 {
     //G_PlayerReborn(consoleplayer); // This will reset the player completely (Nah, this crashes)
@@ -1223,13 +1210,16 @@ void set_ap_player_states()
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 
     // Cards
-    p->cards[0] = get_level_state()->keys[0] && !get_level_info()->use_skull[0];
-    p->cards[1] = get_level_state()->keys[1] && !get_level_info()->use_skull[1];
-    p->cards[2] = get_level_state()->keys[2] && !get_level_info()->use_skull[2];
+    ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
+
+    p->cards[0] = level_state->keys[0] && !level_info->use_skull[0];
+    p->cards[1] = level_state->keys[1] && !level_info->use_skull[1];
+    p->cards[2] = level_state->keys[2] && !level_info->use_skull[2];
     // Skulls (redundant)
-    p->cards[3] = get_level_state()->keys[0] && get_level_info()->use_skull[0];
-    p->cards[4] = get_level_state()->keys[1] && get_level_info()->use_skull[1];
-    p->cards[5] = get_level_state()->keys[2] && get_level_info()->use_skull[2];
+    p->cards[3] = level_state->keys[0] && level_info->use_skull[0];
+    p->cards[4] = level_state->keys[1] && level_info->use_skull[1];
+    p->cards[5] = level_state->keys[2] && level_info->use_skull[2];
     
     // mo
     if (p->mo)
@@ -2482,7 +2472,10 @@ void G_DoSaveGame (void)
 
     char filename[260];
 
-    snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);
+    if (gamemode == commercial)
+        snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);
+    else
+        snprintf(filename, 260, "%s/save_MAP%02i.dsg", apdoom_get_seed(), gamemap);
 
     char *savegame_file;
     char *temp_savegame_file;

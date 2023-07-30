@@ -60,7 +60,7 @@ namespace APDoomLauncher
                 command_line += $" -nofullscreen -width {txtWidth.Text} -height {txtHeight.Text}";
             }
             if (txtCommandLine.Text != "") command_line += " " + txtCommandLine.Text;
-            System.Diagnostics.Process.Start("crispy-doom.exe", command_line);
+            System.Diagnostics.Process.Start("crispy-apdoom.exe", command_line);
 
             Environment.Exit(0);
         }

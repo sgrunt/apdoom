@@ -490,7 +490,7 @@ void P_LoadNodes (int lump)
 
 boolean validate_doom_location(int ep, int map, int doom_type, int index)
 {
-    ap_level_info_t* level_info = &ap_level_infos[ep][map];
+    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
     if (index >= level_info->thing_count) return false;
     return level_info->thing_infos[index].doom_type == doom_type;
 }
@@ -922,16 +922,17 @@ void P_LoadThings (int lump)
             // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
             if (!validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
             {
-                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD from the steam release.");
+                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD or DOOM2.WAD from the steam releases.");
             }
             if (apdoom_is_location_progression(gameepisode, gamemap, i))
                 spawnthing.type = 20001;
             else
                 spawnthing.type = 20000;
             int skip = 0;
-            for (j = 0; j < ap_state.level_states[gameepisode - 1][gamemap - 1].check_count; ++j)
+            ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+            for (j = 0; j < level_state->check_count; ++j)
             {
-                if (ap_state.level_states[gameepisode - 1][gamemap - 1].checks[j] == i)
+                if (level_state->checks[j] == i)
                 {
                     skip = 1;
                     break;
@@ -995,30 +996,37 @@ void P_LoadLineDefs (int lump)
 
 
     // [AP] If the multiworld was generacted with 2 way keydoors, we need to fix those doors to be 2 ways
-    if (gameepisode == 2 && gamemap == 6 && ap_state.two_ways_keydoors)
-        mld[620].special = 27; // Yellow keycard
-    else if (gameepisode == 3 && gamemap == 9 && ap_state.two_ways_keydoors)
-        mld[195].special = 32; // Blue keycard
-
-    // [AP] Can be softlocked if coming back to that level after boss is dead, make sure to disable it's triggers that closes the doors
-    else if (gameepisode == 2 && gamemap == 8)
+    if (gamemode == commercial)
     {
-        for (i = 140; i <= 143; ++i)
-        {
-            mld[i].special = 0;
-            mld[i].tag = 0;
-        }
+        // Doom II
     }
+    else
+    {
+        // Ultimate Doom
+        if (gameepisode == 2 && gamemap == 6 && ap_state.two_ways_keydoors)
+            mld[620].special = 27; // Yellow keycard
+        else if (gameepisode == 3 && gamemap == 9 && ap_state.two_ways_keydoors)
+            mld[195].special = 32; // Blue keycard
 
-    // [AP] We can get stuck and not able to come back to the HUB. Make sure the entrance door can be re-openned from the other side
-    else if (gameepisode == 4 && gamemap == 8)
-        mld[96].special = 61; // Stay open
+        // [AP] Can be softlocked if coming back to that level after boss is dead, make sure to disable it's triggers that closes the doors
+        else if (gameepisode == 2 && gamemap == 8)
+        {
+            for (i = 140; i <= 143; ++i)
+            {
+                mld[i].special = 0;
+                mld[i].tag = 0;
+            }
+        }
+
+        // [AP] We can get stuck and not able to come back to the HUB. Make sure the entrance door can be re-openned from the other side
+        else if (gameepisode == 4 && gamemap == 8)
+            mld[96].special = 61; // Stay open
+    }
 
 
 
     for (i=0 ; i<numlines ; i++, mld++, ld++)
     {
-
 	ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
 	ld->special = SHORT(mld->special);
 	// [crispy] warn about unknown linedef types

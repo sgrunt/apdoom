@@ -1,5 +1,5 @@
-Release/APDoomLauncher.exe
-Release/crispy-doom.exe
+Release/apdoom-launcher.exe
+Release/crispy-apdoom.exe
 Release/crispy-setup.exe
 Release/APCpp.dll
 Release/intl.dll
@@ -10,5 +10,6 @@ Release/libsndfile-1.dll
 Release/samplerate.dll
 Release/SDL2.dll
 Release/SDL2_mixer.dll
-Release/README.txt
 Release/APDOOM.WAD
+Release/credits-doom-1993.txt
+Release/credits-doom-ii.txt

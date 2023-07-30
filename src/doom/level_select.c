@@ -28,6 +28,8 @@
 #include "i_video.h"
 #include "g_game.h"
 #include "m_misc.h"
+#include "hu_lib.h"
+#include "hu_stuff.h"
 
 
 void WI_initAnimatedBack(void);
@@ -111,6 +113,49 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 };
 
 
+static const char* d2_level_names[AP_D2_LEVEL_COUNT] = {
+    // Episode 1: The Space Station
+    "Entryway (MAP01)",
+    "Underhalls (MAP02)",
+    "The Gantlet (MAP03)",
+    "The Focus (MAP04)",
+    "The Waste Tunnels (MAP05)",
+    "The Crusher (MAP06)",
+    "Dead Simple (MAP07)",
+    "Tricks and Traps (MAP08)",
+    "The Pit (MAP09)",
+    "Refueling Base (MAP10)",
+    "Circle of Death (MAP11)", // 'O' of Destruction!1 ?
+    
+    // Episode 2: The City
+    "The Factory (MAP12)",
+    "Downtown (MAP13)",
+    "The Inmost Dens (MAP14)",
+    "Industrial Zone (MAP15)", // (Exit to secret level)
+    "Suburbs (MAP16)",
+    "Tenements (MAP17)",
+    "The Courtyard (MAP18)",
+    "The Citadel (MAP19)",
+    "Gotcha! (MAP20)",
+
+    // Episode 3: Hell
+    "Nirvana (MAP21)",
+    "The Catacombs (MAP22)",
+    "Barrels o Fun (MAP23)",
+    "The Chasm (MAP24)",
+    "Bloodfalls (MAP25)",
+    "The Abandoned Mines (MAP26)",
+    "Monster Condo (MAP27)",
+    "The Spirit World (MAP28)",
+    "The Living End (MAP29)",
+    "Icon of Sin (MAP30)",
+
+    // Secret levels:
+    "Wolfenstein2 (MAP31)", // (Exit to super secret level, IDKFA in BFG Edition)
+    "Grosse2 (MAP32)" // (Keen in BFG Edition)
+};
+
+
 static wbstartstruct_t wiinfo;
 
 extern int bcnt;
@@ -120,6 +165,8 @@ int selected_ep = 0;
 int prev_ep = 0;
 int ep_anim = 0;
 int urh_anim = 0;
+
+static hu_textline_t level_lines[AP_D2_LEVEL_COUNT][3];
 
 static const char* YELLOW_DIGIT_LUMP_NAMES[] = {
     "STYSNUM0", "STYSNUM1", "STYSNUM2", "STYSNUM3", "STYSNUM4", 
@@ -179,7 +226,10 @@ void play_level(int ep, int lvl)
 {
     // Check if level has a save file first
     char filename[260];
-    snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
+    if (gamemode == commercial)
+        snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
+    else
+        snprintf(filename, 260, "%s/save_MAP%02i.dsg", apdoom_get_seed(), lvl + 1);
     if (M_FileExists(filename))
     {
         // We load
@@ -206,9 +256,10 @@ boolean LevelSelectResponder(event_t* ev)
     if (ep_anim) return true;
 
     int ep_count = 0;
-    for (int i = 0; i < AP_EPISODE_COUNT; ++i)
-        if (ap_state.episodes[i])
-            ep_count++;
+    if (gamemode != commercial)
+        for (int i = 0; i < AP_EPISODE_COUNT; ++i)
+            if (ap_state.episodes[i])
+                ep_count++;
 
     switch (ev->type)
     {
@@ -218,7 +269,14 @@ boolean LevelSelectResponder(event_t* ev)
             {
 #ifndef FIRST_EP_ONLY
                 case KEY_LEFTARROW:
-                    if (gamemode != shareware && ep_count > 1)
+                    if (gamemode == commercial)
+                    {
+                        selected_level[selected_ep] -= 16;
+                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] += AP_D2_LEVEL_COUNT;
+                        urh_anim = 0;
+                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
+                    }
+                    else if (gamemode != shareware && ep_count > 1)
                     {
                         prev_ep = selected_ep;
                         ep_anim = -10;
@@ -237,7 +295,14 @@ boolean LevelSelectResponder(event_t* ev)
                     }
                     break;
                 case KEY_RIGHTARROW:
-                    if (gamemode != shareware && ep_count > 1)
+                    if (gamemode == commercial)
+                    {
+                        selected_level[selected_ep] += 16;
+                        if (selected_level[selected_ep] >= AP_D2_LEVEL_COUNT) selected_level[selected_ep] -= 32;
+                        urh_anim = 0;
+                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
+                    }
+                    else if (gamemode != shareware && ep_count > 1)
                     {
                         prev_ep = selected_ep;
                         ep_anim = 10;
@@ -255,7 +320,13 @@ boolean LevelSelectResponder(event_t* ev)
                     break;
 #endif
                 case KEY_UPARROW:
-                    if (selected_ep == 1)
+                    if (gamemode == commercial)
+                    {
+                        selected_level[selected_ep]--;
+                        if (selected_level[selected_ep] < (selected_level[selected_ep] / 16) * 16)
+                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
+                    }
+                    else if (selected_ep == 1)
                     {
                         selected_level[selected_ep]--;
                         if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
@@ -266,7 +337,13 @@ boolean LevelSelectResponder(event_t* ev)
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_DOWNARROW:
-                    if (selected_ep == 1)
+                    if (gamemode == commercial)
+                    {
+                        selected_level[selected_ep]++;
+                        if (selected_level[selected_ep] > (selected_level[selected_ep] / 16) * 16 + 15)
+                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
+                    }
+                    else if (selected_ep == 1)
                         selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;
                     else
                     {
@@ -277,7 +354,7 @@ boolean LevelSelectResponder(event_t* ev)
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_ENTER:
-                    if (ap_state.level_states[selected_ep][selected_level[selected_ep]].unlocked)
+                    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
                     {
                         S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
                         play_level(selected_ep, selected_level[selected_ep]);
@@ -312,11 +389,18 @@ void ShowLevelSelect()
     ap_state.ep = 0;
     ap_state.map = 0;
 
-    while (!ap_state.episodes[selected_ep])
+    if (gamemode == commercial)
     {
-        selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
-        if (selected_ep == 0) // oops;
-            break;
+        selected_ep = 0;
+    }
+    else
+    {
+        while (!ap_state.episodes[selected_ep])
+        {
+            selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+            if (selected_ep == 0) // oops;
+                break;
+        }
     }
 
     wiinfo.epsd = selected_ep;
@@ -329,6 +413,35 @@ void ShowLevelSelect()
     wiinfo.maxfrags = 0;
     wiinfo.partime = 0;
     wiinfo.pnum = 0;
+
+    if (gamemode == commercial && !level_lines[0][0].f)
+    {
+        for (int i = 0; i < AP_D2_LEVEL_COUNT; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                hu_textline_t* level_line = &level_lines[i][j];
+
+                HUlib_initTextLine(
+                    level_line,
+                    level_line->x = 26 + (i / 16) * ORIGWIDTH / 2, 
+                    level_line->y = 20 + (i % 16) * 11,
+		            hu_font,
+		            HU_FONTSTART);
+            
+                char map_name[20];
+                if (j == 0) // Locked
+                    sprintf(map_name, "MAP%02i", i + 1);
+                else if (j == 1) // Unlocked
+                    sprintf(map_name, "~2MAP%02i", i + 1);
+                else // Completed
+                    sprintf(map_name, "~3MAP%02i", i + 1);
+                char* m = map_name;
+	            while (*m)
+	                HUlib_addCharToTextLine(level_line, *(m++));
+            }
+        }
+    }
     
     restart_wi_anims();
     bcnt = 0;
@@ -347,7 +460,7 @@ void TickLevelSelect()
 }
 
 
-void DrawLevelSelectStats()
+void DrawEpisodicLevelSelectStats()
 {
     int x, y;
     const int key_spacing = 8;
@@ -356,8 +469,8 @@ void DrawLevelSelectStats()
     for (int i = 0; i < AP_LEVEL_COUNT; ++i)
     {
         level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
-        ap_level_info_t* ap_level_info = &ap_level_infos[selected_ep][i];
-        ap_level_state_t* ap_level_state = &ap_state.level_states[selected_ep][i];
+        ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + i);
+        ap_level_state_t* ap_level_state = ap_get_level_state(selected_ep + 1, i + i);
 
         x = level_pos->x;
         y = level_pos->y;
@@ -450,6 +563,77 @@ void DrawLevelSelectStats()
 }
 
 
+void DrawNonEpisodicLevelSelectStats()
+{
+    ap_level_info_t* ap_level_info;
+    ap_level_state_t* ap_level_state;
+    hu_textline_t* level_line;
+
+    for (int i = 0; i < AP_D2_LEVEL_COUNT; ++i)
+    {
+        ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
+        ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);
+
+        // Map id
+        level_line = &level_lines[i][ap_level_state->completed ? 2 : ap_level_state->unlocked];
+        HUlib_drawTextLine(level_line, false);
+        
+        // Progress
+        int progress_offset = 58;
+        print_right_aligned_yellow_digit(level_line->x + progress_offset - 4, level_line->y + 1, ap_level_state->check_count);
+        V_DrawPatch(level_line->x + progress_offset - 3, level_line->y + 1, W_CacheLumpName("STYSLASH", PU_CACHE));
+        print_left_aligned_yellow_digit(level_line->x + progress_offset + 4, level_line->y + 1, ap_level_info->check_count);
+
+        // Keys
+        const char* key_lump_names[] = {"STKEYS0", "STKEYS1", "STKEYS2"};
+        const char* key_skull_lump_names[] = {"STKEYS3", "STKEYS4", "STKEYS5"};
+        int key_x = level_line->x + 80;
+        int key_y = level_line->y - 1;
+        for (int k = 0; k < 3; ++k)
+        {
+            if (ap_level_info->keys[k])
+            {
+                const char* key_lump_name = key_lump_names[k];
+                if (ap_level_info->use_skull[k])
+                    key_lump_name = key_skull_lump_names[k];
+                V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
+                if (ap_level_state->keys[k])
+                {
+                    V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
+                }
+                key_x += 12;
+            }
+        }
+    }
+
+    ap_level_info = ap_get_level_info(selected_ep + 1, selected_level[selected_ep] + 1);
+    ap_level_state = ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1);
+    level_line = &level_lines[selected_level[selected_ep]][ap_level_state->completed ? 2 : ap_level_state->unlocked];
+
+    // Cursor
+    patch_t* cursor = W_CacheLumpName(urh_anim < 16 ? "M_SKULL1" : "M_SKULL2", PU_STATIC);
+    V_DrawPatch(level_line->x - 24, level_line->y - 8, cursor);
+
+    // Level name
+    char name[9];
+    snprintf(name, 9, "CWILV%02i", selected_level[selected_ep]);
+    if (W_CheckNumForName(name) != -1)
+    {
+        patch_t* finished = W_CacheLumpName(name, PU_STATIC);
+        V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
+    }
+}
+
+
+void DrawLevelSelectStats()
+{
+    if (gamemode == commercial)
+        DrawNonEpisodicLevelSelectStats();
+    else
+        DrawEpisodicLevelSelectStats();
+}
+
+
 static const char* WIN_MAPS[4] = {
     "WIMAP0",
     "WIMAP1",
@@ -457,13 +641,22 @@ static const char* WIN_MAPS[4] = {
     "WIMAP3"
 };
 
+static const char* D2_WIN_MAP = "INTERPIC";
+
+
+const char* get_win_map(int ep)
+{
+    if (gamemode == commercial) return D2_WIN_MAP;
+    else return WIN_MAPS[ep];
+}
+
 
 void DrawLevelSelect()
 {
     int x_offset = ep_anim * 32;
 
     char lump_name[9];
-    snprintf(lump_name, 9, "%s", WIN_MAPS[selected_ep]);
+    snprintf(lump_name, 9, "%s", get_win_map(selected_ep));
     
     // [crispy] fill pillarboxes in widescreen mode
     if (SCREENWIDTH != NONWIDEWIDTH)
@@ -480,7 +673,7 @@ void DrawLevelSelect()
     }
     else
     {
-        snprintf(lump_name, 9, "%s", WIN_MAPS[prev_ep]);
+        snprintf(lump_name, 9, "%s", get_win_map(prev_ep));
         if (ep_anim > 0)
             x_offset = -(10 - ep_anim) * 32;
         else

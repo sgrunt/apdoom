@@ -1,0 +1,11 @@
+# Credits
+
+Daivuk - David St-Louis - Creator of APDOOM
+
+## Extra help
+
+Skunk Rocker - Episode 4 level select screen
+Tutas - Ending text
+Devil's Advocado - Logic Designer
+
+And the rest of the community on discord for helping testing, helping with design question, coding questions, reviewing, etc.

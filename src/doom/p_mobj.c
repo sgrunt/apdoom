@@ -35,7 +35,6 @@
 #include "w_wad.h" // [crispy] W_CacheLumpNum()
 
 #include "doomstat.h"
-#include "apdoom_c_def.h"
 
 
 void G_PlayerReborn (int player);

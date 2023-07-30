@@ -108,7 +108,6 @@ struct level_t
     map_t* map = nullptr;
 };
 
-
 int64_t item_id_base = 350000;
 int64_t item_next_id = item_id_base;
 int64_t location_next_id = 351000;
@@ -284,8 +283,18 @@ int generate(game_t game)
     std::string py_out_dir = OArguments[2] + std::string("\\");
     switch (game)
     {
-        case game_t::doom: py_out_dir += "doom_1993\\"; break;
-        case game_t::doom2: py_out_dir += "doom_ii\\"; break;
+        case game_t::doom:
+            py_out_dir += "doom_1993\\";
+            item_id_base = 350000;
+            item_next_id = item_id_base;
+            location_next_id = 351000;
+            break;
+        case game_t::doom2:
+            py_out_dir += "doom_ii\\";
+            item_id_base = 360000;
+            item_next_id = item_id_base;
+            location_next_id = 361000;
+            break;
     }
     std::string cpp_out_dir = OArguments[3] + std::string("\\");
     std::string pop_tracker_data_dir = OArguments[4] + std::string("\\");
@@ -395,6 +404,20 @@ int generate(game_t game)
                 ++i;
                 continue; // Thing is not in single player
             }
+
+            const auto& json_locations = level_json["locations"];
+            bool skip = false;
+            for (const auto& json_location : json_locations)
+            {
+                if (json_location["index"].asInt() == i && json_location["unreachable"].asBool())
+                {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) continue;
+
+
             switch (thing.type)
             {
                 // Uniques
@@ -778,6 +801,9 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "location_table: Dict[int, LocationDict] = {\n");
         for (const auto& loc : ap_locations)
         {
+            // Check from json if that location is not marked as "unreachable"
+
+
             fprintf(fout, "    %llu: {", loc.id);
             fprintf(fout, "'name': '%s'", loc.name.c_str());
             if (game == game_t::doom)
@@ -880,6 +906,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
         fprintf(fout, "#pragma once\n\n");
         fprintf(fout, "#include \"apdoom.h\"\n");
+        fprintf(fout, "#include \"apdoom_def_types.h\"\n");
         fprintf(fout, "#include <map>\n\n\n");
 
         std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table;
@@ -908,12 +935,6 @@ class LocationDict(TypedDict, total=False): \n\
         
         // items
         fprintf(fout, "// Map item id\n");
-        fprintf(fout, "struct ap_item_t\n");
-        fprintf(fout, "{\n");
-        fprintf(fout, "    int doom_type;\n");
-        fprintf(fout, "    int ep; // If doom_type is a keycard\n");
-        fprintf(fout, "    int map; // If doom_type is a keycard\n");
-        fprintf(fout, "};\n\n");
         fprintf(fout, "const std::map<int64_t, ap_item_t> item_doom_type_table = {\n");
         for (const auto& item : ap_items)
         {
@@ -974,6 +995,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
         fprintf(fout, "#pragma once\n\n");
         fprintf(fout, "#include \"apdoom.h\"\n");
+        fprintf(fout, "#include \"apdoom_def_types.h\"\n");
         fprintf(fout, "#include <map>\n\n\n");
 
         std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>> location_table;
@@ -997,15 +1019,10 @@ class LocationDict(TypedDict, total=False): \n\
         
         // items
         fprintf(fout, "// Map item id\n");
-        fprintf(fout, "struct ap_d2_item_t\n");
-        fprintf(fout, "{\n");
-        fprintf(fout, "    int doom_type;\n");
-        fprintf(fout, "    int map; // If doom_type is a keycard\n");
-        fprintf(fout, "};\n\n");
-        fprintf(fout, "const std::map<int64_t, ap_d2_item_t> d2_item_doom_type_table = {\n");
+        fprintf(fout, "const std::map<int64_t, ap_item_t> d2_item_doom_type_table = {\n");
         for (const auto& item : ap_items)
         {
-            fprintf(fout, "    {%llu, {%i, %i}},\n", item.id, item.doom_type, item.idx.d2_map + 1);
+            fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, -1, item.idx.d2_map + 1);
         }
         fprintf(fout, "};\n\n\n");
 
@@ -1289,6 +1306,8 @@ class LocationDict(TypedDict, total=False): \n\
             const auto& locations_json = level_json["locations"];
             for (const auto& location_json : locations_json)
             {
+                if (!location_json["unreachable"].asBool()) continue;
+
                 std::string level_name = get_level_name(level_idx);
                 int index = location_json["index"].asInt();
 

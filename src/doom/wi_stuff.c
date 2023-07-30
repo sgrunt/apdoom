@@ -171,7 +171,7 @@ typedef struct
 } anim_t;
 
 
-point_t lnodes[NUMEPISODES][NUMMAPS] =
+static point_t lnodes[NUMEPISODES][NUMMAPS] =
 {
     // Episode 0 World Map
     {
@@ -835,7 +835,6 @@ void WI_updateShowNextLoc(void)
     else
 	snl_pointeron = (cnt & 31) < 20;
 }
-
 
 void WI_drawShowNextLoc(void)
 {

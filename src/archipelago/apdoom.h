@@ -150,6 +150,8 @@ int ap_is_doomtype_location(int doomtype);
 const char* apdoom_get_seed();
 void apdoom_send_message(const char* msg);
 void apdoom_complete_level(int ep, int map);
+ap_level_state_t* ap_get_level_state(int ep, int map); // 1-based
+ap_level_info_t* ap_get_level_info(int ep, int map); // 1-based
 
 // Deathlink stuff
 void apdoom_on_death();

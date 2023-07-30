@@ -161,8 +161,12 @@ void on_ap_victory()
     finalfullscreenbg = true;
     if (gamemode == commercial)
     {
-        finaletext = "You wont APDOOM II.";
-        finaleflat = "INTERPIC";
+        finaletext = "YOU DID IT!\n"
+                     "BY TURNING THE EVIL OF THE HORRORS OF RNG IN UPON ITSELF YOU HAVE DESTROYED THE LOGIC OF THE MULTIWORLD.\n"
+                     "THEIR DREADFUL CHECKS HAVE BEEN FOUND ONCE MORE!\n"
+                     "NOW YOU CAN RETIRE TO A LIFETIME OF FRIVOLITY.\n"
+                     "CONGRATULATIONS!";
+        finaleflat = "BOSSBACK";
     }
     else
     {
@@ -176,24 +180,13 @@ void on_ap_victory()
 boolean P_GiveArmor(player_t* player, int armortype);
 boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
-ap_level_info_t* get_level_info()
-{
-    if (gamemode == commercial)
-    {
-        return &ap_d2_level_infos[gamemap - 1];
-    }
-    else
-    {
-        return &ap_level_infos[gameepisode - 1][gamemap - 1];
-    }
-}
 
 // Kind of a copy of P_TouchSpecialThing
 void on_ap_give_item(int doom_type, int ep, int map)
 {
     player_t* player = &players[consoleplayer];
     int sound = sfx_itemup;
-    ap_level_info_t* level_info = get_level_info();
+    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
 
     switch (doom_type)
     {
@@ -1696,7 +1689,6 @@ static void G_CheckDemoStatusAtExit (void)
 }
 
 static const char *const loadparms[] = {"-file", "-merge", NULL};
-
 
 //
 // D_DoomMain

@@ -99,7 +99,8 @@ P_GiveAmmo
     }
     
 	// [NS] Halve if needed.
-	if (dropped && ammo != am_shell)
+	// [AP] Don't halve if in AP. We need those ammos more than anything!
+	if (dropped && ammo != am_shell && ammo != am_clip)
 	{
 		num >>= 1;
 		// Don't round down to 0.

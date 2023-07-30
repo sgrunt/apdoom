@@ -129,7 +129,7 @@ static void DEH_InitThingProperties (void)
 			break;
 
 			case MT_CHAINGUY:
-			mobjinfo[i].droppeditem = MT_CHAINGUN;
+			mobjinfo[i].droppeditem = MT_CLIP; // [AP] We don't drop weapon, but drop the ammo // MT_CHAINGUN;
 			break;
 
 			default:

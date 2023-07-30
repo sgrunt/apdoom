@@ -954,6 +954,7 @@ void R_SetGoobers (boolean mode)
 //
 
 
+
 void R_Init (void)
 {
     R_InitData ();

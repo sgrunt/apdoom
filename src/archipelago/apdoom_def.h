@@ -2,6 +2,7 @@
 #pragma once
 
 #include "apdoom.h"
+#include "apdoom_def_types.h"
 #include <map>
 
 
@@ -564,13 +565,6 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
 
 
 // Map item id
-struct ap_item_t
-{
-    int doom_type;
-    int ep; // If doom_type is a keycard
-    int map; // If doom_type is a keycard
-};
-
 const std::map<int64_t, ap_item_t> item_doom_type_table = {
     {350000, {-1, 1, 1}},
     {350001, {2026, 1, 1}},

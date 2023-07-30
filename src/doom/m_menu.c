@@ -1895,7 +1895,7 @@ void M_QuitResponse(int key)
 	return;
 
     // [AP] Save state if we are currently in a level
-    if (!netgame && ap_state.ep != 0 && ap_state.map != 0 && gamestate == GS_LEVEL)
+    if (!netgame && /*ap_state.ep != 0 && */ap_state.map != 0 && gamestate == GS_LEVEL)
     {
         G_DoSaveGame();
     }
