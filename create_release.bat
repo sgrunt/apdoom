@@ -15,6 +15,7 @@ winrar a -afzip -ep1 -r Release\doom_1993.apworld ..\Archipelago\worlds\doom_199
 REM Generating default yaml
 python3 ..\Archipelago\Launcher.py "Generate Template Settings"
 COPY "..\Archipelago\Players\Templates\DOOM 1993.yaml" "Release\DOOM 1993.yaml"
+COPY "..\Archipelago\Players\Templates\DOOM II.yaml" "Release\DOOM II.yaml"
 
 REM Credits
 COPY credits-doom-1993.txt Release\credits-doom-1993.txt
