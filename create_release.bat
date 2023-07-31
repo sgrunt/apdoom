@@ -24,5 +24,9 @@ REM Credits
 COPY credits-doom-1993.txt Release\credits-doom-1993.txt
 COPY credits-doom-ii.txt Release\credits-doom-ii.txt
 
+REM Copy WADs
+COPY APDOOM.WAD Release\APDOOM.WAD
+COPY APHERETIC.WAD Release\APHERETIC.WAD
+
 REM Archiving release
 winrar a -afzip -ep1 -r Release\APDOOM_x_x_x_beta.zip @release.lst

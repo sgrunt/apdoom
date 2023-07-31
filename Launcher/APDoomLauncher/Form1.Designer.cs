@@ -112,7 +112,7 @@ namespace APDoomLauncher
             this.btnLaunchDOOM.Name = "btnLaunchDOOM";
             this.btnLaunchDOOM.Size = new System.Drawing.Size(149, 30);
             this.btnLaunchDOOM.TabIndex = 8;
-            this.btnLaunchDOOM.Text = "Launch DOOM";
+            this.btnLaunchDOOM.Text = "Launch Game";
             this.btnLaunchDOOM.UseVisualStyleBackColor = true;
             this.btnLaunchDOOM.Click += new System.EventHandler(this.btnLaunchDOOM_Click);
             // 
@@ -142,7 +142,8 @@ namespace APDoomLauncher
             this.cboGame.FormattingEnabled = true;
             this.cboGame.Items.AddRange(new object[] {
             "Ultimate DOOM",
-            "DOOM II"});
+            "DOOM II",
+            "Heretic"});
             this.cboGame.Location = new System.Drawing.Point(197, 39);
             this.cboGame.Name = "cboGame";
             this.cboGame.Size = new System.Drawing.Size(205, 24);
