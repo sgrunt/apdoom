@@ -553,7 +553,10 @@ void P_LoadThings (int lump)
 
 #define E1M8_CUTOFF_OFFSET 6176
 
-    if (ap_state.random_monsters > 0)
+    int do_random_monsters = ap_state.random_monsters;
+    if (gamemode == commercial && gamemap == 7) do_random_monsters = 0;
+
+    if (do_random_monsters > 0)
     {
         // Make sure at the right difficulty level
         if (gameskill == sk_baby)
