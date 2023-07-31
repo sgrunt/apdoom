@@ -226,7 +226,7 @@ void play_level(int ep, int lvl)
 {
     // Check if level has a save file first
     char filename[260];
-    if (gamemode == commercial)
+    if (gamemode != commercial)
         snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
     else
         snprintf(filename, 260, "%s/save_MAP%02i.dsg", apdoom_get_seed(), lvl + 1);
@@ -471,8 +471,8 @@ void DrawEpisodicLevelSelectStats()
     for (int i = 0; i < AP_LEVEL_COUNT; ++i)
     {
         level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
-        ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + i);
-        ap_level_state_t* ap_level_state = ap_get_level_state(selected_ep + 1, i + i);
+        ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
+        ap_level_state_t* ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);
 
         x = level_pos->x;
         y = level_pos->y;

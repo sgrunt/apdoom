@@ -300,6 +300,15 @@ int generate(game_t game)
             has_ssg = true;
             break;
     }
+
+    total_item_count = 0;
+    total_loc_count = 0;
+    ap_items.clear();
+    ap_locations.clear();
+    item_name_groups.clear();
+    level_to_keycards.clear();
+    item_map.clear();
+
     std::string cpp_out_dir = OArguments[3] + std::string("\\");
     std::string pop_tracker_data_dir = OArguments[4] + std::string("\\");
 
@@ -521,7 +530,7 @@ int generate(game_t game)
 
         add_item(lvl_name, -1, 1, PROGRESSION, "Levels", 0, level);
         add_item(lvl_prefix + "Complete", -2, 1, PROGRESSION, "", 0, level);
-        add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "", 0, level);
+        add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "Computer area maps", 0, level);
     }
 
     OLog(std::to_string(total_loc_count) + " locations\n" + std::to_string(total_item_count - 3) + " items");

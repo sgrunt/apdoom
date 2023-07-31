@@ -8,11 +8,14 @@ REM REM Compiling launcher
 MSBUILD Launcher\APDoomLauncher\APDoomLauncher.sln /t:APDoomLauncher /p:Configuration="Release"
 COPY Launcher\APDoomLauncher\bin\Release\APDoomLauncher.exe Release\apdoom-launcher.exe
 
-REM REM Archiving apworld
+REM REM Archiving apworlds
 DEL /F /Q ..\Archipelago\worlds\doom_1993\__pycache__
 winrar a -afzip -ep1 -r Release\doom_1993.apworld ..\Archipelago\worlds\doom_1993
 
-REM Generating default yaml
+DEL /F /Q ..\Archipelago\worlds\doom_ii\__pycache__
+winrar a -afzip -ep1 -r Release\doom_ii.apworld ..\Archipelago\worlds\doom_ii
+
+REM Generating default yamls
 python3 ..\Archipelago\Launcher.py "Generate Template Settings"
 COPY "..\Archipelago\Players\Templates\DOOM 1993.yaml" "Release\DOOM 1993.yaml"
 COPY "..\Archipelago\Players\Templates\DOOM II.yaml" "Release\DOOM II.yaml"

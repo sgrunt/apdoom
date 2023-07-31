@@ -213,6 +213,7 @@ static void M_ChooseSkill(int choice);
 static void M_LoadGame(int choice);
 static void M_SaveGame(int choice);
 static void M_Options(int choice);
+static void M_Kill(int choice);
 static void M_EndGame(int choice);
 static void M_ReadThis(int choice);
 static void M_ReadThis2(int choice);
@@ -307,6 +308,7 @@ menu_t  MainDef =
 enum
 {
     ingamemenu_options,
+    ingamemenu_kill,
     ingamemenu_quitdoom,
     ingamemenu_end
 } ingamemenu_e;
@@ -314,6 +316,7 @@ enum
 menuitem_t InGameMenu[]=
 {
     {1,"M_OPTION",M_Options,'o'},
+    {1,"M_KILL",M_Kill,'k'},
     // Another hickup with Special edition.
     {1,"M_QUITG",M_QuitDOOM,'q'}
 };
@@ -1301,8 +1304,12 @@ void M_DrawMainMenu(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    V_DrawPatchDirect(94, 2,
-                      W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
+    if (gamemode == commercial)
+        V_DrawPatchDirect(94, 2,
+                          W_CacheLumpName(DEH_String("M_DOOM2"), PU_CACHE));
+    else
+        V_DrawPatchDirect(94, 2,
+                          W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 
     draw_apdoom_version();
 }
@@ -1316,8 +1323,12 @@ void M_InGameMenuDraw(void)
     // [crispy] force status bar refresh
     inhelpscreens = true;
 
-    V_DrawPatchDirect(94, 2,
-                      W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
+    if (gamemode == commercial)
+        V_DrawPatchDirect(94, 2,
+                          W_CacheLumpName(DEH_String("M_DOOM2"), PU_CACHE));
+    else
+        V_DrawPatchDirect(94, 2,
+                          W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 
     draw_apdoom_version();
 }
@@ -1730,6 +1741,20 @@ static void M_DrawCrispness4(void)
 void M_Options(int choice)
 {
     M_SetupNextMenu(&OptionsDef);
+}
+
+void M_Kill(int choice)
+{
+    if (players[consoleplayer].mo)
+    {
+        if (players[consoleplayer].mo->health > 0)
+        {
+            M_ClearMenus ();
+            P_KillMobj_Real(0, players[consoleplayer].mo, false);
+            return;
+        }
+    }
+    S_StartSoundOptional(NULL, sfx_mnusli, sfx_noway);
 }
 
 // [crispy] correctly handle inverted y-axis

@@ -638,6 +638,9 @@ void save_state()
 	if (!f.is_open())
 	{
 		printf("Failed to save AP state.\n");
+#if WIN32
+		MessageBoxA(nullptr, "Failed to save player state. That's bad.", "Error", MB_OK);
+#endif
 		return; // Ok that's bad. we won't save player state
 	}
 

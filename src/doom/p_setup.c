@@ -579,8 +579,20 @@ void P_LoadThings (int lump)
                     case 3006: // Lost soul
                     case 3005: // Cacodemon
                     case 3003: // Baron of hell
+                        
+                    case 68:	// Arachnotron
+                    case 64:	// Archvile
+                    case 69:	// Hell Knight
+                    case 67:	// Mancubus
+                    case 71:	// Pain Elemental
+                    case 65:	// Former Human Commando
+                    case 66:	// Revenant
+                    case 84:	// Wolf SS
+
                     //case 16: // Cyberdemon [Too big, keep them there]
                     //case 7: // Spiderdemon [Too big, keep them there]
+                    //case 88:	// Boss Brain
+                    //case 89:	// Boss Shooter
                     {
                         monsters[monster_count++] = mt->type;
                         indices[index_count++] = i;
@@ -629,6 +641,8 @@ void P_LoadThings (int lump)
                     case 3004: // Former Human
                     case 9: // Former Human Sergeant
                     case 3001: // Imp
+                    case 65:	// Former Human Commando
+                    case 84:	// Wolf SS
                         ratios[0]++;
                         total++;
                         indices[index_count++] = i;
@@ -638,16 +652,25 @@ void P_LoadThings (int lump)
                     case 58: // SPECTRE
                     case 3006: // Lost soul
                     case 3005: // Cacodemon
+                    case 67:	// Mancubus
+                    case 71:	// Pain Elemental
+                    case 64:	// Archvile
+                    case 68:	// Arachnotron
+                    case 66:	// Revenant
                         ratios[1]++;
                         total++;
                         indices[index_count++] = i;
                         break;
 
                     case 3003: // Baron of hell
+                    case 69:	// Hell Knight
                         ratios[2]++;
                         total++;
                         indices[index_count++] = i;
                         break;
+
+
+
                 }
             }
 
@@ -665,53 +688,138 @@ void P_LoadThings (int lump)
                         continue;
                     }
                 }
-                switch (mt->type)
+                if (gamemode == commercial)
                 {
-                    case 3004: // Former Human
-                    case 9: // Former Human Sergeant
-                    case 3001: // Imp
-                    case 3002: // Demon
-                    case 58: // SPECTRE
-                    case 3006: // Lost soul
-                    case 3005: // Cacodemon
-                    case 3003: // Baron of hell
+                    switch (mt->type)
                     {
-                        int rnd = rand() % total;
-                        if (rnd < ratios[0])
+                        case 3004: // Former Human
+                        case 9: // Former Human Sergeant
+                        case 3001: // Imp
+                        case 3002: // Demon
+                        case 58: // SPECTRE
+                        case 3006: // Lost soul
+                        case 3005: // Cacodemon
+                        case 3003: // Baron of hell
+
+                        case 68:	// Arachnotron
+                        case 64:	// Archvile
+                        case 69:	// Hell Knight
+                        case 67:	// Mancubus
+                        case 71:	// Pain Elemental
+
+                        case 66:	// Revenant
+                        case 65:	// Former Human Commando
+                        case 84:	// Wolf SS
                         {
-                            switch (rand()%3)
+                            int rnd = rand() % total;
+                            if (rnd < ratios[0])
                             {
-                                case 0: things_type_remap[indices[i]] = 3004; break; // Former Human
-                                case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
-                                case 2: things_type_remap[indices[i]] = 3001; break; // Imp
+                                switch (rand()%4)
+                                {
+                                    case 0:
+                                        if (rand()%3) things_type_remap[indices[i]] = 3004; // Former Human
+                                        else things_type_remap[indices[i]] = 65; // Former Human Commando
+                                        break;
+                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
+                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
+                                    case 3: things_type_remap[indices[i]] = 84; break; // Wolf SS
+                                }
                             }
-                        }
-                        else if (rnd < ratios[0] + ratios[1])
-                        {
-                            switch (rand()%8)
+                            else if (rnd < ratios[0] + ratios[1])
                             {
-                                case 0: things_type_remap[indices[i]] = 3002; break; // Demon
-                                case 1: things_type_remap[indices[i]] = 3002; break; // Demon
-                                case 2: things_type_remap[indices[i]] = 3002; break; // Demon
-                                case 3: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                case 4: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                case 5: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                case 6: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                case 7: things_type_remap[indices[i]] = 3006; break; // Lost soul
+                                switch (rand()%18)
+                                {
+                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 3: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 4: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 5: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 6: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 7: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 8: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 9: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 10: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 11: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 12: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 13:
+                                        if (rand()%2) things_type_remap[indices[i]] = 3005; // Cacodemon
+                                        else things_type_remap[indices[i]] = 71; // Pain Elemental
+                                        break;
+                                    case 14: things_type_remap[indices[i]] = 3006; break; // Lost soul
+                                    case 15:
+                                        if (rand()%5) things_type_remap[indices[i]] = 3006; // Lost soul
+                                        else things_type_remap[indices[i]] = 64; // Archvile
+                                        break;
+
+                                    case 16: things_type_remap[indices[i]] = 68; break; // Arachnotron
+                                    case 17: things_type_remap[indices[i]] = 67; break; // Mancubus
+                                }
                             }
+                            else
+                            {
+                                if (rand()%3) things_type_remap[indices[i]] = 69; // Hell Knight
+                                else things_type_remap[indices[i]] = 3003; // Baron of hell
+                            }
+                            break;
                         }
-                        else
-                        {
-                            barron_count++;
-                            things_type_remap[indices[i]] = 3003; // Baron of hell
-                        }
-                        break;
+                        case 16: // Cyberdemon
+                        case 7: // Spiderdemon
+                            if (rand()%2) things_type_remap[indices[i]] = 16;
+                            else things_type_remap[indices[i]] = 7;
+                            break;
                     }
-                    case 16: // Cyberdemon
-                    case 7: // Spiderdemon
-                        if (rand()%2) things_type_remap[indices[i]] = 16;
-                        else things_type_remap[indices[i]] = 7;
-                        break;
+                }
+                else
+                {
+                    switch (mt->type)
+                    {
+                        case 3004: // Former Human
+                        case 9: // Former Human Sergeant
+                        case 3001: // Imp
+                        case 3002: // Demon
+                        case 58: // SPECTRE
+                        case 3006: // Lost soul
+                        case 3005: // Cacodemon
+                        case 3003: // Baron of hell
+                        {
+                            int rnd = rand() % total;
+                            if (rnd < ratios[0])
+                            {
+                                switch (rand()%3)
+                                {
+                                    case 0: things_type_remap[indices[i]] = 3004; break; // Former Human
+                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
+                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
+                                }
+                            }
+                            else if (rnd < ratios[0] + ratios[1])
+                            {
+                                switch (rand()%8)
+                                {
+                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 3: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 4: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 5: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 6: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 7: things_type_remap[indices[i]] = 3006; break; // Lost soul
+                                }
+                            }
+                            else
+                            {
+                                barron_count++;
+                                things_type_remap[indices[i]] = 3003; // Baron of hell
+                            }
+                            break;
+                        }
+                        case 16: // Cyberdemon
+                        case 7: // Spiderdemon
+                            if (rand()%2) things_type_remap[indices[i]] = 16;
+                            else things_type_remap[indices[i]] = 7;
+                            break;
+                    }
                 }
             }
         }
