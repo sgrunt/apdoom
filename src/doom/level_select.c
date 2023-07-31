@@ -322,9 +322,10 @@ boolean LevelSelectResponder(event_t* ev)
                 case KEY_UPARROW:
                     if (gamemode == commercial)
                     {
-                        selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < (selected_level[selected_ep] / 16) * 16)
+                        if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
                             selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
+                        else
+                            selected_level[selected_ep]--;
                     }
                     else if (selected_ep == 1)
                     {
@@ -339,9 +340,10 @@ boolean LevelSelectResponder(event_t* ev)
                 case KEY_DOWNARROW:
                     if (gamemode == commercial)
                     {
-                        selected_level[selected_ep]++;
-                        if (selected_level[selected_ep] > (selected_level[selected_ep] / 16) * 16 + 15)
+                        if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
                             selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
+                        else
+                            selected_level[selected_ep]++;
                     }
                     else if (selected_ep == 1)
                         selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;

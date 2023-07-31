@@ -436,6 +436,17 @@ int apdoom_init(ap_settings_t* settings)
 }
 
 
+static bool is_loc_checked(int ep, int map, int index)
+{
+	auto level_state = ap_get_level_state(ep, map);
+	for (int i = 0; i < level_state->check_count; ++i)
+	{
+		if (level_state->checks[i] == index) return true;
+	}
+	return false;
+}
+
+
 void apdoom_shutdown()
 {
 	if (ap_was_connected)
@@ -883,17 +894,10 @@ void f_locrecv(int64_t loc_id)
 	}
 
 	// Make sure we didn't already check it
-	auto level_state = ap_get_level_state(ep, map);
-	for (int i = 0; i < level_state->check_count; ++i)
-	{
-		if (level_state->checks[i] == index)
-		{
-			return; // Don't print anything
-		}
-	}
-
+	if (is_loc_checked(ep, map, index)) return;
 	if (index < 0) return;
 
+	auto level_state = ap_get_level_state(ep, map);
 	level_state->checks[level_state->check_count] = index;
 	level_state->check_count++;
 }
@@ -965,6 +969,7 @@ const char* apdoom_get_seed()
 
 void apdoom_check_location(int ep, int map, int index)
 {
+	int64_t id = 0;
 	if (ap_is_episodic)
 	{
 		const auto& loc_table = get_episodic_location_table();
@@ -978,15 +983,7 @@ void apdoom_check_location(int ep, int map, int index)
 		auto it3 = it2->second.find(index);
 		if (it3 == it2->second.end()) return;
 
-		int64_t id = it3->second;
-
-		if (index >= 0)
-		{
-			auto level_state = ap_get_level_state(ep, map);
-			level_state->checks[level_state->check_count] = index;
-			level_state->check_count++;
-		}
-		AP_SendItem(id);
+		id = it3->second;
 	}
 	else
 	{
@@ -998,16 +995,23 @@ void apdoom_check_location(int ep, int map, int index)
 		auto it3 = it2->second.find(index);
 		if (it3 == it2->second.end()) return;
 
-		int64_t id = it3->second;
+		id = it3->second;
+	}
 
-		if (index >= 0)
+	if (index >= 0)
+	{
+		if (is_loc_checked(ep, map, index))
 		{
-			auto level_state = ap_get_level_state(-1, map);
+			printf("APDOOM: Location already checked\n");
+		}
+		else
+		{
+			auto level_state = ap_get_level_state(ep, map);
 			level_state->checks[level_state->check_count] = index;
 			level_state->check_count++;
 		}
-		AP_SendItem(id);
 	}
+	AP_SendItem(id);
 }
 
 

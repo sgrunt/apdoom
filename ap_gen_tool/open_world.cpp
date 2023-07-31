@@ -2411,15 +2411,36 @@ void renderUI()
         if (ImGui::Begin("Map"))
         {
             auto map = get_map(active_level);
+            int index = 0;
             for (const auto& thing : map->things)
             {
                 if (thing.flags & 0x0010)
                 {
+                    index++;
                     continue; // Thing is not in single player
                 }
                 auto str = get_doom_type_name(thing.type);
-                if (str == ERROR_STR) continue;
-                ImGui::Text("%s", str);
+                if (str == ERROR_STR)
+                {
+                    index++;
+                    continue;
+                }
+
+                bool selected = map_state->selected_location == index;
+                if (ImGui::Selectable((str + ("##loc_idx" + std::to_string(index))).c_str(), &selected))
+                {
+                    if (selected)
+                    {
+                        map_state->selected_location = index;
+                    }
+                }
+                if (map_state->locations[index].unreachable)
+                {
+                    ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+                    cursorScreenPos.y -= 10;
+                    ImGui::GetWindowDrawList()->AddLine(cursorScreenPos, ImVec2(cursorScreenPos.x + 150, cursorScreenPos.y), IM_COL32(255, 255, 255, 255), 1.0f);
+                }
+                index++;
             }
         }
         ImGui::End();

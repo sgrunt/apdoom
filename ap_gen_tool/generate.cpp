@@ -419,7 +419,11 @@ int generate(game_t game)
                     break;
                 }
             }
-            if (skip) continue;
+            if (skip)
+            {
+                ++i;
+                continue;
+            }
 
 
             switch (thing.type)
