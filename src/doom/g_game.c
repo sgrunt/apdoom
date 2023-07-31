@@ -2380,7 +2380,7 @@ void G_DoLoadGame (void)
     savedleveltime = leveltime;
     
     // load a base level 
-    was_in_level = (ap_state.ep != 0 && ap_state.map != 0) ? 1 : 0;
+    was_in_level = (ap_state.map != 0) ? 1 : 0;
     G_InitNew (gameskill, gameepisode, gamemap); 
  
     leveltime = savedleveltime;

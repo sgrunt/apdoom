@@ -1349,7 +1349,7 @@ void M_APPlay(int choice)
     M_ClearMenus();
 
     // Was the game quit during a level?
-    if (ap_state.ep != 0 && ap_state.map != 0)
+    if (ap_state.map != 0)
     {
         play_level(ap_state.ep - 1, ap_state.map - 1);
     }

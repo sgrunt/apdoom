@@ -395,6 +395,17 @@ void P_LoadSectors (int lump)
 	I_Error("P_LoadSectors: No sectors in map!");
 
     ms = (mapsector_t *)data;
+
+    if (gamemode == commercial)
+    {
+        // Doom II
+        if (gamemap == 12)
+        {
+            ms[132].tag = 42;
+            sprintf(ms[132].floorpic, "STEP1");
+        }
+    }
+
     ss = sectors;
     for (i=0 ; i<numsectors ; i++, ss++, ms++)
     {
@@ -407,6 +418,7 @@ void P_LoadSectors (int lump)
 	ss->rlightlevel = ss->lightlevel;
 	ss->special = SHORT(ms->special);
 	ss->tag = SHORT(ms->tag);
+
 	ss->thinglist = NULL;
 	// [crispy] WiggleFix: [kb] for R_FixWiggle()
 	ss->cachedheight = 0;
@@ -1107,6 +1119,16 @@ void P_LoadLineDefs (int lump)
     if (gamemode == commercial)
     {
         // Doom II
+        if (gamemap == 2)
+        {
+            mld[390].special = 1;
+        }
+        else if (gamemap == 12)
+        {
+            mld[271].special = 62;
+            mld[271].tag = 42;
+            mld[271].flags &= ~0x0010; // LINE_FLAGS_LOWER_UNPEGGED;
+        }
     }
     else
     {
@@ -1273,6 +1295,21 @@ void P_LoadSideDefs (int lump)
     data = W_CacheLumpNum (lump,PU_STATIC);
 	
     msd = (mapsidedef_t *)data;
+
+    if (gamemode == commercial)
+    {
+        // Doom II
+        if (gamemap == 2)
+        {
+            sprintf(msd[584].midtexture, "%s", "SHAWN2");
+            sprintf(msd[589].midtexture, "%s", "SHAWN2");
+        }
+        else if (gamemap == 12)
+        {
+            memcpy(msd[366].bottomtexture, "SUPPORT2", 8);
+        }
+    }
+
     sd = sides;
     for (i=0 ; i<numsides ; i++, msd++, sd++)
     {
