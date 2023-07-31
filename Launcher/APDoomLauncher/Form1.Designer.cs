@@ -48,10 +48,12 @@ namespace APDoomLauncher
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.txtPlayer = new System.Windows.Forms.TextBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -145,6 +147,7 @@ namespace APDoomLauncher
             this.cboGame.Name = "cboGame";
             this.cboGame.Size = new System.Drawing.Size(205, 24);
             this.cboGame.TabIndex = 0;
+            this.cboGame.SelectedIndexChanged += new System.EventHandler(this.cboGame_SelectedIndexChanged);
             // 
             // label8
             // 
@@ -242,6 +245,27 @@ namespace APDoomLauncher
             this.txtPlayer.Size = new System.Drawing.Size(203, 22);
             this.txtPlayer.TabIndex = 6;
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 734);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(147, 17);
+            this.label7.TabIndex = 9;
+            this.label7.Text = "APDOOM 0.7.1 (beta)";
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.BackgroundImage = global::APDoomLauncher.Properties.Resources.Title2;
+            this.pictureBox2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pictureBox2.Location = new System.Drawing.Point(88, 23);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(492, 240);
+            this.pictureBox2.TabIndex = 10;
+            this.pictureBox2.TabStop = false;
+            this.pictureBox2.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox2_Paint);
+            // 
             // pictureBox1
             // 
             this.pictureBox1.BackgroundImage = global::APDoomLauncher.Properties.Resources.Title;
@@ -254,20 +278,12 @@ namespace APDoomLauncher
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
             // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(12, 734);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(147, 17);
-            this.label7.TabIndex = 9;
-            this.label7.Text = "APDOOM 0.6.1 (beta)";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(671, 759);
+            this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -285,6 +301,7 @@ namespace APDoomLauncher
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -313,6 +330,7 @@ namespace APDoomLauncher
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ComboBox cboGame;
+        private System.Windows.Forms.PictureBox pictureBox2;
     }
 }
 

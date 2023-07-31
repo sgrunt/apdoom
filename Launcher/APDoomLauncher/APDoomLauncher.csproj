@@ -90,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="launcher_icon.ico" />
+    <None Include="Title2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

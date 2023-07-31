@@ -27,6 +27,12 @@ namespace APDoomLauncher
             base.OnPaint(paintEventArgs);
         }
 
+        private void pictureBox2_Paint(object sender, PaintEventArgs paintEventArgs)
+        {
+            paintEventArgs.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+            base.OnPaint(paintEventArgs);
+        }
+
         private void btnLaunchDOOM_Click(object sender, EventArgs e)
         {
             Settings.Default.Game = cboGame.SelectedIndex;
@@ -84,6 +90,27 @@ namespace APDoomLauncher
 
             txtWidth.Enabled = !chkFullscreen.Checked;
             txtHeight.Enabled = !chkFullscreen.Checked;
+
+            pictureBox1.Visible = false;
+            pictureBox2.Visible = false;
+
+            switch (cboGame.SelectedIndex)
+            {
+                case 0: pictureBox1.Visible = true; break;
+                case 1: pictureBox2.Visible = true; break;
+            }
+        }
+
+        private void cboGame_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            pictureBox1.Visible = false;
+            pictureBox2.Visible = false;
+
+            switch (cboGame.SelectedIndex)
+            {
+                case 0: pictureBox1.Visible = true; break;
+                case 1: pictureBox2.Visible = true; break;
+            }
         }
     }
 }
