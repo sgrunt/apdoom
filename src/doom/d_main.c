@@ -181,6 +181,15 @@ boolean P_GiveArmor(player_t* player, int armortype);
 boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
 
+boolean is_in_level(int ep, int map)
+{
+    if (gamemode == commercial)
+        return map == gamemap;
+    else
+        return ep == gameepisode && map == gamemap;
+}
+
+
 // Kind of a copy of P_TouchSpecialThing
 void on_ap_give_item(int doom_type, int ep, int map)
 {
@@ -193,7 +202,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
         // Level specifics
         case 5: // Blue keycard
         case 40: // Blue skull key
-            if (ep == gameepisode && map == gamemap)
+            if (is_in_level(ep, map))
             {
                 if (!player->cards[it_bluecard] && !player->cards[it_blueskull])
                 {
@@ -206,7 +215,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
             break;
         case 6: // Yellow keycard
         case 39: // Yellow skull key
-            if (ep == gameepisode && map == gamemap)
+            if (is_in_level(ep, map))
             {
                 if (!player->cards[it_yellowcard] && !player->cards[it_yellowskull])
                 {
@@ -219,7 +228,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
             break;
         case 13: // Red keycard
         case 38: // Red skull key
-            if (ep == gameepisode && map == gamemap)
+            if (is_in_level(ep, map))
             {
                 if (!player->cards[it_redcard] && !player->cards[it_redskull])
                 {
@@ -231,7 +240,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
             }
             break;
         case 2026: // Map
-            if (ep == gameepisode && map == gamemap)
+            if (is_in_level(ep, map))
             {
 	            if (P_GivePower(player, pw_allmap))
                 {
