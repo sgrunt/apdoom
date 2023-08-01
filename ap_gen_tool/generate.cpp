@@ -276,13 +276,13 @@ int generate(game_t game)
 {
     OLog("AP Gen Tool");
 
-    if (OArguments.size() != 5) // Minimum effort validation
+    if (OArguments.size() != 6) // Minimum effort validation
     {
-        OLogE("Usage: ap_gen_tool.exe DOOM.WAD DOOM2.WAD python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago  C:\\github\\apdoom\\data\\poptracker");
+        OLogE("Usage: ap_gen_tool.exe DOOM.WAD DOOM2.WAD HERETIC.WAD python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago  C:\\github\\apdoom\\data\\poptracker");
         return 1;
     }
 
-    std::string py_out_dir = OArguments[2] + std::string("\\");
+    std::string py_out_dir = OArguments[3] + std::string("\\");
     switch (game)
     {
         case game_t::doom:
@@ -309,8 +309,8 @@ int generate(game_t game)
     level_to_keycards.clear();
     item_map.clear();
 
-    std::string cpp_out_dir = OArguments[3] + std::string("\\");
-    std::string pop_tracker_data_dir = OArguments[4] + std::string("\\");
+    std::string cpp_out_dir = OArguments[4] + std::string("\\");
+    std::string pop_tracker_data_dir = OArguments[5] + std::string("\\");
 
     std::ifstream fregions(cpp_out_dir + "regions.json");
     Json::Value levels_json;

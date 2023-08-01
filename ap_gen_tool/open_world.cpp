@@ -536,7 +536,7 @@ void save()
 
     _json["maps"] = eps_json;
 
-    std::string filename = OArguments[3] + std::string("\\regions.json");
+    std::string filename = OArguments[4] + std::string("\\regions.json");
     onut::saveJson(_json, filename, false);
 }
 
@@ -544,7 +544,7 @@ void save()
 void load(const std::string& file, metas_t* out_metas)
 {
     Json::Value json;
-    std::string filename = OArguments[3] + std::string("\\") + file;
+    std::string filename = OArguments[4] + std::string("\\") + file;
     if (!onut::loadJson(json, filename))
     {
         if (out_metas == &metas)

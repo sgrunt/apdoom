@@ -445,6 +445,7 @@ void init_maps()
 {
     init_wad(OArguments[0].c_str());
     init_wad(OArguments[1].c_str());
+    init_wad(OArguments[2].c_str());
 }
 
 
