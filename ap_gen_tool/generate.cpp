@@ -298,7 +298,7 @@ int generate(game_t* game)
     for (const auto& def : game->progressions)
         add_item(def.name, def.doom_type, 1, PROGRESSION, def.group);
     for (const auto& def : game->fillers)
-        add_item(def.name, def.doom_type, 1, PROGRESSION, def.group);
+        add_item(def.name, def.doom_type, 0, FILLER, def.group);
     
     std::vector<level_t*> levels;
     for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
@@ -484,7 +484,6 @@ int generate(game_t* game)
     //---------------------------------------------
     //-------- Generate the python files ----------
     //---------------------------------------------
-#if 0
     // Items
     {
         FILE* fout = fopen((py_out_dir + "Items.py").c_str(), "w");
@@ -498,7 +497,7 @@ class ItemDict(TypedDict, total=False): \n\
     count: int \n\
     name: str \n\
     doom_type: int # Unique numerical id used to spawn the item. -1 is level item, -2 is level complete item. \n");
-        if (game == game_t::doom)
+        if (game->episodic)
             fprintf(fout, "    episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n");
         fprintf(fout, "    map: int \n\
 \n\
@@ -521,15 +520,11 @@ class ItemDict(TypedDict, total=False): \n\
             fprintf(fout, ",\n             'count': %i", item.count);
             fprintf(fout, ",\n             'name': '%s'", item.name.c_str());
             fprintf(fout, ",\n             'doom_type': %i", item.doom_type);
-            if (game == game_t::doom)
+            if (game->episodic)
             {
                 fprintf(fout, ",\n             'episode': %i", item.idx.ep + 1);
-                fprintf(fout, ",\n             'map': %i", item.idx.map + 1);
             }
-            else
-            {
-                fprintf(fout, ",\n             'map': %i", item.idx.d2_map + 1);
-            }
+            fprintf(fout, ",\n             'map': %i", item.idx.map + 1);
             fprintf(fout, "},\n");
         }
         fprintf(fout, "}\n\n\n");
@@ -550,7 +545,7 @@ class ItemDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 
-#if 1 // Regions.py
+#if 0
     // Generate Regions.py from regions.json (Manually entered data)
     {
         FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
@@ -671,7 +666,6 @@ class ItemDict(TypedDict, total=False): \n\
 
         fclose(fout);
     }
-#endif
     
     // Locations
     {

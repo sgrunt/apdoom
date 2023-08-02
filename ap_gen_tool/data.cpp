@@ -69,7 +69,7 @@ void init_data()
             item.doom_type = progression_json["doom_type"].asInt();
             item.name = progression_json["name"].asString();
             item.group = progression_json["group"].asString();
-            game.progressions.push_back({});
+            game.progressions.push_back(item);
         }
 
         const auto& fillers_json = game_json["fillers"];
@@ -79,7 +79,7 @@ void init_data()
             item.doom_type = filler_json["doom_type"].asInt();
             item.name = filler_json["name"].asString();
             item.group = filler_json["group"].asString();
-            game.fillers.push_back({});
+            game.fillers.push_back(item);
         }
 
         const auto& unique_progressions_json = game_json["unique_progressions"];
@@ -89,7 +89,7 @@ void init_data()
             item.doom_type = progression_json["doom_type"].asInt();
             item.name = progression_json["name"].asString();
             item.group = progression_json["group"].asString();
-            game.unique_progressions.push_back({});
+            game.unique_progressions.push_back(item);
         }
 
         const auto& unique_fillers_json = game_json["unique_fillers"];
@@ -99,7 +99,7 @@ void init_data()
             item.doom_type = filler_json["doom_type"].asInt();
             item.name = filler_json["name"].asString();
             item.group = filler_json["group"].asString();
-            game.unique_fillers.push_back({});
+            game.unique_fillers.push_back(item);
         }
 
         const auto& keys_json = game_json["keys"];
@@ -111,7 +111,7 @@ void init_data()
             item.item.group = key_json["group"].asString();
             item.key = key_json["key"].asInt();
             item.use_skull = key_json["use_skull"].asBool();
-            game.keys.push_back({});
+            game.keys.push_back(item);
         }
 
         const auto& loc_remap_json = game_json["loc_remap"];
