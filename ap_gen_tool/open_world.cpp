@@ -642,6 +642,7 @@ void reset_level()
 
     // Check for keycards, and create colored regions
     bool keycards[3] = {false, false, false};
+    auto game = get_game(active_level);
     for (int i = 0; i < (int)map->things.size(); ++i)
     {
         const auto& thing = map->things[i];
@@ -649,49 +650,36 @@ void reset_level()
         {
             continue; // Thing is not in single player
         }
-        switch (thing.type)
+        for (const auto& key_item : game->keys)
         {
-            case 5:
-            case 40:
-                keycards[0] = true;
+            if (thing.type == key_item.item.doom_type)
+            {
+                keycards[key_item.key] = true;
                 break;
-            case 6:
-            case 39:
-                keycards[1] = true;
-                break;
-            case 13:
-            case 38:
-                keycards[2] = true;
-                break;
+            }
         }
     }
 
-    if (keycards[0])
+    for (int i = 0; i < 3; ++i)
     {
-        region_t region;
-        region.name = "Blue";
-        region.tint = Color(0, 0, 1);
-        region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
-        region.rules.y = rules_pos.y - RULES_H * 3;
-        state->regions.push_back(region);
-    }
-    if (keycards[1])
-    {
-        region_t region;
-        region.name = "Yellow";
-        region.tint = Color(1, 1, 0);
-        region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
-        region.rules.y = rules_pos.y;
-        state->regions.push_back(region);
-    }
-    if (keycards[2])
-    {
-        region_t region;
-        region.name = "Red";
-        region.tint = Color(1, 0, 0);
-        region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
-        region.rules.y = rules_pos.y + RULES_H * 3;
-        state->regions.push_back(region);
+        if (keycards[i])
+        {
+            ap_key_def_t key_item;
+            for (const auto& key_item_s : game->keys)
+            {
+                if (key_item_s.key == i)
+                {
+                    key_item = key_item_s;
+                    break;
+                }
+            }
+            region_t region;
+            region.name = key_item.region_name;
+            region.tint = key_item.color;
+            region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
+            region.rules.y = rules_pos.y - RULES_H * 3 + i * RULES_H * 3;
+            state->regions.push_back(region);
+        }
     }
 
     push_undo();
@@ -775,6 +763,7 @@ int get_bb_at(const Vector2& pos, float zoom, int &edge)
 int get_loc_at(const Vector2& pos)
 {
     auto map = get_map(active_level);
+    auto game = get_game(active_level);
 
     int index = 0;
     for (const auto& thing : map->things)
@@ -784,38 +773,12 @@ int get_loc_at(const Vector2& pos)
             ++index;
             continue; // Thing is not in single player
         }
-        switch (thing.type)
+        if (game->location_doom_types.find(thing.type) != game->location_doom_types.end())
         {
-            case 5:
-            case 40:
-            case 6:
-            case 39:
-            case 13:
-            case 38:
-            case 2018:
-            case 8:
-            case 2019:
-            case 2023:
-            case 2022:
-            case 2024:
-            case 2013:
-            case 2006:
-            case 2002:
-            case 2005:
-            case 2004:
-            case 2003:
-            case 2001:
-            case 2026:
-            case 82:
-            case 83:
+            Rect rect((float)thing.x - 32.0f, (float)-thing.y - 32.0f, 64.0f, 64.0f);
+            if (rect.Contains(pos))
             {
-                Rect rect((float)thing.x - 32.0f, (float)-thing.y - 32.0f, 64.0f, 64.0f);
-                if (rect.Contains(pos))
-                {
-                    return index;
-                }
-                //sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
-                break;
+                return index;
             }
         }
         ++index;
@@ -1617,17 +1580,17 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
                 line.special_type == LT_D1_DOOR_RED_OPEN_STAY ||
                 line.special_type == LT_SR_DOOR_RED_OPEN_STAY_FAST ||
                 line.special_type == LT_S1_DOOR_RED_OPEN_STAY_FAST)
-                color = Color(1, 0, 0);
+                color = game->key_colors[2];// Color(1, 0, 0);
             else if (line.special_type == LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE ||
                 line.special_type == LT_D1_DOOR_YELLOW_OPEN_STAY ||
                 line.special_type == LT_SR_DOOR_YELLOW_OPEN_STAY_FAST ||
                 line.special_type == LT_S1_DOOR_YELLOW_OPEN_STAY_FAST)
-                color = Color(1, 1, 0);
+                color = game->key_colors[1];
             else if (line.special_type == LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE ||
                 line.special_type == LT_D1_DOOR_BLUE_OPEN_STAY ||
                 line.special_type == LT_SR_DOOR_BLUE_OPEN_STAY_FAST ||
                 line.special_type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
-                color = Color(0, 0, 1);
+                color = game->key_colors[0];
         }
 
         if (draw_tools && tool == tool_t::region)

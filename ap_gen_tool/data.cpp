@@ -113,6 +113,9 @@ void init_data()
             item.item.group = key_json["group"].asString();
             item.key = key_json["key"].asInt();
             item.use_skull = key_json["use_skull"].asBool();
+            item.region_name = key_json["region_name"].asString();
+            item.color = Color(key_json["color"][0].asFloat(), key_json["color"][1].asFloat(), key_json["color"][2].asFloat());
+            game.key_colors[item.key] = item.color;
             game.keys.push_back(item);
         }
 

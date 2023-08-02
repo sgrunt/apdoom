@@ -277,9 +277,9 @@ int generate(game_t* game)
     }
 
     std::string py_out_dir = OArguments[0] + "\\" + game->world + "\\";
-    item_id_base = 350000;
+    item_id_base = game->item_ids;
     item_next_id = item_id_base;
-    location_next_id = 351000;
+    location_next_id = game->loc_ids;
     has_ssg = game->name == "DOOM II"; // temp
 
     total_item_count = 0;
@@ -294,6 +294,7 @@ int generate(game_t* game)
     std::string pop_tracker_data_dir = OArguments[2] + std::string("\\");
 
     ap_locations.reserve(1000);
+    ap_items.reserve(1000);
 
     for (const auto& def : game->progressions)
         add_item(def.name, def.doom_type, 1, PROGRESSION, def.group);
@@ -412,22 +413,25 @@ int generate(game_t* game)
 
     //--- Remap location's IDs
     {
-        int64_t next_location_id = 0;
-        std::vector<int> unmapped_locations;
-        int i = 0;
-        for (const auto& kv : game->loc_remap)
-            next_location_id = std::max(next_location_id, kv.second + 1);
-        for (auto& location : ap_locations)
+        if (!game->loc_remap.empty())
         {
-            auto it = game->loc_remap.find(location.name);
-            if (it != game->loc_remap.end())
-                location.id = game->loc_remap[location.name];
-            else
-                unmapped_locations.push_back(i);
-            ++i;
+            int64_t next_location_id = 0;
+            std::vector<int> unmapped_locations;
+            int i = 0;
+            for (const auto& kv : game->loc_remap)
+                next_location_id = std::max(next_location_id, kv.second + 1);
+            for (auto& location : ap_locations)
+            {
+                auto it = game->loc_remap.find(location.name);
+                if (it != game->loc_remap.end())
+                    location.id = game->loc_remap[location.name];
+                else
+                    unmapped_locations.push_back(i);
+                ++i;
+            }
+            for (auto unmapped_location : unmapped_locations)
+                ap_locations[unmapped_location].id = next_location_id++;
         }
-        for (auto unmapped_location : unmapped_locations)
-            ap_locations[unmapped_location].id = next_location_id++;
 
         // Sort by id so it's clean in AP
         std::sort(ap_locations.begin(), ap_locations.end(), [](const ap_location_t& a, const ap_location_t& b) { return a.id < b.id; });
@@ -435,25 +439,28 @@ int generate(game_t* game)
 
     //--- Remap item's IDs
     {
-        int64_t next_itemn_id = 0;
-        std::vector<int> unmapped_items;
-        int i = 0;
-        for (const auto &kv : game->item_remap)
-            next_itemn_id = std::max(next_itemn_id, kv.second + 1);
-        for (auto& item : ap_items)
+        if (!game->item_remap.empty())
         {
-            auto it = game->item_remap.find(item.name);
-            if (it != game->item_remap.end())
-                item.id = game->item_remap[item.name];
-            else
-                unmapped_items.push_back(i);
-            ++i;
-        }
-        for (auto unmapped_item : unmapped_items)
-            ap_items[unmapped_item].id = next_itemn_id++;
+            int64_t next_itemn_id = 0;
+            std::vector<int> unmapped_items;
+            int i = 0;
+            for (const auto &kv : game->item_remap)
+                next_itemn_id = std::max(next_itemn_id, kv.second + 1);
+            for (auto& item : ap_items)
+            {
+                auto it = game->item_remap.find(item.name);
+                if (it != game->item_remap.end())
+                    item.id = game->item_remap[item.name];
+                else
+                    unmapped_items.push_back(i);
+                ++i;
+            }
+            for (auto unmapped_item : unmapped_items)
+                ap_items[unmapped_item].id = next_itemn_id++;
 
-        // Sort by id so it's clean in AP
-        std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+            // Sort by id so it's clean in AP
+            std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+        }
     }
 
     // Fill in locations into level's sectors

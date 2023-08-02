@@ -64,16 +64,68 @@
         ]
     ],
     "location_doom_types": {
+        "79": "Blue key",
+        "80": "Yellow key",
+        "73": "Green key",
+        "54": "Dragon Claw",
+        "2001": "Ethereal Crossbow",
+        "2002": "Firemace",
+        "2005": "Gauntlets of the Necromancer",
+        "2004": "Hellstaff",
+        "2003": "Phoenix Rod",
+        "8": "Bag of Holding",
+        "35": "Map Scroll",
+        "36": "Chaos Device",
+        "30": "Morph Ovum",
+        "32": "Mystic Urn",
+        "84": "Ring of Invincibility",
+        "75": "Shadowsphere",
+        "86": "Tome of Power",
+        "83": "Wings of Wrath",
+        "85": "Silver Shield",
+        "31": "Enchanted Shield"
     },
+    "extra_connection_requirements": [
+        {"doom_type": -1, "name": "deathlogic", "sprite": "FACEB2" },
+        {"doom_type": -2, "name": "pro", "sprite": "FACEA0" }
+    ],
     "progressions": [
+        {"doom_type": 54, "name": "Dragon Claw", "group": "Weapons", "sprite": "WBLSA0"},
+        {"doom_type": 2001, "name": "Ethereal Crossbow", "group": "Weapons", "sprite": "WBOWA0"},
+        {"doom_type": 2002, "name": "Firemace", "group": "Weapons", "sprite": "WMCEA0"},
+        {"doom_type": 2005, "name": "Gauntlets of the Necromancer", "group": "Weapons", "sprite": "WGNTA0"},
+        {"doom_type": 2004, "name": "Hellstaff", "group": "Weapons", "sprite": "WSKLA0"},
+        {"doom_type": 2003, "name": "Phoenix Rod", "group": "Weapons", "sprite": "WPHXA0"},
+        {"doom_type": 8, "name": "Bag of Holding", "group": "", "sprite": "BAGHA0"}
     ],
     "fillers": [
+        {"doom_type": 36, "name": "Chaos Device", "group": "Weapons", "sprite": "ATLPA0"},
+        {"doom_type": 30, "name": "Morph Ovum", "group": "Weapons", "sprite": "EGGCB0"},
+        {"doom_type": 32, "name": "Mystic Urn", "group": "Weapons", "sprite": "SPHLA0"},
+        {"doom_type": 82, "name": "Quartz Flask", "group": "Weapons", "sprite": "PTN2B0"},
+        {"doom_type": 84, "name": "Ring of Invincibility", "group": "Weapons", "sprite": "INVUA0"},
+        {"doom_type": 75, "name": "Shadowsphere", "group": "Weapons", "sprite": "INVSA0"},
+        {"doom_type": 34, "name": "Timebomb of the Ancients", "group": "Weapons", "sprite": "FBMBC0"},
+        {"doom_type": 86, "name": "Tome of Power", "group": "Weapons", "sprite": "PWBKA0"},
+        {"doom_type": 83, "name": "Wings of Wrath", "group": "Weapons", "sprite": "SOARB0"},
+        {"doom_type": 85, "name": "Silver Shield", "group": "Weapons", "sprite": "SHLDA0"},
+        {"doom_type": 31, "name": "Enchanted Shield", "group": "Weapons", "sprite": "SHD2A0"},
+        {"doom_type": 12, "name": "Crystal Geode", "group": "Weapons", "sprite": "AMG2A0"},
+        {"doom_type": 55, "name": "Energy Orb", "group": "Weapons", "sprite": "AMB2C0"},
+        {"doom_type": 21, "name": "Greater Runes", "group": "Weapons", "sprite": "AMS2A0"},
+        {"doom_type": 23, "name": "Inferno Orb", "group": "Weapons", "sprite": "AMP2B0"},
+        {"doom_type": 16, "name": "Pile of Mace Spheres", "group": "Weapons", "sprite": "AMM2A0"},
+        {"doom_type": 19, "name": "Quiver of Ethereal Arrows", "group": "Weapons", "sprite": "AMC2B0"}
     ],
     "unique_progressions": [
     ],
     "unique_fillers": [
+        {"doom_type": 35, "name": "Map Scroll", "group": "Map Scrolls", "sprite": "SPMPA0"}
     ],
     "keys": [
+        {"doom_type": 79, "name": "Blue key", "group": "Keys", "key": 0, "region_name": "Blue", "color": [0, 0, 1], "sprite": "BKYYA0"},
+        {"doom_type": 80, "name": "Yellow key", "group": "Keys", "key": 1, "region_name": "Yellow", "color": [1, 1, 0], "sprite": "CKYYA0"},
+        {"doom_type": 73, "name": "Green key", "group": "Keys", "key": 2, "region_name": "Green", "color": [0, 1, 0], "sprite": "AKYYA0"}
     ],
     "loc_remap": {},
     "item_remap": {}

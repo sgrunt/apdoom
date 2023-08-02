@@ -201,6 +201,8 @@ struct ap_key_def_t
     ap_item_def_t item;
     int key = -1;
     bool use_skull = false; // Only relevent for doom games
+    std::string region_name;
+    Color color;
 };
 
 
@@ -222,6 +224,7 @@ struct game_t
     std::map<std::string, int64_t> loc_remap;
     std::map<std::string, int64_t> item_remap;
 
+    Color key_colors[3];
     int ep_count = -1;
     int map_count = -1;
     bool episodic = false;
