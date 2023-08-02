@@ -1,11 +1,7 @@
 #pragma once
 
 
-enum class game_t
-{
-    doom,
-    doom2
-};
+struct game_t;
 
 
-int generate(game_t game);
+int generate(game_t* game);

@@ -20,14 +20,15 @@
 #include "maps.h"
 #include "generate.h"
 #include "defs.h"
+#include "data.h"
 
 
 enum class state_t
 {
     idle,
     panning,
-    gen,
-    gen_panning,
+    //gen,
+    //gen_panning,
     move_bb,
     move_rule,
     connecting_rule,
@@ -45,41 +46,6 @@ enum class tool_t : int
 };
 
 
-struct rule_connection_t
-{
-    int target_region = -1;
-    std::vector<int> requirements_or;
-    std::vector<int> requirements_and;
-    bool deathlogic = false;
-    bool pro = false;
-
-    bool operator==(const rule_connection_t& other) const
-    {
-        return 
-            target_region == other.target_region &&
-            requirements_or == other.requirements_or &&
-            requirements_and == other.requirements_and &&
-            deathlogic == other.deathlogic &&
-            pro == other.pro;
-    }
-};
-
-
-struct rule_region_t
-{
-    int x = 0, y = 0;
-    std::vector<rule_connection_t> connections;
-
-    bool operator==(const rule_region_t& other) const
-    {
-        return 
-            x == other.x &&
-            y == other.y &&
-            connections == other.connections;
-    }
-};
-
-
 #define RULES_W 1024
 #define RULES_H 400
 #define RULE_CONNECTION_OFFSET 64.0f
@@ -89,77 +55,6 @@ struct rule_region_t
 #define SMALL_DOOR_H 72
 
 
-struct bb_t
-{
-    int x1, y1, x2, y2;
-    int region = -1;
-
-    int overlaps(const bb_t& other) const
-    {
-        auto d1 = other.x2 - x1;
-        if (d1 < 0) return 0;
-
-        auto d2 = x2 - other.x1;
-        if (d2 < 0) return 0;
-
-        auto d3 = other.y2 - y1;
-        if (d3 < 0) return 0;
-
-        auto d4 = y2 - other.y1;
-        if (d4 < 0) return 0;
-
-        return onut::max(d1, d2, d3, d4);
-
-        //return (x1 <= other.x2 && x2 >= other.x1 && 
-        //        y1 <= other.y2 && y2 >= other.y1);
-    }
-
-    bb_t operator+(const Vector2& v) const
-    {
-        return {
-            (int)(x1 + v.x),
-            (int)(y1 + v.y),
-            (int)(x2 + v.x),
-            (int)(y2 + v.y)
-        };
-    }
-
-    Vector2 center() const
-    {
-        return {
-            (float)(x1 + x2) * 0.5f,
-            (float)(y1 + y2) * 0.5f
-        };
-    }
-
-    bool operator==(const bb_t& other) const
-    {
-        return 
-            x1 == other.x1 &&
-            y1 == other.y1 &&
-            x2 == other.x2 &&
-            y2 == other.y2 &&
-            region == other.region;
-    }
-};
-
-
-struct region_t
-{
-    std::string name;
-    std::set<int> sectors;
-    Color tint = Color::White;
-    rule_region_t rules;
-
-    bool operator==(const region_t& other) const
-    {
-        return 
-            name == other.name &&
-            sectors == other.sectors &&
-            tint == other.tint &&
-            rules == other.rules;
-    }
-};
 
 
 static region_t world_region = {
@@ -177,89 +72,8 @@ static region_t exit_region = {
 };
 
 
-struct location_t
-{
-    bool death_logic = false;
-    bool unreachable = false;
-    std::string name;
-    std::string description;
-
-    bool operator==(const location_t& other) const
-    {
-        return 
-            death_logic == other.death_logic &&
-            unreachable == other.unreachable &&
-            name == other.name &&
-            description == other.description;
-    }
-};
-
-
-struct map_state_t
-{
-    Vector2 pos;
-    float angle = 0.0f;
-    int selected_bb = -1;
-    int selected_region = -1;
-    int selected_location = -1;
-    std::vector<bb_t> bbs;
-    std::vector<region_t> regions;
-    rule_region_t world_rules;
-    rule_region_t exit_rules;
-    std::set<int> accesses;
-    std::map<int, location_t> locations;
-    bool different = false;
-
-    bool operator==(const map_state_t& other) const
-    {
-        return 
-            bbs == other.bbs &&
-            regions == other.regions &&
-            world_rules == other.world_rules &&
-            exit_rules == other.exit_rules &&
-            accesses == other.accesses &&
-            locations == other.locations;
-    }
-};
-
-
-struct map_view_t
-{
-    Vector2 cam_pos;
-    float cam_zoom = 0.25f;
-};
-
-
-struct map_history_t
-{
-    std::vector<map_state_t> history;
-    int history_point = 0;
-};
-
-
-struct meta_t // Bad name, but whatever
-{
-    map_state_t state;
-    map_view_t view;
-    map_history_t history;
-};
-
-
-struct metas_t
-{
-    meta_t d1_metas[EP_COUNT][MAP_COUNT];
-    meta_t d2_metas[D2_MAP_COUNT];
-};
 
 level_index_t active_level;
-metas_t metas;
-metas_t metas_new;
-
-enum class active_source_t
-{
-    current,
-    target
-};
 
 static active_source_t active_source = active_source_t::current;
 static state_t state = state_t::idle;
@@ -281,9 +95,9 @@ static HCURSOR arrow_cursor = 0;
 static HCURSOR we_cursor = 0;
 static HCURSOR ns_cursor = 0;
 static HCURSOR nswe_cursor = 0;
-static bool generating = true;
-static map_state_t* flat_levels[EP_COUNT * MAP_COUNT]; // For DOOM1 open world
-static int gen_step_count = 0;
+//static bool generating = true;
+//static map_state_t* flat_levels[EP_COUNT * MAP_COUNT]; // For DOOM1 open world
+//static int gen_step_count = 0;
 static bool painted = false;
 static int moving_rule = -3;
 static int mouse_hover_connection = -1;
@@ -303,73 +117,32 @@ static const std::vector<int> REQUIREMENTS = {
 };
 
 
-metas_t* get_active_metas()
-{
-    switch (active_source)
-    {
-        case active_source_t::current: return &metas;
-        case active_source_t::target: return &metas_new;
-    }
-}
-
-
-map_state_t* get_state(const level_index_t& idx, metas_t* p_metas = nullptr)
-{
-    if (!p_metas) p_metas = get_active_metas();
-    if (idx.d2_map == -1)
-        return &p_metas->d1_metas[idx.ep][idx.map].state;
-    return &p_metas->d2_metas[idx.d2_map].state;
-}
-
 map_view_t* get_view(const level_index_t& idx)
 {
-    auto p_metas = &metas;
-    if (idx.d2_map == -1)
-        return &p_metas->d1_metas[idx.ep][idx.map].view;
-    return &p_metas->d2_metas[idx.d2_map].view;
+    auto game = get_game(idx);
+    if (!game) return nullptr;
+    auto k = idx.ep * game->map_count + idx.map;
+    return &game->metas[k].view;
 }
 
 map_history_t* get_history(const level_index_t& idx)
 {
-    auto p_metas = &metas;
-    if (!p_metas) p_metas = get_active_metas();
-    if (idx.d2_map == -1)
-        return &p_metas->d1_metas[idx.ep][idx.map].history;
-    return &p_metas->d2_metas[idx.d2_map].history;
+    auto game = get_game(idx);
+    if (!game) return nullptr;
+    auto k = idx.ep * game->map_count + idx.map;
+    return &game->metas[k].history;
 }
 
 
 const char* ERROR_STR = "ERROR";
 
 
-const char* get_doom_type_name(int doom_type)
+const char* get_doom_type_name(const level_index_t& idx, int doom_type)
 {
-    switch (doom_type)
-    {
-        case 5: return "Blue keycard";
-        case 40: return "Blue skull key";
-        case 6: return "Yellow keycard";
-        case 39: return "Yellow skull key";
-        case 13: return "Red keycard";
-        case 38: return "Red skull key";
-        case 2018: return "Armor";
-        case 8: return "Backpack";
-        case 2019: return "Mega Armor";
-        case 2023: return "Berserk";
-        case 2022: return "Invulnerability";
-        case 2024: return "Partial invisibility";
-        case 2013: return "Supercharge";
-        case 2006: return "BFG9000";
-        case 2002: return "Chaingun";
-        case 2005: return "Chainsaw";
-        case 2004: return "Plasma gun";
-        case 2003: return "Rocket launcher";
-        case 2001: return "Shotgun";
-        case 2026: return "Computer area map";
-        case 82: return "Super Shotgun";
-        case 83: return "Megasphere";
-    }
-    return ERROR_STR;
+    auto game = get_game(idx);
+    auto it = game->location_doom_types.find(doom_type);
+    if (it == game->location_doom_types.end()) return ERROR_STR;
+    return it->second.c_str();
 }
 
 
@@ -455,25 +228,17 @@ rule_region_t deserialize_rules(const Json::Value& json)
 }
 
 
-void save()
+void save(game_t* game)
 {
     Json::Value _json;
 
-
-    std::vector<level_index_t> level_idxes;
-    for (int ep = 0; ep < EP_COUNT; ++ep)
-        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
-            level_idxes.push_back({ep, lvl, -1});
-    for (int lvl = 0; lvl < D2_MAP_COUNT; ++lvl)
-        level_idxes.push_back({-1, -1, lvl});
-
-
     Json::Value eps_json(Json::arrayValue);
-    for (const auto& level_idx : level_idxes)
+    int i = 0;
+    for (const auto& meta : game->metas)
     {
         Json::Value _map_json;
         Json::Value bbs_json(Json::arrayValue);
-        auto state = get_state(level_idx, &metas);
+        auto state = &meta.state;
         for (const auto& bb : state->bbs)
         {
             Json::Value bb_json(Json::arrayValue);
@@ -527,36 +292,29 @@ void save()
         _map_json["world_rules"] = serialize_rules(state->world_rules);
         _map_json["exit_rules"] = serialize_rules(state->exit_rules);
 
-        _map_json["ep"] = level_idx.ep;
-        _map_json["map"] = level_idx.map;
-        _map_json["d2_map"] = level_idx.d2_map;
+        _map_json["ep"] = (i / game->map_count);
+        _map_json["map"] = (i % game->map_count);
 
         eps_json.append(_map_json);
+
+        ++i;
     }
 
     _json["maps"] = eps_json;
 
-    std::string filename = OArguments[4] + std::string("\\regions.json");
+    std::string filename = "data/" + game->name + ".json";
     onut::saveJson(_json, filename, false);
 }
 
 
-void load(const std::string& file, metas_t* out_metas)
+void load(game_t* game)
 {
     Json::Value json;
-    std::string filename = OArguments[4] + std::string("\\") + file;
+    std::string filename = "data/" + game->name + ".json";
     if (!onut::loadJson(json, filename))
     {
-        if (out_metas == &metas)
-        {
-            onut::showMessageBox("Warning", "Warning: File not found. Saving will break shit.\n" + filename);
-        }
+        onut::showMessageBox("Warning", "Warning: File not found. (If you just created this game, then it's fine. Otherwise, scream).\n" + filename);
         return;
-    }
-
-    if (out_metas == &metas_new)
-    {
-        *out_metas = {};
     }
 
     Json::Value json_maps = json["maps"];
@@ -565,8 +323,8 @@ void load(const std::string& file, metas_t* out_metas)
     {
         int ep = _map_json["ep"].asInt();
         int lvl = _map_json["map"].asInt();
-        int d2_map = _map_json["d2_map"].asInt();
-        auto _map_state = get_state({ep, lvl, d2_map}, out_metas);
+        auto meta = &game->metas[ep * game->map_count + lvl];
+        auto _map_state = &meta->state;
 
         const auto& bbs_json = _map_json["bbs"];
         for (const auto& bb_json : bbs_json)
@@ -604,43 +362,15 @@ void load(const std::string& file, metas_t* out_metas)
         }
 
         // Default locations from maps
-        auto map = get_map({ep, lvl, d2_map});
+        auto map = &meta->map;
         for (int i = 0; i < (int)map->things.size(); ++i)
         {
             const auto& thing = map->things[i];
-            if (thing.flags & 0x0010)
+            if (thing.flags & 0x0010) continue; // Thing is not in single player
+            if (game->location_doom_types.find(thing.type) != game->location_doom_types.end())
             {
-                continue; // Thing is not in single player
-            }
-            switch (thing.type)
-            {
-                case 5:
-                case 40:
-                case 6:
-                case 39:
-                case 13:
-                case 38:
-                case 2018:
-                case 8:
-                case 2019:
-                case 2023:
-                case 2022:
-                case 2024:
-                case 2013:
-                case 2006:
-                case 2002:
-                case 2005:
-                case 2004:
-                case 2003:
-                case 2001:
-                case 2026:
-                case 82:
-                case 83:
-                {
-                    location_t location;
-                    _map_state->locations[i] = location;
-                    break;
-                }
+                location_t location;
+                _map_state->locations[i] = location;
             }
         }
             
@@ -663,7 +393,7 @@ void load(const std::string& file, metas_t* out_metas)
 
 void update_window_title()
 {
-    oWindow->setCaption(get_level_name(active_level));
+    oWindow->setCaption(get_meta(active_level)->name.c_str());
 }
 
 
@@ -677,7 +407,7 @@ void push_undo()
 }
 
 
-void select_map(int ep, int map, int d2_map)
+void select_map(game_t* game, int ep, int map)
 {
     mouse_hover_sector = -1;
     mouse_hover_bb = -1;
@@ -685,8 +415,8 @@ void select_map(int ep, int map, int d2_map)
     set_rule_connection = -1;
     mouse_hover_location = -1;
 
-    active_level = {ep, map, d2_map};
-    map_state = get_state(active_level, get_active_metas());
+    active_level = {game->name, ep, map};
+    map_state = get_state(active_level, active_source);
     map_view = get_view(active_level);
     map_history = get_history(active_level);
 
@@ -731,36 +461,18 @@ void initSettings()
 
 void regen() // Doom1 only
 {
-    gen_step_count = 0;
-    generating = true;
+    //gen_step_count = 0;
+    //generating = true;
 
-    for (int ep = 0; ep < EP_COUNT; ++ep)
-    {
-        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
-        {
-            auto map = &maps[ep][lvl];
-            auto mid = Vector2((float)(map->bb[2] + map->bb[0]) / 2, (float)(map->bb[3] + map->bb[1]) / 2);
-            get_state({ep, lvl, -1})->pos = -mid + onut::rand2f(Vector2(-1000, -1000), Vector2(1000, 1000));
-        }
-    }
-}
-
-
-std::vector<level_index_t> get_all_levels_idx()
-{
-    std::vector<level_index_t> ret;
-    for (int ep = 0; ep < EP_COUNT; ++ep)
-    {
-        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
-        {
-            ret.push_back({ep, lvl, -1});
-        }
-    }
-    for (int lvl = 0; lvl < D2_MAP_COUNT; ++lvl)
-    {
-        ret.push_back({-1, -1, lvl});
-    }
-    return ret;
+    //for (int ep = 0; ep < EP_COUNT; ++ep)
+    //{
+    //    for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
+    //    {
+    //        auto map = &maps[ep][lvl];
+    //        auto mid = Vector2((float)(map->bb[2] + map->bb[0]) / 2, (float)(map->bb[3] + map->bb[1]) / 2);
+    //        get_state({ep, lvl, -1})->pos = -mid + onut::rand2f(Vector2(-1000, -1000), Vector2(1000, 1000));
+    //    }
+    //}
 }
 
 
@@ -792,40 +504,43 @@ void init()
     ap_deathlogic_icon = OGetTexture("deathlogic.png");
     ap_unreachable_icon = OGetTexture("unreachable.png");
 
-    init_maps();
+    init_data();
 
     // Doom1 only
-    for (int ep = 0; ep < EP_COUNT; ++ep)
-    {
-        for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
-        {
-            //auto k = ep * 9 + lvl;
-            //map_states[ep][lvl].pos = Vector2(
-            //    -16384 + 3000 + ((k % 5) * 6000),
-            //    -16384 + 3000 + ((k / 5) * 6000)
-            //);
+    //for (int ep = 0; ep < EP_COUNT; ++ep)
+    //{
+    //    for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
+    //    {
+    //        //auto k = ep * 9 + lvl;
+    //        //map_states[ep][lvl].pos = Vector2(
+    //        //    -16384 + 3000 + ((k % 5) * 6000),
+    //        //    -16384 + 3000 + ((k / 5) * 6000)
+    //        //);
 
-            auto map = &maps[ep][lvl];
-            flat_levels[ep * MAP_COUNT + lvl] = get_state({ep, lvl, -1});
-            get_view({ep, lvl, -1})->cam_pos = Vector2((float)(map->bb[2] + map->bb[0]) / 2, -(float)(map->bb[3] + map->bb[1]) / 2);
-        }
-    }
+    //        auto map = &maps[ep][lvl];
+    //        flat_levels[ep * MAP_COUNT + lvl] = get_state({ep, lvl, -1});
+    //        get_view({ep, lvl, -1})->cam_pos = Vector2((float)(map->bb[2] + map->bb[0]) / 2, -(float)(map->bb[3] + map->bb[1]) / 2);
+    //    }
+    //}
 
     // Load states
-    load("regions.json", &metas);
-    metas_new = metas;
-    load("regions_new.json", &metas_new);
+    for (auto& kv : games)
+    {
+        auto game = &kv.second;
+        load(game);
+    }
+    //load("regions_new.json", &metas_new);
 
     // Mark dirty levels
-    auto levels_idx = get_all_levels_idx();
-    for (const auto& idx : levels_idx)
-    {
-        auto a = get_state(idx, &metas);
-        auto b = get_state(idx, &metas_new);
-        a->different = !(*a == *b);
-    }
+    //auto levels_idx = get_all_levels_idx();
+    //for (const auto& idx : levels_idx)
+    //{
+    //    auto a = get_state(idx, &metas);
+    //    auto b = get_state(idx, &metas_new);
+    //    a->different = !(*a == *b);
+    //}
 
-    select_map(0, 0, -1);
+    select_map(&games.begin()->second, 0, 0);
 
     regen();
 }
@@ -987,18 +702,18 @@ void update_shortcuts()
     if (ctrl && shift && !alt && OInputJustPressed(OKeyZ)) redo();
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeyB)) add_bounding_box();
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeyDelete)) delete_selected();
-    if (ctrl && !shift && !alt && OInputJustPressed(OKeyS)) save();
+    if (ctrl && !shift && !alt && OInputJustPressed(OKeyS)) save(get_game(active_level));
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeySpaceBar)) regen();
     if (ctrl && !shift && !alt && OInputJustPressed(OKeyR)) reset_level();
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeyF1))
     {
         active_source = active_source_t::current;
-        map_state = get_state(active_level, get_active_metas());
+        map_state = get_state(active_level, active_source);
     }
     if (!ctrl && !shift && !alt && OInputJustPressed(OKeyF2))
     {
         active_source = active_source_t::target;
-        map_state = get_state(active_level, get_active_metas());
+        map_state = get_state(active_level, active_source);
     }
 }
 
@@ -1264,41 +979,40 @@ void get_connection_at(const Vector2& pos, int& rule, int& connection)
 
 void update_gen()
 {
-    bool overlapped = false;
-    auto dt = 0.01f;
-    // TODO: Optimize that with chunks? Only care about bounding boxes and not levels?
-    for (int i = 0; i < EP_COUNT * MAP_COUNT; ++i)
-    {
-        for (int k = 0; k < (int)flat_levels[i]->bbs.size(); ++k)
-        {
-            // try to pull back to the middle
-            //if (gen_step_count > 100 && gen_step_count < 200)
-            //    flat_levels[i]->pos *= (1.0f - dt * 0.5f);
+    //bool overlapped = false;
+    //auto dt = 0.01f;
+    //// TODO: Optimize that with chunks? Only care about bounding boxes and not levels?
+    //for (int i = 0; i < EP_COUNT * MAP_COUNT; ++i)
+    //{
+    //    for (int k = 0; k < (int)flat_levels[i]->bbs.size(); ++k)
+    //    {
+    //        // try to pull back to the middle
+    //        //if (gen_step_count > 100 && gen_step_count < 200)
+    //        //    flat_levels[i]->pos *= (1.0f - dt * 0.5f);
 
-            for (int j = 0; j < EP_COUNT * MAP_COUNT; ++j)
-            {
-                if (j == i) continue;
-                for (int l = 0; l < (int)flat_levels[j]->bbs.size(); ++l)
-                {
-                    auto bb1 = flat_levels[i]->bbs[k] + flat_levels[i]->pos;
-                    auto bb2 = flat_levels[j]->bbs[l] + flat_levels[j]->pos;
-                    auto penetration = bb1.overlaps(bb2);
-                    if (penetration)
-                    {
-                        overlapped = true;
-                        auto dir = bb1.center() - bb2.center();
-                        dir.Normalize();
-                        dir += onut::rand2f(Vector2(-1, -1), Vector2(1, 1));
-                        dir *= (float)penetration;
-                        flat_levels[i]->pos += dir * dt;
-                        flat_levels[j]->pos -= dir * dt;
-                    }
-                }
-            }
-        }
-    }
-    if (overlapped) gen_step_count++;
-    //else regen();
+    //        for (int j = 0; j < EP_COUNT * MAP_COUNT; ++j)
+    //        {
+    //            if (j == i) continue;
+    //            for (int l = 0; l < (int)flat_levels[j]->bbs.size(); ++l)
+    //            {
+    //                auto bb1 = flat_levels[i]->bbs[k] + flat_levels[i]->pos;
+    //                auto bb2 = flat_levels[j]->bbs[l] + flat_levels[j]->pos;
+    //                auto penetration = bb1.overlaps(bb2);
+    //                if (penetration)
+    //                {
+    //                    overlapped = true;
+    //                    auto dir = bb1.center() - bb2.center();
+    //                    dir.Normalize();
+    //                    dir += onut::rand2f(Vector2(-1, -1), Vector2(1, 1));
+    //                    dir *= (float)penetration;
+    //                    flat_levels[i]->pos += dir * dt;
+    //                    flat_levels[j]->pos -= dir * dt;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+    //if (overlapped) gen_step_count++;
 }
 
 
@@ -1330,10 +1044,10 @@ void update()
                 {
                     map_view->cam_zoom /= 1.2f;
                 }
-                else if (OInputJustPressed(OKeyTab))
-                {
-                    state = state_t::gen;
-                }
+                //else if (OInputJustPressed(OKeyTab))
+                //{
+                //    state = state_t::gen;
+                //}
                 else if (tool == tool_t::bb)
                 {
                     mouse_hover_bb = get_bb_at(mouse_pos, map_view->cam_zoom, moving_edge);
@@ -1582,39 +1296,39 @@ void update()
             }
             break;
         }
-        case state_t::gen:
-        {
-            update_shortcuts();
-            update_gen();
-            if (OInputJustPressed(OMouse3))
-            {
-                state = state_t::gen_panning;
-                mouse_pos_on_down = OGetMousePos();
-                cam_pos_on_down = map_view->cam_pos;
-            }
-            else if (oInput->getStateValue(OMouseZ) > 0.0f)
-            {
-                map_view->cam_zoom *= 1.2f;
-            }
-            else if (oInput->getStateValue(OMouseZ) < 0.0f)
-            {
-                map_view->cam_zoom /= 1.2f;
-            }
-            else if (OInputJustPressed(OKeyTab))
-            {
-                state = state_t::idle;
-            }
-            break;
-        }
-        case state_t::gen_panning:
-        {
-            update_gen();
-            auto diff = OGetMousePos() - mouse_pos_on_down;
-            map_view->cam_pos = cam_pos_on_down - diff / map_view->cam_zoom;
-            if (OInputJustReleased(OMouse3))
-                state = state_t::gen;
-            break;
-        }
+        //case state_t::gen:
+        //{
+        //    update_shortcuts();
+        //    update_gen();
+        //    if (OInputJustPressed(OMouse3))
+        //    {
+        //        state = state_t::gen_panning;
+        //        mouse_pos_on_down = OGetMousePos();
+        //        cam_pos_on_down = map_view->cam_pos;
+        //    }
+        //    else if (oInput->getStateValue(OMouseZ) > 0.0f)
+        //    {
+        //        map_view->cam_zoom *= 1.2f;
+        //    }
+        //    else if (oInput->getStateValue(OMouseZ) < 0.0f)
+        //    {
+        //        map_view->cam_zoom /= 1.2f;
+        //    }
+        //    else if (OInputJustPressed(OKeyTab))
+        //    {
+        //        state = state_t::idle;
+        //    }
+        //    break;
+        //}
+        //case state_t::gen_panning:
+        //{
+        //    update_gen();
+        //    auto diff = OGetMousePos() - mouse_pos_on_down;
+        //    map_view->cam_pos = cam_pos_on_down - diff / map_view->cam_zoom;
+        //    if (OInputJustReleased(OMouse3))
+        //        state = state_t::gen;
+        //    break;
+        //}
     }
 }
 
@@ -1638,9 +1352,8 @@ void draw_guides()
 }
 
 
-region_t* get_region_for_sector(int ep, int lvl, int d2_map, int sector)
+region_t* get_region_for_sector(map_state_t* map_state, int sector)
 {
-    auto map_state = get_state({ep, lvl, d2_map}, get_active_metas());
     for (auto& region : map_state->regions)
     {
         if (region.sectors.count(sector))
@@ -1831,7 +1544,7 @@ void draw_rules()
 }
 
 
-void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bool draw_tools)
+void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool draw_tools)
 {
     Color bound_color(1.0f);
     Color step_color(0.35f);
@@ -1839,7 +1552,9 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
 
     auto pb = oPrimitiveBatch.get();
     auto sb = oSpriteBatch.get();
-    auto map = get_map({ep, lvl, d2_map});
+    auto game = get_game(idx);
+    auto map = get_map(idx);
+    auto map_state = get_state(idx, active_source);
     oRenderer->renderStates.backFaceCull = false;
 
     auto transform = 
@@ -1854,7 +1569,7 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
         int i = 0;
         for (const auto& sector : map->sectors)
         {
-            region_t* region = get_region_for_sector(ep, lvl, d2_map, i);
+            region_t* region = get_region_for_sector(map_state, i);
             if (region)
             {
                 Color color = region->tint * 0.5f;
@@ -1928,14 +1643,13 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
     }
 
     // Bounding boxes
-    auto state = get_state({ep, lvl, d2_map}, get_active_metas());
     if (draw_tools && tool == tool_t::bb)
     {
         int i = 0;
-        for (const auto& bb : state->bbs)
+        for (const auto& bb : map_state->bbs)
         {
             Color color = bb_color;
-            if (bb.region != -1 && bb.region < (int)state->regions.size()) color = state->regions[bb.region].tint;
+            if (bb.region != -1 && bb.region < (int)map_state->regions.size()) color = map_state->regions[bb.region].tint;
             //if (i == map_state->selected_bb) color = Color(1, 0, 0);
             pb->draw(Vector2(bb.x1, -bb.y1), color); pb->draw(Vector2(bb.x1, -bb.y2), color);
             pb->draw(Vector2(bb.x1, -bb.y2), color); pb->draw(Vector2(bb.x2, -bb.y2), color);
@@ -1951,9 +1665,9 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
     if (draw_tools && tool == tool_t::bb)
     {
         sb->begin(transform);
-        if (state->selected_bb != -1)
+        if (map_state->selected_bb != -1)
         {
-            const auto& bb = state->bbs[state->selected_bb];
+            const auto& bb = map_state->bbs[map_state->selected_bb];
             sb->drawRect(nullptr, Rect(bb.x1, -bb.y1 - (bb.y2 - bb.y1), bb.x2 - bb.x1, bb.y2 - bb.y1), Color(0.5f, 0, 0, 0.5f));
         }
         sb->end();
@@ -1969,9 +1683,9 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
             Rect rect((float)thing->x - 32.0f, (float)-thing->y - 32.0f, 64.0f, 64.0f);
             sb->drawOutterOutlineRect(rect, 2.0f / map_view->cam_zoom, Color(1, 1, 0));
         }
-        if (state->selected_location != -1)
+        if (map_state->selected_location != -1)
         {
-            auto thing = &map->things[state->selected_location];
+            auto thing = &map->things[map_state->selected_location];
             Rect rect((float)thing->x - 32.0f, (float)-thing->y - 32.0f, 64.0f, 64.0f);
             sb->drawOutterOutlineRect(rect, 2.0f / map_view->cam_zoom, Color(1, 0, 0));
         }
@@ -1994,40 +1708,15 @@ void draw_level(int ep, int lvl, int d2_map, const Vector2& pos, float angle, bo
     {
         ++i;
         if (thing.flags & 0x0010) continue; // Thing is not in single player
-        switch (thing.type)
+        if (game->location_doom_types.find(thing.type) != game->location_doom_types.end())
         {
-            case 5:
-            case 40:
-            case 6:
-            case 39:
-            case 13:
-            case 38:
-            case 2018:
-            case 8:
-            case 2019:
-            case 2023:
-            case 2022:
-            case 2024:
-            case 2013:
-            case 2006:
-            case 2002:
-            case 2005:
-            case 2004:
-            case 2003:
-            case 2001:
-            case 2026:
-            case 82:
-            case 83:
-            {
-                //ap_deathlogic_icon
-                if (map_state->locations[i].death_logic)
-                    sb->drawSprite(ap_deathlogic_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
-                else
-                    sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
-                if (map_state->locations[i].unreachable)
-                    sb->drawSprite(ap_unreachable_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
-                break;
-            }
+            //ap_deathlogic_icon
+            if (map_state->locations[i].death_logic)
+                sb->drawSprite(ap_deathlogic_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
+            else
+                sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
+            if (map_state->locations[i].unreachable)
+                sb->drawSprite(ap_unreachable_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
         }
     }
     sb->end();
@@ -2047,24 +1736,24 @@ void render()
 
     switch (state)
     {
-        case state_t::gen:
-        case state_t::gen_panning: // Doom1 only
-        {
-            for (int ep = 0; ep < EP_COUNT; ++ep)
-            {
-                for (int map = 0; map < MAP_COUNT; ++map)
-                {
-                    draw_level(ep, map, -1, metas.d1_metas[ep][map].state.pos, metas.d1_metas[ep][map].state.angle, true);
-                }
-            }
-            sb->begin();
-            sb->drawText(OGetFont("font.fnt"), "Step Count = " + std::to_string(gen_step_count), Vector2(0, 50));
-            sb->end();
-            break;
-        }
+        //case state_t::gen:
+        //case state_t::gen_panning: // Doom1 only
+        //{
+        //    for (int ep = 0; ep < EP_COUNT; ++ep)
+        //    {
+        //        for (int map = 0; map < MAP_COUNT; ++map)
+        //        {
+        //            draw_level(ep, map, -1, metas.d1_metas[ep][map].state.pos, metas.d1_metas[ep][map].state.angle, true);
+        //        }
+        //    }
+        //    sb->begin();
+        //    sb->drawText(OGetFont("font.fnt"), "Step Count = " + std::to_string(gen_step_count), Vector2(0, 50));
+        //    sb->end();
+        //    break;
+        //}
         default:
         {
-            draw_level(active_level.ep, active_level.map, active_level.d2_map, {0, 0}, 0, true);
+            draw_level(active_level, {0, 0}, 0, true);
             draw_rules();
 
             if (active_source == active_source_t::target)
@@ -2108,17 +1797,16 @@ void renderUI()
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("File"))
     {
-        if (ImGui::MenuItem("Save")) save();
+        if (ImGui::MenuItem("Save")) save(get_game(active_level));
         ImGui::Separator();
-        if (ImGui::MenuItem("Generate Ultimate DOOM"))
+        for (auto& kv : games)
         {
-            save();
-            generate(game_t::doom);
-        }
-        if (ImGui::MenuItem("Generate DOOM II"))
-        {
-            save();
-            generate(game_t::doom2);
+            auto game = &kv.second;
+            if (ImGui::MenuItem(("Generate " + game->name).c_str()))
+            {
+                save(game);
+                generate(game);
+            }
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Exit")) OQuit();
@@ -2136,7 +1824,7 @@ void renderUI()
             if (ImGui::MenuItem("Show Current", "F1", &selected))
             {
                 active_source = active_source_t::current;
-                map_state = get_state(active_level, get_active_metas());
+                map_state = get_state(active_level, active_source);
             }
         }
         {
@@ -2144,46 +1832,40 @@ void renderUI()
             if (ImGui::MenuItem("Show Target", "F2", &selected))
             {
                 active_source = active_source_t::target;
-                map_state = get_state(active_level, get_active_metas());
+                map_state = get_state(active_level, active_source);
             }
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Apply Target"))
         {
-            *get_state(active_level, &metas) = *get_state(active_level, &metas_new);
+            *get_state(active_level, active_source_t::current) = *get_state(active_level, active_source_t::target);
             map_state = get_state(active_level);
             push_undo();
         }
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("Doom Maps"))
+    for (auto& kv : games)
     {
-        for (int ep = 0; ep < EP_COUNT; ++ep)
+        auto game = &kv.second;
+        ImGui::Separator();
+        if (ImGui::BeginMenu((game->name + " Maps").c_str()))
         {
-            for (int map = 0; map < MAP_COUNT; ++map)
+            for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
             {
-                bool selected = ep == active_level.ep && map == active_level.map;
-                if (ImGui::MenuItem((std::string(level_names[ep][map]) + (get_state({ep, map, -1}, &metas)->different ? "*" : "")).c_str(), nullptr, &selected))
+                auto meta = &game->metas[i];
+                auto map_state = &meta->state;
+                bool selected = meta == get_meta(active_level);
+                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "")).c_str(), nullptr, &selected))
                 {
-                    select_map(ep, map, -1);
+                    select_map(game, 
+                               i / game->map_count,
+                               i % game->map_count);
                 }
             }
+            ImGui::EndMenu();
         }
-        ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("Doom2 Maps"))
-    {
-        for (int map = 0; map < D2_MAP_COUNT; ++map)
-        {
-            bool selected = map == active_level.d2_map;
-            if (ImGui::MenuItem((std::string(get_level_name({-1, -1, map})) + (get_state({-1, -1, map}, &metas)->different ? "*" : "")).c_str(), nullptr, &selected))
-            {
-                select_map(-1, -1, map);
-            }
-        }
-        ImGui::EndMenu();
-    }
-    if (state != state_t::gen && state != state_t::gen_panning)
+    //if (state != state_t::gen && state != state_t::gen_panning)
     {
         if (ImGui::Begin("Tools"))
         {
@@ -2419,7 +2101,7 @@ void renderUI()
                     index++;
                     continue; // Thing is not in single player
                 }
-                auto str = get_doom_type_name(thing.type);
+                auto str = get_doom_type_name(active_level, thing.type);
                 if (str == ERROR_STR)
                 {
                     index++;
@@ -2450,7 +2132,7 @@ void renderUI()
             if (map_state->selected_location != -1)
             {
                 ImGui::Text("Thing Index: %i", map_state->selected_location);
-                ImGui::Text("Thing Type: %s", get_doom_type_name(get_map(active_level)->things[map_state->selected_location].type));
+                ImGui::Text("Thing Type: %s", get_doom_type_name(active_level, get_map(active_level)->things[map_state->selected_location].type));
 
                 auto& location = map_state->locations[map_state->selected_location];
                 

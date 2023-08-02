@@ -29,17 +29,10 @@
 #include <onut/Log.h>
 
 #include "maps.h"
-#include "ids_remap.h"
 #include "generate.h"
+#include "data.h"
 
 #include <algorithm>
-
-
-struct region_t
-{
-    std::vector<int64_t> required_items;
-    std::vector<int64_t> locations;
-};
 
 
 enum item_classification_t
@@ -98,14 +91,15 @@ struct level_sector_t
 
 struct level_t
 {
-    char name[9];
     level_index_t idx;
+    std::string name;
     std::vector<level_sector_t> sectors;
     int starting_sector = -1;
     bool keys[3] = {false};
     int location_count = 0;
     bool use_skull[3] = {false};
     map_t* map = nullptr;
+    map_state_t* map_state = nullptr;
 };
 
 int64_t item_id_base = 350000;
@@ -240,7 +234,7 @@ ap_item_t& add_item(const std::string& name, int doom_type, int count, item_clas
     ap_item_t item;
     item.id = item_next_id++;
     item.name = name;
-    item.idx = level ? level->idx : level_index_t{-2,-2,-2};
+    item.idx = level ? level->idx : level_index_t{"",-2,-2};
     item.doom_type = doom_type;
     item.count = count;
     item.progression_count = progression_count;
@@ -272,34 +266,21 @@ std::string escape_csv(const std::string& str)
 }
 
 
-int generate(game_t game)
+int generate(game_t* game)
 {
     OLog("AP Gen Tool");
 
-    if (OArguments.size() != 6) // Minimum effort validation
+    if (OArguments.size() != 3) // Minimum effort validation
     {
-        OLogE("Usage: ap_gen_tool.exe DOOM.WAD DOOM2.WAD HERETIC.WAD python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe DOOM.WAD C:\\github\\apdoom\\RunDir\\DOOM.WAD C:\\github\\Archipelago\\worlds\\doom_1993 C:\\github\\apdoom\\src\\archipelago  C:\\github\\apdoom\\data\\poptracker");
+        OLogE("Usage: ap_gen_tool.exe python_py_out_dir cpp_py_out_dir poptracker_data_dir\n  i.e: ap_gen_tool.exe C:\\github\\Archipelago\\worlds C:\\github\\apdoom\\src\\archipelago C:\\github\\apdoom\\data\\poptracker");
         return 1;
     }
 
-    std::string py_out_dir = OArguments[3] + std::string("\\");
-    switch (game)
-    {
-        case game_t::doom:
-            py_out_dir += "doom_1993\\";
-            item_id_base = 350000;
-            item_next_id = item_id_base;
-            location_next_id = 351000;
-            has_ssg = false;
-            break;
-        case game_t::doom2:
-            py_out_dir += "doom_ii\\";
-            item_id_base = 360000;
-            item_next_id = item_id_base;
-            location_next_id = 361000;
-            has_ssg = true;
-            break;
-    }
+    std::string py_out_dir = OArguments[0] + "\\" + game->world + "\\";
+    item_id_base = 350000;
+    item_next_id = item_id_base;
+    location_next_id = 351000;
+    has_ssg = game->name == "DOOM II"; // temp
 
     total_item_count = 0;
     total_loc_count = 0;
@@ -309,105 +290,40 @@ int generate(game_t game)
     level_to_keycards.clear();
     item_map.clear();
 
-    std::string cpp_out_dir = OArguments[4] + std::string("\\");
-    std::string pop_tracker_data_dir = OArguments[5] + std::string("\\");
-
-    std::ifstream fregions(cpp_out_dir + "regions.json");
-    Json::Value levels_json;
-    fregions >> levels_json;
-    fregions.close();
+    std::string cpp_out_dir = OArguments[1] + std::string("\\");
+    std::string pop_tracker_data_dir = OArguments[2] + std::string("\\");
 
     ap_locations.reserve(1000);
+
+    for (const auto& def : game->progressions)
+        add_item(def.name, def.doom_type, 1, PROGRESSION, def.group);
+    for (const auto& def : game->fillers)
+        add_item(def.name, def.doom_type, 1, PROGRESSION, def.group);
     
-    // Guns.
-    add_item("Shotgun", 2001, 1, PROGRESSION, "Weapons");
-    add_item("Rocket launcher", 2003, 1, PROGRESSION, "Weapons");
-    add_item("Plasma gun", 2004, 1, PROGRESSION, "Weapons");
-    add_item("Chainsaw", 2005, 1, PROGRESSION, "Weapons");
-    add_item("Chaingun", 2002, 1, PROGRESSION, "Weapons");
-    add_item("BFG9000", 2006, 1, PROGRESSION, "Weapons");
-    if (game == game_t::doom2)
-        add_item("Super Shotgun", 82, 1, PROGRESSION, "Weapons");
-
-    // Make backpack progression item (Idea, gives more than one, with less increase each time)
-    add_item("Backpack", 8, 1, PROGRESSION, "");
-
-    add_item("Armor", 2018, 0, FILLER, "Powerups");
-    add_item("Mega Armor", 2019, 0, FILLER, "Powerups");
-    add_item("Berserk", 2023, 0, FILLER, "Powerups");
-    add_item("Invulnerability", 2022, 0, FILLER, "Powerups");
-    add_item("Partial invisibility", 2024, 0, FILLER, "Powerups");
-    add_item("Supercharge", 2013, 0, FILLER, "Powerups");
-    if (game == game_t::doom2)
-        add_item("Megasphere", 83, 0, FILLER, "Powerups");
-
-    // Junk items
-    add_item("Medikit", 2012, 0, FILLER, "");
-    add_item("Box of bullets", 2048, 0, FILLER, "Ammos");
-    add_item("Box of rockets", 2046, 0, FILLER, "Ammos");
-    add_item("Box of shotgun shells", 2049, 0, FILLER, "Ammos");
-    add_item("Energy cell pack", 17, 0, FILLER, "Ammos");
-
     std::vector<level_t*> levels;
-    switch (game)
+    for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
     {
-        case game_t::doom:
-            for (int ep = 0; ep < EP_COUNT; ++ep)
-            {
-                for (int lvl = 0; lvl < MAP_COUNT; ++lvl)
-                {
-                    level_t* level = new level_t();
-                    sprintf(level->name, "E%iM%i", ep + 1, lvl + 1);
-                    level->idx = {ep, lvl, -1};
-                    level->map = get_map(level->idx);
-                    levels.push_back(level);
-                }
-            }
-            break;
-        case game_t::doom2:
-            for (int i = 0; i < D2_MAP_COUNT; ++i)
-            {
-                level_t* level = new level_t();
-                sprintf(level->name, "MAP%02i", i + 1);
-                level->idx = {-1, -1, i};
-                level->map = get_map(level->idx);
-                levels.push_back(level);
-            }
-            break;
+        auto meta = &game->metas[i];
+        level_t* level = new level_t();
+        level->idx = {game->name, i / game->map_count, i % game->map_count};
+        level->name = meta->name;
+        level->map = &meta->map;
+        level->map_state = &meta->state;
+        levels.push_back(level);
     }
 
-    auto get_level = [&levels](const level_index_t& idx) -> level_t*
+    auto get_level = [game, &levels](const level_index_t& idx) -> level_t*
     {
-        if (idx.d2_map == -1)
-            return levels[idx.ep * MAP_COUNT + idx.map];
-        return levels[idx.d2_map];
+        return levels[idx.ep * game->map_count + idx.map];
     };
     
     // Keycard n such
     item_next_id = item_id_base + 200;
-    const auto& maps_json = levels_json["maps"];
-    for (const auto& level_json : maps_json)
+    for (auto level : levels)
     {
-        int ep = level_json["ep"].asInt();
-        int lvl = level_json["map"].asInt();
-        int d2_map = level_json["d2_map"].asInt();
-        level_index_t level_idx = {ep, lvl, d2_map};
-
-        switch (game)
-        {
-            case game_t::doom:
-                if (ep == -1) continue;
-                break;
-            case game_t::doom2:
-                if (d2_map == -1) continue;
-                break;
-        }
-
-        auto level = get_level(level_idx);
-        auto map = get_map(level_idx);
-
+        auto map = level->map;
         level->sectors.resize(map->sectors.size());
-        std::string lvl_prefix = get_level_name(level_idx) + std::string(" - ");
+        std::string lvl_prefix = level->name + std::string(" - ");
         int i = 0;
 
         for (const auto& thing : level->map->things)
@@ -417,96 +333,54 @@ int generate(game_t game)
                 ++i;
                 continue; // Thing is not in single player
             }
-
-            const auto& json_locations = level_json["locations"];
-            bool skip = false;
-            for (const auto& json_location : json_locations)
-            {
-                if (json_location["index"].asInt() == i && json_location["unreachable"].asBool())
-                {
-                    skip = true;
-                    break;
-                }
-            }
-            if (skip)
+            if (level->map_state->locations[i].unreachable) // We don't include this location
             {
                 ++i;
                 continue;
             }
 
-
-            switch (thing.type)
+            bool added_key = false;
+            for (const auto& key_def : game->keys)
             {
-                // Uniques
-                case 5:
-                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                    level->keys[0] = true;
+                if (key_def.item.doom_type == thing.type)
+                {
+                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + key_def.item.name, thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
+                    level->keys[key_def.key] = true;
+                    level->use_skull[key_def.key] = key_def.use_skull;
+                    added_key = true;
                     break;
-                case 40:
-                    level_to_keycards[(uintptr_t)level][0] = add_unique(lvl_prefix + "Blue skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                    level->keys[0] = true;
-                    level->use_skull[0] = true;
-                    break;
-                case 6:
-                    level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                    level->keys[1] = true;
-                    break;
-                case 39:
-                    level_to_keycards[(uintptr_t)level][1] = add_unique(lvl_prefix + "Yellow skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                    level->keys[1] = true;
-                    level->use_skull[1] = true;
-                    break;
-                case 13:
-                    level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red keycard", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                    level->keys[2] = true;
-                    break;
-                case 38:
-                    level_to_keycards[(uintptr_t)level][2] = add_unique(lvl_prefix + "Red skull key", thing, level, i, true, PROGRESSION, "Keys", thing.x, thing.y);
-                    level->keys[2] = true;
-                    level->use_skull[2] = true;
-                    break;
-
-                // Locations
-                case 2018: add_loc(lvl_prefix + "Armor", thing, level, i, thing.x, thing.y); break;
-                case 8: add_loc(lvl_prefix + "Backpack", thing, level, i, thing.x, thing.y); break;
-                case 2019: add_loc(lvl_prefix + "Mega Armor", thing, level, i, thing.x, thing.y); break;
-                case 2023: add_loc(lvl_prefix + "Berserk", thing, level, i, thing.x, thing.y); break;
-                case 2022: add_loc(lvl_prefix + "Invulnerability", thing, level, i, thing.x, thing.y); break;
-                case 2024: add_loc(lvl_prefix + "Partial invisibility", thing, level, i, thing.x, thing.y); break;
-                case 2013: add_loc(lvl_prefix + "Supercharge", thing, level, i, thing.x, thing.y); break;
-                case 2006: add_loc(lvl_prefix + "BFG9000", thing, level, i, thing.x, thing.y); break;
-                case 2002: add_loc(lvl_prefix + "Chaingun", thing, level, i, thing.x, thing.y); break;
-                case 2005: add_loc(lvl_prefix + "Chainsaw", thing, level, i, thing.x, thing.y); break;
-                case 2004: add_loc(lvl_prefix + "Plasma gun", thing, level, i, thing.x, thing.y); break;
-                case 2003: add_loc(lvl_prefix + "Rocket launcher", thing, level, i, thing.x, thing.y); break;
-                case 2001: add_loc(lvl_prefix + "Shotgun", thing, level, i, thing.x, thing.y); break;
-                case 2026: add_loc(lvl_prefix + "Computer area map", thing, level, i, thing.x, thing.y); break;
-                case 82: add_loc(lvl_prefix + "Super Shotgun", thing, level, i, thing.x, thing.y); break;
-                case 83: add_loc(lvl_prefix + "Megasphere", thing, level, i, thing.x, thing.y); break;
+                }
             }
+            if (added_key)
+            {
+                ++i;
+                continue;
+            }
+
+            auto loc_it = game->location_doom_types.find(thing.type);
+            if (loc_it != game->location_doom_types.end())
+            {
+                add_loc(lvl_prefix + loc_it->second, thing, level, i, thing.x, thing.y);
+            }
+
             ++i;
         }
 
-        const auto& regions_json = level_json["regions"];
         int region_i = 0;
         bool connects_to_exit = false;
-
-        for (const auto& region_json : regions_json)
+        for (const auto& region : level->map_state->regions)
         {
-            std::string region_name = get_level_name(level_idx) + std::string(" ") + region_json["name"].asString();
+            std::string region_name = level->name + std::string(" ") + region.name;
 
-            const auto& rules_json = region_json["rules"];
-            const auto& connections_json = rules_json["connections"];
-            for (const auto& connection_json : connections_json)
+            for (const auto& connection : region.rules.connections)
             {
-                int target_region = connection_json["target_region"].asInt();
-                if (target_region == -2)
+                if (connection.target_region == -2)
                 {
                     connects_to_exit = true;
                     ap_location_t complete_loc;
                     complete_loc.doom_thing_index = -1;
                     complete_loc.doom_type = -1;
-                    complete_loc.idx = level_idx;
+                    complete_loc.idx = level->idx;
                     complete_loc.x = -1;
                     complete_loc.y = -1;
                     complete_loc.name = lvl_prefix + "Exit";
@@ -525,63 +399,68 @@ int generate(game_t game)
     item_next_id = item_id_base + 400;
     for (auto level : levels)
     {
-        const char* lvl_name = get_level_name(level->idx);
-        std::string lvl_prefix = lvl_name + std::string(" - ");
+        std::string lvl_prefix = level->name + std::string(" - ");
 
-        add_item(lvl_name, -1, 1, PROGRESSION, "Levels", 0, level);
+        add_item(level->name, -1, 1, PROGRESSION, "Levels", 0, level);
         add_item(lvl_prefix + "Complete", -2, 1, PROGRESSION, "", 0, level);
-        add_item(lvl_prefix + "Computer area map", 2026, 1, FILLER, "Computer area maps", 0, level);
+
+        for (const auto& def : game->unique_progressions)
+        {
+            add_item(lvl_prefix + def.name, def.doom_type, 1, PROGRESSION, def.group, 0, level);
+        }
+
+        for (const auto& def : game->unique_fillers)
+        {
+            add_item(lvl_prefix + def.name, def.doom_type, 1, FILLER, def.group, 0, level);
+        }
     }
 
     OLog(std::to_string(total_loc_count) + " locations\n" + std::to_string(total_item_count - 3) + " items");
 
-    if (game == game_t::doom)
+    //--- Remap location's IDs
     {
-        //--- Remap location's IDs for backward compatibility with 0.3.9
+        int64_t next_location_id = 0;
+        std::vector<int> unmapped_locations;
+        int i = 0;
+        for (const auto& kv : game->loc_remap)
+            next_location_id = std::max(next_location_id, kv.second + 1);
+        for (auto& location : ap_locations)
         {
-            int64_t next_location_id = 0;
-            std::vector<int> unmapped_locations;
-            int i = 0;
-            for (const auto &kv : LOCATIONS_TO_LEGACY_IDS)
-                next_location_id = std::max(next_location_id, kv.second + 1);
-            for (auto& location : ap_locations)
-            {
-                auto it = LOCATIONS_TO_LEGACY_IDS.find(location.name);
-                if (it != LOCATIONS_TO_LEGACY_IDS.end())
-                    location.id = LOCATIONS_TO_LEGACY_IDS[location.name];
-                else
-                    unmapped_locations.push_back(i);
-                ++i;
-            }
-            for (auto unmapped_location : unmapped_locations)
-                ap_locations[unmapped_location].id = next_location_id++;
-
-            // Sort by id so it's clean in AP
-            std::sort(ap_locations.begin(), ap_locations.end(), [](const ap_location_t& a, const ap_location_t& b) { return a.id < b.id; });
+            auto it = game->loc_remap.find(location.name);
+            if (it != game->loc_remap.end())
+                location.id = game->loc_remap[location.name];
+            else
+                unmapped_locations.push_back(i);
+            ++i;
         }
+        for (auto unmapped_location : unmapped_locations)
+            ap_locations[unmapped_location].id = next_location_id++;
 
-        //--- Remap item's IDs for backward compatibility with 0.3.9
+        // Sort by id so it's clean in AP
+        std::sort(ap_locations.begin(), ap_locations.end(), [](const ap_location_t& a, const ap_location_t& b) { return a.id < b.id; });
+    }
+
+    //--- Remap item's IDs
+    {
+        int64_t next_itemn_id = 0;
+        std::vector<int> unmapped_items;
+        int i = 0;
+        for (const auto &kv : game->item_remap)
+            next_itemn_id = std::max(next_itemn_id, kv.second + 1);
+        for (auto& item : ap_items)
         {
-            int64_t next_itemn_id = 0;
-            std::vector<int> unmapped_items;
-            int i = 0;
-            for (const auto &kv : ITEMS_TO_LEGACY_IDS)
-                next_itemn_id = std::max(next_itemn_id, kv.second + 1);
-            for (auto& item : ap_items)
-            {
-                auto it = ITEMS_TO_LEGACY_IDS.find(item.name);
-                if (it != ITEMS_TO_LEGACY_IDS.end())
-                    item.id = ITEMS_TO_LEGACY_IDS[item.name];
-                else
-                    unmapped_items.push_back(i);
-                ++i;
-            }
-            for (auto unmapped_item : unmapped_items)
-                ap_items[unmapped_item].id = next_itemn_id++;
-
-            // Sort by id so it's clean in AP
-            std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
+            auto it = game->item_remap.find(item.name);
+            if (it != game->item_remap.end())
+                item.id = game->item_remap[item.name];
+            else
+                unmapped_items.push_back(i);
+            ++i;
         }
+        for (auto unmapped_item : unmapped_items)
+            ap_items[unmapped_item].id = next_itemn_id++;
+
+        // Sort by id so it's clean in AP
+        std::sort(ap_items.begin(), ap_items.end(), [](const ap_item_t& a, const ap_item_t& b) { return a.id < b.id; });
     }
 
     // Fill in locations into level's sectors
@@ -605,7 +484,7 @@ int generate(game_t game)
     //---------------------------------------------
     //-------- Generate the python files ----------
     //---------------------------------------------
-
+#if 0
     // Items
     {
         FILE* fout = fopen((py_out_dir + "Items.py").c_str(), "w");
@@ -1337,6 +1216,7 @@ class LocationDict(TypedDict, total=False): \n\
         }
         fclose(fout);
     }
+#endif
 
     // Now for Poptracker, rasterize levels onto a 1024x1024
 

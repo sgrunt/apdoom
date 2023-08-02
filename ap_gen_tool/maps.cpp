@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <algorithm>
 
+#include "data.h"
+
 
 // For earcut to work
 namespace mapbox {
@@ -48,10 +50,6 @@ struct map_directory_t
     int32_t size;
     char name[8];
 };
-
-
-map_t maps[EP_COUNT][MAP_COUNT];
-map_t d2_maps[D2_MAP_COUNT];
 
 
 template<typename T>
@@ -288,7 +286,7 @@ static void triangulate_sector(const std::vector<wall_t>& map_walls, map_t* map,
 }
 
 
-void init_wad(const char* filename)
+void init_wad(const char* filename, game_t& game)
 {
     // Load DOOM.WAD
     FILE* f = fopen(filename, "rb");
@@ -319,27 +317,27 @@ void init_wad(const char* filename)
         {
             map_t* map = nullptr;
 
-            // DOOM 1
-            if (strlen(dir_entry.name) == 4 && dir_entry.name[0] == 'E' && dir_entry.name[2] == 'M')
-            {
-                // That's a level!
-                auto ep = dir_entry.name[1] - '0';
-                auto lvl = dir_entry.name[3] - '0';
-                if (!(ep < 1 || ep > EP_COUNT || lvl < 1 || lvl > MAP_COUNT))
+            // DOOM 1 style
+            if (game.episodic)
+                if (strlen(dir_entry.name) == 4 && dir_entry.name[0] == 'E' && dir_entry.name[2] == 'M')
                 {
-                    map = &maps[ep - 1][lvl - 1];
+                    // That's a level!
+                    auto ep = dir_entry.name[1] - '0';
+                    auto lvl = dir_entry.name[3] - '0';
+                    if (!(ep < 1 || ep > game.ep_count || lvl < 1 || lvl > game.map_count))
+                    {
+                        map = &game.metas[(ep - 1) * game.map_count + (lvl - 1)].map;
+                    }
                 }
-            }
 
-            // DOOM 2
-            if (!map)
-            {
+            // DOOM 2 style
+            if (!game.episodic)
                 if (strlen(dir_entry.name) == 5 && strncmp(dir_entry.name, "MAP", 3) == 0)
                 {
                     auto lvl = std::atoi(dir_entry.name + 3) - 1;
-                    map = &d2_maps[lvl];
+                    map = &game.metas[lvl].map;
                 }
-            }
+
             if (!map) continue;
 
             ++i;
@@ -441,11 +439,9 @@ void init_wad(const char* filename)
 }
 
 
-void init_maps()
+void init_maps(game_t& game)
 {
-    init_wad(OArguments[0].c_str());
-    init_wad(OArguments[1].c_str());
-    init_wad(OArguments[2].c_str());
+    init_wad(game.wad_name.c_str(), game);
 }
 
 
@@ -456,20 +452,4 @@ int sector_at(int x, int y, map_t* map)
 
     auto subsector = point_in_subsector(x, y, map);
     return subsector->sector;
-}
-
-
-const char* get_level_name(const level_index_t& idx)
-{
-    if (idx.d2_map == -1)
-        return level_names[idx.ep][idx.map];
-    return d2_level_names[idx.d2_map];
-}
-
-
-map_t* get_map(const level_index_t& idx)
-{
-    if (idx.d2_map == -1)
-        return &maps[idx.ep][idx.map];
-    return &d2_maps[idx.d2_map];
 }
