@@ -3,6 +3,7 @@
 
 #include <onut/Maths.h>
 #include <onut/Vector2.h>
+#include <onut/Texture.h>
 #include <string>
 #include <vector>
 #include <set>
@@ -15,17 +16,13 @@ struct rule_connection_t
     int target_region = -1;
     std::vector<int> requirements_or;
     std::vector<int> requirements_and;
-    bool deathlogic = false;
-    bool pro = false;
 
     bool operator==(const rule_connection_t& other) const
     {
         return 
             target_region == other.target_region &&
             requirements_or == other.requirements_or &&
-            requirements_and == other.requirements_and &&
-            deathlogic == other.deathlogic &&
-            pro == other.pro;
+            requirements_and == other.requirements_and;
     }
 };
 
@@ -193,6 +190,8 @@ struct ap_item_def_t
     int doom_type = -1;
     std::string name;
     std::string group;
+    std::string sprite;
+    OTextureRef icon;
 };
 
 
@@ -216,6 +215,7 @@ struct game_t
     int64_t item_ids = 0;
     int64_t loc_ids = 0;
     std::map<int, std::string> location_doom_types;
+    std::vector<ap_item_def_t> extra_connection_requirements;
     std::vector<ap_item_def_t> progressions;
     std::vector<ap_item_def_t> fillers;
     std::vector<ap_item_def_t> unique_progressions;
@@ -229,6 +229,7 @@ struct game_t
     int map_count = -1;
     bool episodic = false;
     std::vector<meta_t> metas;
+    std::vector<ap_item_def_t> item_requirements;
 };
 
 

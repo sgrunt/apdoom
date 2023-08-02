@@ -64,6 +64,16 @@ void init_data()
             game.location_doom_types[std::stoi(doom_types_id)] = game_json["location_doom_types"][doom_types_id].asString();
         }
 
+        const auto& extra_connection_requirements_json = game_json["extra_connection_requirements"];
+        for (const auto& extra_connection_requirement_json : extra_connection_requirements_json)
+        {
+            ap_item_def_t item;
+            item.doom_type = extra_connection_requirement_json["doom_type"].asInt();
+            item.name = extra_connection_requirement_json["name"].asString();
+            item.sprite = extra_connection_requirement_json["sprite"].asString();
+            game.extra_connection_requirements.push_back(item);
+        }
+
         const auto& progressions_json = game_json["progressions"];
         for (const auto& progression_json : progressions_json)
         {
@@ -71,6 +81,7 @@ void init_data()
             item.doom_type = progression_json["doom_type"].asInt();
             item.name = progression_json["name"].asString();
             item.group = progression_json["group"].asString();
+            item.sprite = progression_json["sprite"].asString();
             game.progressions.push_back(item);
         }
 
@@ -81,6 +92,7 @@ void init_data()
             item.doom_type = filler_json["doom_type"].asInt();
             item.name = filler_json["name"].asString();
             item.group = filler_json["group"].asString();
+            item.sprite = filler_json["sprite"].asString();
             game.fillers.push_back(item);
         }
 
@@ -91,6 +103,7 @@ void init_data()
             item.doom_type = progression_json["doom_type"].asInt();
             item.name = progression_json["name"].asString();
             item.group = progression_json["group"].asString();
+            item.sprite = progression_json["sprite"].asString();
             game.unique_progressions.push_back(item);
         }
 
@@ -101,6 +114,7 @@ void init_data()
             item.doom_type = filler_json["doom_type"].asInt();
             item.name = filler_json["name"].asString();
             item.group = filler_json["group"].asString();
+            item.sprite = filler_json["sprite"].asString();
             game.unique_fillers.push_back(item);
         }
 
@@ -111,6 +125,7 @@ void init_data()
             item.item.doom_type = key_json["doom_type"].asInt();
             item.item.name = key_json["name"].asString();
             item.item.group = key_json["group"].asString();
+            item.item.sprite = key_json["sprite"].asString();
             item.key = key_json["key"].asInt();
             item.use_skull = key_json["use_skull"].asBool();
             item.region_name = key_json["region_name"].asString();
@@ -132,6 +147,12 @@ void init_data()
         {
             game.item_remap[item_name] = item_remap_json[item_name].asInt64();
         }
+
+        game.item_requirements.insert(game.item_requirements.end(), game.extra_connection_requirements.begin(), game.extra_connection_requirements.end());
+        for (const auto& key : game.keys)
+            game.item_requirements.push_back(key.item);
+        game.item_requirements.insert(game.item_requirements.end(), game.progressions.begin(), game.progressions.end());
+        game.item_requirements.insert(game.item_requirements.end(), game.unique_progressions.begin(), game.unique_progressions.end());
 
         init_maps(game);
 

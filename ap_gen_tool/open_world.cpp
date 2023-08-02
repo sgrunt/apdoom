@@ -110,12 +110,6 @@ static int set_rule_connection = -1;
 static int mouse_hover_access = -1;
 static int mouse_hover_location = -1;
 
-static std::map<int, OTextureRef> REQUIREMENT_TEXTURES;
-static const std::vector<int> REQUIREMENTS = {
-    5, 40, 6, 39, 13, 38,
-    2005, 2001, 2002, 2003, 2004, 2006
-};
-
 
 map_view_t* get_view(const level_index_t& idx)
 {
@@ -178,9 +172,6 @@ Json::Value serialize_rules(const rule_region_t& rules)
             connection_json["requirements_and"] = requirements_json;
         }
 
-        connection_json["death_logic"] = connection.deathlogic;
-        connection_json["pro"] = connection.pro;
-
         connections_json.append(connection_json);
     }
     json["connections"] = connections_json;
@@ -217,9 +208,6 @@ rule_region_t deserialize_rules(const Json::Value& json)
                 connection.requirements_and.push_back(requirement_json.asInt());
             }
         }
-
-        connection.deathlogic = connection_json["death_logic"].asBool();
-        connection.pro = connection_json["pro"].asBool();
 
         rules.connections.push_back(connection);
     }
@@ -485,21 +473,6 @@ void regen() // Doom1 only
 void init()
 {
     oGenerateMipmaps = false;
-
-    REQUIREMENT_TEXTURES[5] = OGetTexture("Blue keycard.png");
-    REQUIREMENT_TEXTURES[40] = OGetTexture("Blue skull key.png");
-    REQUIREMENT_TEXTURES[6] = OGetTexture("Yellow keycard.png");
-    REQUIREMENT_TEXTURES[39] = OGetTexture("Yellow skull key.png");
-    REQUIREMENT_TEXTURES[13] = OGetTexture("Red keycard.png");
-    REQUIREMENT_TEXTURES[38] = OGetTexture("Red skull key.png");
-    REQUIREMENT_TEXTURES[2005] = OGetTexture("Chainsaw.png");
-    REQUIREMENT_TEXTURES[2001] = OGetTexture("Shotgun.png");
-    REQUIREMENT_TEXTURES[2002] = OGetTexture("Chaingun.png");
-    REQUIREMENT_TEXTURES[2003] = OGetTexture("Rocket launcher.png");
-    REQUIREMENT_TEXTURES[2004] = OGetTexture("Plasma gun.png");
-    REQUIREMENT_TEXTURES[2006] = OGetTexture("BFG9000.png");
-    REQUIREMENT_TEXTURES[-1] = OGetTexture("deathlogic.png");
-    REQUIREMENT_TEXTURES[-2] = OGetTexture("pro.png");
 
     arrow_cursor = LoadCursor(nullptr, IDC_ARROW);
     nswe_cursor = LoadCursor(nullptr, IDC_SIZEALL);
@@ -1406,9 +1379,26 @@ void draw_connections(const rule_region_t& rules, int rule_idx)
 #define REQUIREMENT_SIZE 96.0f
 
 
+OTextureRef get_requirement_icon(game_t* game, int doom_type)
+{
+    for (const auto& requirement : game->item_requirements)
+        if (requirement.doom_type == doom_type)
+            return requirement.icon;
+    return nullptr;
+}
+
+
+float get_sprite_scale(const OTextureRef& tex)
+{
+    float biggest = onut::max(tex->getSizef().x, tex->getSizef().y);
+    return 1.0f / biggest * 128.0f;
+}
+
+
 void draw_connections_requirements(const rule_region_t& rules, int rule_idx)
 {
     auto sb = oSpriteBatch.get();
+    auto game = get_game(active_level);
 
     Vector2 center((float)rules.x, -(float)rules.y);
 
@@ -1428,27 +1418,17 @@ void draw_connections_requirements(const rule_region_t& rules, int rule_idx)
         Vector2 right(-dir.y, dir.x);
 
         auto count = connection.requirements_or.size() + connection.requirements_and.size();
-        if (connection.deathlogic) ++count;
-        if (connection.pro) ++count;
         Vector2 pos = (to - from) * 0.5f + right * REQUIREMENT_SIZE - dir * ((float)(count) * 0.5f * REQUIREMENT_SIZE - 0.5f * REQUIREMENT_SIZE);
         for (auto requirement : connection.requirements_or)
         {
-            sb->drawSprite(REQUIREMENT_TEXTURES[requirement], pos + from, Color::White, 0.0f, 2.0f);
+            auto tex = get_requirement_icon(game, requirement);
+            sb->drawSprite(tex, pos + from, Color::White, 0.0f, get_sprite_scale(tex));
             pos += dir * REQUIREMENT_SIZE;
         }
         for (auto requirement : connection.requirements_and)
         {
-            sb->drawSprite(REQUIREMENT_TEXTURES[requirement], pos + from, Color::White, 0.0f, 2.0f);
-            pos += dir * REQUIREMENT_SIZE;
-        }
-        if (connection.deathlogic)
-        {
-            sb->drawSprite(REQUIREMENT_TEXTURES[-1], pos + from, Color::White, 0.0f, 2.0f);
-            pos += dir * REQUIREMENT_SIZE;
-        }
-        if (connection.pro)
-        {
-            sb->drawSprite(REQUIREMENT_TEXTURES[-2], pos + from, Color::White, 0.0f, 2.0f);
+            auto tex = get_requirement_icon(game, requirement);
+            sb->drawSprite(tex, pos + from, Color::White, 0.0f, get_sprite_scale(tex));
             pos += dir * REQUIREMENT_SIZE;
         }
 
@@ -1984,11 +1964,7 @@ void renderUI()
                     else
                     {
                         auto& connection = rules->connections[set_rule_connection];
-
-                        if (ImGui::Checkbox("Death Logic", &connection.deathlogic))
-                            push_undo();
-                        if (ImGui::Checkbox("Pro", &connection.pro))
-                            push_undo();
+                        auto game = get_game(active_level);
 
                         ImGui::Columns(2);
                         ImGui::Text("OR");
@@ -1996,12 +1972,12 @@ void renderUI()
                         ImGui::Text("AND");
                         ImGui::NextColumn();
 
-                        for (auto requirement : REQUIREMENTS)
+                        for (const auto& requirement : game->item_requirements)
                         {
                             {
                                 ImVec4 tint(0.25f, 0.25f, 0.25f, 1);
                                 bool has_requirement = false;
-                                auto it = std::find(connection.requirements_or.begin(), connection.requirements_or.end(), requirement);
+                                auto it = std::find(connection.requirements_or.begin(), connection.requirements_or.end(), requirement.doom_type);
                                 if (it != connection.requirements_or.end())
                                 {
                                     has_requirement = true;
@@ -2009,13 +1985,13 @@ void renderUI()
                                 }
 
                                 if (ImGui::ImageButton(
-                                        ("or_btn_" + std::to_string(requirement)).c_str(), // str_id
-                                        &REQUIREMENT_TEXTURES[requirement], // user_texture_id
-                                        {64, 64}, // size
-                                        {0,0}, // uv0
-                                        {1,1}, // uv1
-                                        {0, 0, 0, 0},
-                                        tint))
+                                    ("or_btn_" + std::to_string(requirement.doom_type)).c_str(), // str_id
+                                    (ImTextureID)&requirement.icon, // user_texture_id
+                                    ImVec2(64, 64), // size
+                                    ImVec2(0, 0), // uv0
+                                    ImVec2(1, 1), // uv1
+                                    ImVec4(0, 0, 0, 0), // bgcolor
+                                    tint)) // tint
                                 {
                                     if (has_requirement)
                                     {
@@ -2023,7 +1999,7 @@ void renderUI()
                                     }
                                     else
                                     {
-                                        connection.requirements_or.push_back(requirement);
+                                        connection.requirements_or.push_back(requirement.doom_type);
                                     }
                                     push_undo();
                                 }
@@ -2032,13 +2008,20 @@ void renderUI()
                             {
                                 ImVec4 tint(0.25f, 0.25f, 0.25f, 1);
                                 bool has_requirement = false;
-                                auto it = std::find(connection.requirements_and.begin(), connection.requirements_and.end(), requirement);
+                                auto it = std::find(connection.requirements_and.begin(), connection.requirements_and.end(), requirement.doom_type);
                                 if (it != connection.requirements_and.end())
                                 {
                                     has_requirement = true;
                                     tint = {1,1,1,1};
                                 }
-                                if (ImGui::ImageButton(("and_btn_" + std::to_string(requirement)).c_str(), &REQUIREMENT_TEXTURES[requirement], {64, 64}, {0,0}, {1,1}, {0, 0, 0, 0}, tint))
+                                if (ImGui::ImageButton(
+                                    ("and_btn_" + std::to_string(requirement.doom_type)).c_str(), // str_id
+                                    (ImTextureID)&requirement.icon, // user_texture_id
+                                    ImVec2(64, 64), // size
+                                    ImVec2(0, 0), // uv0
+                                    ImVec2(1, 1), // uv1
+                                    ImVec4(0, 0, 0, 0), // bgcolor
+                                    tint)) // tint
                                 {
                                     if (has_requirement)
                                     {
@@ -2046,7 +2029,7 @@ void renderUI()
                                     }
                                     else
                                     {
-                                        connection.requirements_and.push_back(requirement);
+                                        connection.requirements_and.push_back(requirement.doom_type);
                                     }
                                     push_undo();
                                 }

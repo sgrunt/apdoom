@@ -52,6 +52,23 @@ struct map_directory_t
 };
 
 
+struct patch_header_t
+{
+    uint16_t width;
+    uint16_t height;
+    int16_t leftoffset;
+    int16_t topoffset;
+};
+
+
+struct post_t
+{
+    uint8_t topdelta;
+    uint8_t length;
+    uint8_t unused;
+};
+
+
 template<typename T>
 static bool try_load_lump(const char *lump_name, 
                           FILE *f, 
@@ -286,6 +303,63 @@ static void triangulate_sector(const std::vector<wall_t>& map_walls, map_t* map,
 }
 
 
+std::vector<uint8_t> load_lump(const std::vector<map_directory_t>& directory, const char* lump_name, FILE* f)
+{
+    for (const auto& dir_entry : directory)
+    {
+        if (strncmp(dir_entry.name, lump_name, 8) == 0)
+        {
+            std::vector<uint8_t> ret;
+            ret.resize(dir_entry.size);
+            fseek(f, dir_entry.offset, SEEK_SET);
+            fread(ret.data(), 1, dir_entry.size, f);
+            return ret;
+        }
+    }
+    return {};
+}
+
+
+OTextureRef load_sprite(const std::vector<map_directory_t>& directory, const char* lump_name, FILE* f, const uint8_t* pal)
+{
+    auto raw_data = load_lump(directory, lump_name, f);
+    if (raw_data.empty()) return nullptr;
+
+    patch_header_t header;
+    memcpy(&header, raw_data.data(), sizeof(patch_header_t));
+    uint32_t* columnofs = new uint32_t[header.width * sizeof(uint32_t)];
+    memcpy(columnofs, raw_data.data() + sizeof(patch_header_t), header.width * sizeof(uint32_t));
+
+    std::vector<uint8_t> img_data;
+    img_data.resize(header.width * header.height * 4);
+
+    for (int x = 0; x < header.width; ++x)
+    {
+        int offset = columnofs[x];
+        while (raw_data[offset] != 0xFF)
+        {
+            post_t post;
+            memcpy(&post, &raw_data[offset], sizeof(post_t));
+            offset += 3;
+            for (int j = 0; j < post.length; ++j, ++offset)
+            {
+                int y = post.topdelta + j;
+                int idx = raw_data[offset] * 3;
+                int k = y * header.width * 4 + x * 4;
+                img_data[k + 0] = pal[idx + 0];
+                img_data[k + 1] = pal[idx + 1];
+                img_data[k + 2] = pal[idx + 2];
+                img_data[k + 3] = 255;
+            }
+            ++offset;
+        }
+    }
+
+    delete[] columnofs;
+    return OTexture::createFromData(img_data.data(), {header.width, header.height}, false);
+}
+
+
 void init_wad(const char* filename, game_t& game)
 {
     // Load DOOM.WAD
@@ -431,6 +505,18 @@ void init_wad(const char* filename, game_t& game)
             {
                 triangulate_sector(map_walls, map, j);
             }
+        }
+    }
+
+    // Load palette
+    auto pal = load_lump(directory, "PLAYPAL", f);
+
+    // Load sprites for item requirements
+    for (auto& item_requirement : game.item_requirements)
+    {
+        if (item_requirement.sprite != "")
+        {
+            item_requirement.icon = load_sprite(directory, item_requirement.sprite.c_str(), f, pal.data());
         }
     }
 

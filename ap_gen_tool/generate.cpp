@@ -118,25 +118,42 @@ static bool has_ssg = false;
 
 const char* get_doom_type_name(int doom_type);
 
-static std::string get_requirement_name(const std::string& level_name, int doom_type)
+
+static std::string get_requirement_name(game_t* game, const std::string& level_name, int doom_type)
 {
-    switch (doom_type)
-    {
-        case 5: return level_name + " - Blue keycard";
-        case 40: return level_name + " - Blue skull key";
-        case 6: return level_name + " - Yellow keycard";
-        case 39: return level_name + " - Yellow skull key";
-        case 13: return level_name + " - Red keycard";
-        case 38: return level_name + " - Red skull key";
-        case 2005: return "Chainsaw";
-        case 2001: return has_ssg ? "Super Shotgun" : "Shotgun";
-        case 2002: return "Chaingun";
-        case 2003: return "Rocket launcher";
-        case 2004: return "Plasma gun";
-        case 2006: return "BFG9000";
-    }
+    for (const auto& item : game->unique_progressions)
+        if (item.doom_type == doom_type)
+            return level_name + " - " + item.name;
+
+    for (const auto& item : game->keys)
+        if (item.item.doom_type == doom_type)
+            return level_name + " - " + item.item.name;
+
+    for (const auto& requirement : game->item_requirements)
+        if (requirement.doom_type == doom_type)
+            return requirement.name;
+
     return "ERROR";
 }
+
+
+    //switch (doom_type)
+    //{
+    //    case 5: return level_name + " - Blue keycard";
+    //    case 40: return level_name + " - Blue skull key";
+    //    case 6: return level_name + " - Yellow keycard";
+    //    case 39: return level_name + " - Yellow skull key";
+    //    case 13: return level_name + " - Red keycard";
+    //    case 38: return level_name + " - Red skull key";
+    //    case 2005: return "Chainsaw";
+    //    case 2001: return has_ssg ? "Super Shotgun" : "Shotgun";
+    //    case 2002: return "Chaingun";
+    //    case 2003: return "Rocket launcher";
+    //    case 2004: return "Plasma gun";
+    //    case 2006: return "BFG9000";
+    //}
+    //return "ERROR";
+
 
 bool loc_name_taken(const std::string& name)
 {
@@ -146,6 +163,7 @@ bool loc_name_taken(const std::string& name)
     }
     return false;
 }
+
 
 void add_loc(const std::string& name, const map_thing_t& thing, level_t* level, int index, int x, int y)
 {
@@ -263,6 +281,24 @@ std::string escape_csv(const std::string& str)
         }
     }
     return "\"" + ret + "\"";
+}
+
+
+std::string convert_quoted_str(const std::string& str)
+{
+    bool has_single_quote = false;
+    for (auto c : str)
+    {
+        if (c == '\'')
+        {
+            has_single_quote = true;
+            break;
+        }
+    }
+    if (has_single_quote)
+        return "\"" + str + "\"";
+    else
+        return "'" + str + "'";
 }
 
 
@@ -518,7 +554,7 @@ class ItemDict(TypedDict, total=False): \n\
                 case PROGRESSION_SKIP_BALANCING: fprintf(fout, "'classification': ItemClassification.progression_skip_balancing"); break;
             }
             fprintf(fout, ",\n             'count': %i", item.count);
-            fprintf(fout, ",\n             'name': '%s'", item.name.c_str());
+            fprintf(fout, ",\n             'name': %s", convert_quoted_str(item.name).c_str());
             fprintf(fout, ",\n             'doom_type': %i", item.doom_type);
             if (game->episodic)
             {
@@ -533,10 +569,10 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "item_name_groups: Dict[str, Set[str]] = {\n");
         for (const auto& kv : item_name_groups)
         {
-            fprintf(fout, "    '%s': {", kv.first.c_str());
+            fprintf(fout, "    %s: {", convert_quoted_str(kv.first).c_str());
             for (const auto& item_name : kv.second)
             {
-                fprintf(fout, "'%s', ", item_name.c_str());
+                fprintf(fout, "%s, ", convert_quoted_str(item_name).c_str());
             }
             fprintf(fout, "},\n");
         }
@@ -609,8 +645,16 @@ class ItemDict(TypedDict, total=False): \n\
                     {
                         continue;
                     }
-
-                    auto pro = connection.pro;
+                    
+                    auto pro = false;
+                    for (auto req : connection.requirements_and)
+                    {
+                        if (req == -2)
+                        {
+                            pro = true;
+                            break;
+                        }
+                    }
                     connections.push_back("{\"target\":\"" + level_name + " " + level->map_state->regions[connection.target_region].name + "\",\"pro\":" + (pro?"True":"False") + "}");
                 }
                 fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
@@ -668,7 +712,7 @@ class LocationDict(TypedDict, total=False): \n\
 
 
             fprintf(fout, "    %llu: {", loc.id);
-            fprintf(fout, "'name': '%s'", loc.name.c_str());
+            fprintf(fout, "'name': %s", convert_quoted_str(loc.name).c_str());
             if (game->episodic)
             {
                 fprintf(fout, ",\n             'episode': %i", loc.idx.ep + 1);
@@ -690,10 +734,10 @@ class LocationDict(TypedDict, total=False): \n\
         }
         for (const auto& kv : location_name_groups)
         {
-            fprintf(fout, "    '%s': {", kv.first.c_str());
+            fprintf(fout, "    %s: {", convert_quoted_str(kv.first).c_str());
             for (const auto& v : kv.second)
             {
-                fprintf(fout, "\n        '%s',", v.c_str());
+                fprintf(fout, "\n        %s,", convert_quoted_str(v).c_str());
             }
             fprintf(fout, "\n    },\n");
         }
@@ -734,7 +778,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "map_names: List[str] = [");
         for (auto level : levels)
         {
-            fprintf(fout, "\n    '%s',", level->name.c_str());
+            fprintf(fout, "\n    %s,", convert_quoted_str(level->name).c_str());
         }
         fprintf(fout, "\n]\n");
 
@@ -907,11 +951,11 @@ class LocationDict(TypedDict, total=False): \n\
 
                         for (auto doom_type: world_connection.requirements_and)
                         {
-                            ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                            ands.push_back("state.has(\"" + get_requirement_name(game, level_name, doom_type) + "\", player, 1)");
                         }
                         for (auto doom_type: world_connection.requirements_or)
                         {
-                            ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                            ors.push_back("state.has(\"" + get_requirement_name(game, level_name, doom_type) + "\", player, 1)");
                         }
 
                         fprintf(fout, "    set_rule(world.get_entrance(\"Hub -> %s\", player), lambda state:\n", region_name.c_str());
@@ -938,9 +982,24 @@ class LocationDict(TypedDict, total=False): \n\
                         continue;
                     }
 
-                    auto pro = connection.pro;
-
-                    if (connection.requirements_and.empty() && connection.requirements_or.empty()) continue;
+                    int count = 0;
+                    for (auto req : connection.requirements_and)
+                        if (req >= 0)
+                            ++count;
+                    for (auto req : connection.requirements_or)
+                        if (req >= 0)
+                            ++count;
+                    if (count == 0) continue;
+                    
+                    auto pro = false;
+                    for (auto req : connection.requirements_and)
+                    {
+                        if (req == -2)
+                        {
+                            pro = true;
+                            break;
+                        }
+                    }
 
                     has_rules = true;
 
@@ -954,13 +1013,15 @@ class LocationDict(TypedDict, total=False): \n\
                         fprintf(fout, "    if pro:\n");
                     }
 
-                    for (const auto& doom_type: connection.requirements_and)
+                    for (auto doom_type: connection.requirements_and)
                     {
-                        ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        if (doom_type >= 0)
+                            ands.push_back("state.has(\"" + get_requirement_name(game, level_name, doom_type) + "\", player, 1)");
                     }
-                    for (const auto& doom_type: connection.requirements_or)
+                    for (auto doom_type: connection.requirements_or)
                     {
-                        ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
+                        if (doom_type >= 0)
+                            ors.push_back("state.has(\"" + get_requirement_name(game, level_name, doom_type) + "\", player, 1)");
                     }
 
                     auto target_name = level_name + " " + level->map_state->regions[target_region].name;
@@ -990,7 +1051,7 @@ class LocationDict(TypedDict, total=False): \n\
             fprintf(fout, "\ndef set_rules(%s_world: \"%sWorld\", included_episodes, pro):\n", game->world.c_str(), game->classname.c_str());
             fprintf(fout, "    player = %s_world.player\n", game->world.c_str());
             fprintf(fout, "    world = %s_world.multiworld\n\n", game->world.c_str());
-            for (int ep = 0; ep < 4; ++ep)
+            for (int ep = 0; ep < game->ep_count; ++ep)
             {
                 fprintf(fout, "    if included_episodes[%i]:\n", ep);
                 fprintf(fout, "        set_episode%i_rules(player, world, pro)\n", ep + 1);
