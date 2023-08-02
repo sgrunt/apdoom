@@ -1,6 +1,8 @@
 {
     "name": "DOOM II",
     "world": "doom_ii",
+    "codename": "doom2",
+    "classname": "DOOM2",
     "wad": "DOOM2.WAD",
     "item_ids": 360000,
     "loc_ids": 361000,

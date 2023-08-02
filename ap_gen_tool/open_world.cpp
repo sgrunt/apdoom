@@ -378,11 +378,17 @@ void load(game_t* game)
         for (const auto& location_json : locations_json)
         {
             location_t location;
-            location.death_logic = location_json["death_logic"].asBool();
-            location.unreachable = location_json["unreachable"].asBool();
-            location.name = location_json["name"].asString();
-            location.description = location_json["description"].asString();
-            _map_state->locations[location_json["index"].asInt()] = location;
+            int index = location_json["index"].asInt();
+            const auto& thing = map->things[index];
+            if (thing.flags & 0x0010) continue; // Thing is not in single player
+            if (game->location_doom_types.find(thing.type) != game->location_doom_types.end())
+            {
+                location.death_logic = location_json["death_logic"].asBool();
+                location.unreachable = location_json["unreachable"].asBool();
+                location.name = location_json["name"].asString();
+                location.description = location_json["description"].asString();
+                _map_state->locations[index] = location;
+            }
         }
 
         _map_state->world_rules = deserialize_rules(_map_json["world_rules"]);
@@ -2093,6 +2099,7 @@ void renderUI()
         if (ImGui::Begin("Map"))
         {
             auto map = get_map(active_level);
+            auto game = get_game(active_level);
             int index = 0;
             for (const auto& thing : map->things)
             {
@@ -2116,11 +2123,14 @@ void renderUI()
                         map_state->selected_location = index;
                     }
                 }
-                if (map_state->locations[index].unreachable)
+                if (game->location_doom_types.find(thing.type) != game->location_doom_types.end())
                 {
-                    ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
-                    cursorScreenPos.y -= 10;
-                    ImGui::GetWindowDrawList()->AddLine(cursorScreenPos, ImVec2(cursorScreenPos.x + 150, cursorScreenPos.y), IM_COL32(255, 255, 255, 255), 1.0f);
+                    if (map_state->locations[index].unreachable)
+                    {
+                        ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+                        cursorScreenPos.y -= 10;
+                        ImGui::GetWindowDrawList()->AddLine(cursorScreenPos, ImVec2(cursorScreenPos.x + 150, cursorScreenPos.y), IM_COL32(255, 255, 255, 255), 1.0f);
+                    }
                 }
                 index++;
             }

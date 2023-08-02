@@ -171,7 +171,8 @@ struct ap_level_index_t
 enum class ap_game_t
 {
 	doom,
-	doom2
+	doom2,
+	heretic
 };
 
 

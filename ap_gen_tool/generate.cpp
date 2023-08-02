@@ -324,20 +324,16 @@ int generate(game_t* game)
         auto map = level->map;
         level->sectors.resize(map->sectors.size());
         std::string lvl_prefix = level->name + std::string(" - ");
-        int i = 0;
 
-        for (const auto& thing : level->map->things)
+        for (int i = 0, len = (int)level->map->things.size(); i < len; ++i)
         {
+            const auto& thing = level->map->things[i];
             if (thing.flags & 0x0010)
-            {
-                ++i;
                 continue; // Thing is not in single player
-            }
-            if (level->map_state->locations[i].unreachable) // We don't include this location
-            {
-                ++i;
-                continue;
-            }
+            if (game->location_doom_types.find(thing.type) == game->location_doom_types.end())
+                continue; // Not a location
+            if (level->map_state->locations[i].unreachable)
+                continue; // We don't include this location
 
             bool added_key = false;
             for (const auto& key_def : game->keys)
@@ -353,7 +349,6 @@ int generate(game_t* game)
             }
             if (added_key)
             {
-                ++i;
                 continue;
             }
 
@@ -362,8 +357,6 @@ int generate(game_t* game)
             {
                 add_loc(lvl_prefix + loc_it->second, thing, level, i, thing.x, thing.y);
             }
-
-            ++i;
         }
 
         int region_i = 0;
@@ -545,7 +538,6 @@ class ItemDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 
-#if 0
     // Generate Regions.py from regions.json (Manually entered data)
     {
         FILE* fout = fopen((py_out_dir + "Regions.py").c_str(), "w");
@@ -560,7 +552,7 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "class RegionDict(TypedDict, total=False):\n");
         fprintf(fout, "    name: str\n");
         fprintf(fout, "    connects_to_hub: bool\n");
-        if (game == game_t::doom)
+        if (game->episodic)
             fprintf(fout, "    episode: int\n");
         fprintf(fout, "    connections: List[ConnectionDict]\n\n\n");
 
@@ -568,43 +560,21 @@ class ItemDict(TypedDict, total=False): \n\
 
         // Regions
         bool first = true;
-        const auto& maps_json = levels_json["maps"];
-        for (const auto& level_json : maps_json)
+        for (auto level : levels)
         {
-            int ep = level_json["ep"].asInt();
-            int lvl = level_json["map"].asInt();
-            int d2_map = level_json["d2_map"].asInt();
-            level_index_t level_idx = {ep, lvl, d2_map};
-
-            switch (game)
-            {
-                case game_t::doom:
-                    if (ep == -1) continue;
-                    break;
-                case game_t::doom2:
-                    if (d2_map == -1) continue;
-                    break;
-            }
-
-            const auto& world_connections_json = level_json["world_rules"]["connections"];
-
-            std::string level_name = get_level_name(level_idx);
+            const std::string& level_name = level->name;
             if (!first) fprintf(fout, "\n");
             first = false;
             fprintf(fout, "    # %s\n", level_name.c_str());
 
-            const auto& regions_json = level_json["regions"];
             int region_i = 0;
-            for (const auto& region_json : regions_json)
+            for (const auto& region : level->map_state->regions)
             {
-                std::string region_name = level_name + " " + region_json["name"].asString();
+                std::string region_name = level_name + " " + region.name;
 
                 // Create locations
-                const auto& sectors_json = region_json["sectors"];
-                for (const auto& sector_json : sectors_json)
+                for (auto sectori : region.sectors)
                 {
-                    int sectori = sector_json.asInt();
-                    auto level = get_level(level_idx);
                     const auto& locs = level->sectors[sectori].locations;
                     for (auto loci : locs)
                     {
@@ -614,36 +584,32 @@ class ItemDict(TypedDict, total=False): \n\
                 bool connects_to_exit = false;
                 bool connects_to_hub = false;
 
-                for (const auto& world_connection_json : world_connections_json)
+                for (const auto& world_connection : level->map_state->world_rules.connections)
                 {
-                    auto target_region = world_connection_json["target_region"].asInt();
-                    if (target_region == region_i) connects_to_hub = true;
+                    if (world_connection.target_region == region_i) connects_to_hub = true;
                 }
 
                 // Build the region dicts
                 std::vector<std::string> connections;
-                const auto& rules_json = region_json["rules"];
-                const auto& connections_json = rules_json["connections"];
-                for (const auto& connection_json : connections_json)
+                for (const auto& connection : region.rules.connections)
                 {
-                    int target_region = connection_json["target_region"].asInt();
-                    if (target_region == -2)
+                    if (connection.target_region == -2)
                     {
                         connects_to_exit = true;
                         continue;
                     }
-                    if (target_region == -1)
+                    if (connection.target_region == -1)
                     {
                         continue;
                     }
 
-                    auto pro = connection_json["pro"].asBool();
-                    connections.push_back("{\"target\":\"" + level_name + " " + regions_json[target_region]["name"].asString() + "\",\"pro\":" + (pro?"True":"False") + "}");
+                    auto pro = connection.pro;
+                    connections.push_back("{\"target\":\"" + level_name + " " + level->map_state->regions[connection.target_region].name + "\",\"pro\":" + (pro?"True":"False") + "}");
                 }
                 fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
                 fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
-                if (game == game_t::doom)
-                    fprintf(fout, "     \"episode\":%i,\n", level_idx.ep + 1);
+                if (game->episodic)
+                    fprintf(fout, "     \"episode\":%i,\n", level->idx.ep + 1);
                 if (connections.empty())
                 {
                     fprintf(fout, "     \"connections\":[]},\n");
@@ -677,7 +643,7 @@ class ItemDict(TypedDict, total=False): \n\
 \n\
 class LocationDict(TypedDict, total=False): \n\
     name: str \n");
-        if (game == game_t::doom)
+        if (game->episodic)
             fprintf(fout, "    episode: int \n");
         fprintf(fout, "    map: int \n\
     index: int # Thing index as it is stored in the wad file. \n\
@@ -696,15 +662,11 @@ class LocationDict(TypedDict, total=False): \n\
 
             fprintf(fout, "    %llu: {", loc.id);
             fprintf(fout, "'name': '%s'", loc.name.c_str());
-            if (game == game_t::doom)
+            if (game->episodic)
             {
                 fprintf(fout, ",\n             'episode': %i", loc.idx.ep + 1);
-                fprintf(fout, ",\n             'map': %i", loc.idx.map + 1);
             }
-            else
-            {
-                fprintf(fout, ",\n             'map': %i", loc.idx.d2_map + 1);
-            }
+            fprintf(fout, ",\n             'map': %i", loc.idx.map + 1);
             fprintf(fout, ",\n             'index': %i", loc.doom_thing_index);
             fprintf(fout, ",\n             'doom_type': %i", loc.doom_type);
             fprintf(fout, ",\n             'region': \"%s\"", loc.region_name.c_str());
@@ -732,33 +694,17 @@ class LocationDict(TypedDict, total=False): \n\
 
         // Death logic locations
         fprintf(fout, "death_logic_locations = [\n");
-        const auto& maps_json = levels_json["maps"];
-        for (const auto& level_json : maps_json)
+
+        for (auto level : levels)
         {
-            int ep = level_json["ep"].asInt();
-            int lvl = level_json["map"].asInt();
-            int d2_map = level_json["d2_map"].asInt();
-            level_index_t level_idx = {ep, lvl, d2_map};
-
-            switch (game)
+            for (const auto& location_kv : level->map_state->locations)
             {
-                case game_t::doom:
-                    if (ep == -1) continue;
-                    break;
-                case game_t::doom2:
-                    if (d2_map == -1) continue;
-                    break;
-            }
-
-            const auto& locations_json = level_json["locations"];
-            for (const auto& location_json : locations_json)
-            {
-                auto idx = location_json["index"].asInt();
-                if (location_json["death_logic"].asBool())
+                auto idx = location_kv.first;
+                if (location_kv.second.death_logic)
                 {
                     for (const auto& location : ap_locations)
                     {
-                        if (location.idx == level_idx && location.doom_thing_index == idx)
+                        if (location.idx == level->idx && location.doom_thing_index == idx)
                         {
                             fprintf(fout, "    \"%s\",\n", location.name.c_str());
                         }
@@ -781,7 +727,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "map_names: List[str] = [");
         for (auto level : levels)
         {
-            fprintf(fout, "\n    '%s',", get_level_name(level->idx));
+            fprintf(fout, "\n    '%s',", level->name.c_str());
         }
         fprintf(fout, "\n]\n");
 
@@ -789,9 +735,8 @@ class LocationDict(TypedDict, total=False): \n\
     }
 
     // Now generate apdoom_def.h so the game can map the IDs
-    if (game == game_t::doom)
     {
-        FILE* fout = fopen((cpp_out_dir + "apdoom_def.h").c_str(), "w");
+        FILE* fout = fopen((cpp_out_dir + "ap" + game->codename + "_def.h").c_str(), "w");
         
         fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
         fprintf(fout, "#pragma once\n\n");
@@ -806,7 +751,7 @@ class LocationDict(TypedDict, total=False): \n\
         }
 
         // locations
-        fprintf(fout, "const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {\n");
+        fprintf(fout, "const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_%s_location_table = {\n", game->codename.c_str());
         for (const auto& kv1 : location_table)
         {
             fprintf(fout, "    {%i, {\n", kv1.first);
@@ -822,10 +767,10 @@ class LocationDict(TypedDict, total=False): \n\
             fprintf(fout, "    }},\n");
         }
         fprintf(fout, "};\n\n\n");
-        
+
         // items
         fprintf(fout, "// Map item id\n");
-        fprintf(fout, "const std::map<int64_t, ap_item_t> item_doom_type_table = {\n");
+        fprintf(fout, "const std::map<int64_t, ap_item_t> ap_%s_item_table = {\n", game->codename.c_str());
         for (const auto& item : ap_items)
         {
             fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, item.idx.ep + 1, item.idx.map + 1);
@@ -833,14 +778,14 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "};\n\n\n");
 
         // Level infos
-        fprintf(fout, "ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n");
+        fprintf(fout, "ap_level_info_t ap_%s_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n", game->codename.c_str());
         fprintf(fout, "{\n");
-        for (int ep = 0; ep < EP_COUNT; ++ep)
+        for (int ep = 0; ep < game->ep_count; ++ep)
         {
             fprintf(fout, "    {\n");
-            for (int map = 0; map < MAP_COUNT; ++map)
+            for (int map = 0; map < game->map_count; ++map)
             {
-                auto level = get_level({ep, map, -1});
+                auto level = get_level({game->name, ep, map});
                 int64_t loc_id = 0;
                 for (const auto& loc : ap_locations)
                 {
@@ -877,107 +822,22 @@ class LocationDict(TypedDict, total=False): \n\
         fclose(fout);
     }
 
-    // Now generate apdoom2_def.h so the game can map the IDs
-    if (game == game_t::doom2)
-    {
-        FILE* fout = fopen((cpp_out_dir + "apdoom2_def.h").c_str(), "w");
-        
-        fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
-        fprintf(fout, "#pragma once\n\n");
-        fprintf(fout, "#include \"apdoom.h\"\n");
-        fprintf(fout, "#include \"apdoom_def_types.h\"\n");
-        fprintf(fout, "#include <map>\n\n\n");
-
-        std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>> location_table;
-        for (const auto& loc : ap_locations)
-        {
-            location_table[loc.idx.d2_map + 1][loc.doom_thing_index] = loc.id;
-        }
-
-        // locations
-        fprintf(fout, "const std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>> d2_location_table = {\n");
-        for (const auto& kv1 : location_table)
-        {
-            fprintf(fout, "    {%i, {\n", kv1.first);
-            for (const auto& kv2 : kv1.second)
-            {
-                fprintf(fout, "        {%i, %lli},\n", kv2.first, kv2.second);
-            }
-            fprintf(fout, "    }},\n");
-        }
-        fprintf(fout, "};\n\n\n");
-        
-        // items
-        fprintf(fout, "// Map item id\n");
-        fprintf(fout, "const std::map<int64_t, ap_item_t> d2_item_doom_type_table = {\n");
-        for (const auto& item : ap_items)
-        {
-            fprintf(fout, "    {%llu, {%i, %i, %i}},\n", item.id, item.doom_type, -1, item.idx.d2_map + 1);
-        }
-        fprintf(fout, "};\n\n\n");
-
-        // Level infos
-        fprintf(fout, "ap_level_info_t ap_d2_level_infos[AP_D2_LEVEL_COUNT] = \n");
-        fprintf(fout, "{\n");
-        for (int map = 0; map < D2_MAP_COUNT; ++map)
-        {
-            auto level = get_level({-1, -1, map});
-            int64_t loc_id = 0;
-            for (const auto& loc : ap_locations)
-            {
-                if (loc.idx == level->idx)
-                {
-                    if (loc.doom_type == -1)
-                    {
-                        loc_id = loc.id;
-                        break;
-                    }
-                }
-            }
-            fprintf(fout, "    {{%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
-                    level->keys[0] ? "true" : "false", 
-                    level->keys[1] ? "true" : "false", 
-                    level->keys[2] ? "true" : "false", 
-                    level->use_skull[0] ? 1 : 0, 
-                    level->use_skull[1] ? 1 : 0, 
-                    level->use_skull[2] ? 1 : 0, 
-                    level->location_count,
-                    (int)level->map->things.size());
-            int idx = 0;
-            for (const auto& thing : level->map->things)
-            {
-                fprintf(fout, "        {%i, %i},\n", thing.type, idx);
-                ++idx;
-            }
-            fprintf(fout, "    }},\n");
-        }
-        fprintf(fout, "};\n");
-
-        fclose(fout);
-    }
-
-#if 0 // Pointless to generate this
     // We generate some stuff for doom also, C header.
     {
-        FILE* fout = fopen((cpp_out_dir + "apdoom_c_def.h").c_str(), "w");
+        FILE* fout = fopen((cpp_out_dir + "ap" + game->codename + "_c_def.h").c_str(), "w");
         
         fprintf(fout, "// This file is auto generated. More info: https://github.com/Daivuk/apdoom\n");
-        fprintf(fout, "#ifndef _AP_DOOM_C_DEF_\n");
-        fprintf(fout, "#define _AP_DOOM_C_DEF_\n\n");
+        fprintf(fout, "#ifndef _AP_%s_C_DEF_\n", game->codename.c_str());
+        fprintf(fout, "#define _AP_%s_C_DEF_\n\n", game->codename.c_str());
 
-        fprintf(fout, "static int is_doom_type_ap_location(int doom_type)\n");
+        fprintf(fout, "static int is_%s_type_ap_location(int doom_type)\n", game->codename.c_str());
         fprintf(fout, "{\n");
         fprintf(fout, "    switch (doom_type)\n");
         fprintf(fout, "    {\n");
 
-        std::set<int> doom_types;
-        for (const auto& loc : ap_locations)
+        for (const auto& location_doom_type_kv : game->location_doom_types)
         {
-            doom_types.insert(loc.doom_type);
-        }
-        for (auto doom_type : doom_types)
-        {
-            fprintf(fout, "        case %i:\n", doom_type);
+            fprintf(fout, "        case %i:\n", location_doom_type_kv.first);
         }
         
         fprintf(fout, "            return 1;\n");
@@ -988,7 +848,6 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "#endif\n");
         fclose(fout);
     }
-#endif
 
     // Generate Rules.py from regions.json (Manually entered data)
     {
@@ -998,77 +857,53 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "from worlds.generic.Rules import set_rule\n\n");
         
         fprintf(fout, "if TYPE_CHECKING:\n");
-        fprintf(fout, "    from . import DOOM1993World\n\n");
+        fprintf(fout, "    from . import %sWorld\n\n", game->classname.c_str());
         
-        if (game == game_t::doom2)
+        if (!game->episodic)
         {
-            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\", pro):\n");
-            fprintf(fout, "    player = doom_1993_world.player\n");
-            fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
+            fprintf(fout, "\ndef set_rules(%s_world: \"%sWorld\", pro):\n", game->world.c_str(), game->classname.c_str());
+            fprintf(fout, "    player = %s_world.player\n", game->world.c_str());
+            fprintf(fout, "    world = %s_world.multiworld\n\n", game->world.c_str());
         }
-
-        const auto& maps_json = levels_json["maps"];
+        
         int prev_ep = -1;
-        for (const auto& level_json : maps_json)
+        for (auto level : levels)
         {
-            int ep = level_json["ep"].asInt();
-            int lvl = level_json["map"].asInt();
-            int d2_map = level_json["d2_map"].asInt();
-            level_index_t level_idx = {ep, lvl, d2_map};
-
-            switch (game)
+            if (game->episodic)
             {
-                case game_t::doom:
-                    if (ep == -1) continue;
-                    break;
-                case game_t::doom2:
-                    if (d2_map == -1) continue;
-                    break;
-            }
-
-            if (game == game_t::doom)
-            {
-                if (ep != prev_ep)
+                if (level->idx.ep != prev_ep)
                 {
-                    prev_ep = ep;
-                    fprintf(fout, "\ndef set_episode%i_rules(player, world, pro):\n", ep + 1);
+                    prev_ep = level->idx.ep;
+                    fprintf(fout, "\ndef set_episode%i_rules(player, world, pro):\n", level->idx.ep + 1);
                 }
             }
 
-            const auto& world_connections_json = level_json["world_rules"]["connections"];
-
-            std::string level_name = get_level_name(level_idx);
+            const std::string& level_name = level->name;
             fprintf(fout, "    # %s\n", level_name.c_str());
 
-            const auto& regions_json = level_json["regions"];
             int region_i = 0;
             bool has_rules = false;
-            for (const auto& region_json : regions_json)
+            for (const auto& region : level->map_state->regions)
             {
-                std::string region_name = level_name + " " + region_json["name"].asString();
+                std::string region_name = level_name + " " + region.name;
 
                 // Hub rules
-                for (const auto& world_connection_json : world_connections_json)
+                for (const auto& world_connection : level->map_state->world_rules.connections)
                 {
-                    auto world_target_region = world_connection_json["target_region"].asInt();
+                    auto world_target_region = world_connection.target_region;
                     if (world_target_region == region_i)
                     {
-                        const auto& world_requirements_and_json = world_connection_json["requirements_and"];
-                        const auto& world_requirements_or_json = world_connection_json["requirements_or"];
-
                         has_rules = true;
 
                         std::vector<std::string> ands = {"state.has(\"" + level_name + "\", player, 1)"};
                         std::vector<std::string> ors;
 
-                        for (const auto& requirement_and_json: world_requirements_and_json)
+                        for (auto doom_type: world_connection.requirements_and)
                         {
-                            int doom_type = requirement_and_json.asInt();
                             ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
-                        for (const auto& requirement_or_json: world_requirements_or_json)
+                        for (auto doom_type: world_connection.requirements_or)
                         {
-                            int doom_type = requirement_or_json.asInt();
                             ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                         }
 
@@ -1084,11 +919,9 @@ class LocationDict(TypedDict, total=False): \n\
                 }
 
                 std::vector<std::string> connections;
-                const auto& rules_json = region_json["rules"];
-                const auto& connections_json = rules_json["connections"];
-                for (const auto& connection_json : connections_json)
+                for (const auto& connection : region.rules.connections)
                 {
-                    int target_region = connection_json["target_region"].asInt();
+                    int target_region = connection.target_region;
                     if (target_region == -2)
                     {
                         continue;
@@ -1098,11 +931,9 @@ class LocationDict(TypedDict, total=False): \n\
                         continue;
                     }
 
-                    const auto& requirements_and_json = connection_json["requirements_and"];
-                    const auto& requirements_or_json = connection_json["requirements_or"];
-                    auto pro = connection_json["pro"].asBool();
+                    auto pro = connection.pro;
 
-                    if (requirements_and_json.empty() && requirements_or_json.empty()) continue;
+                    if (connection.requirements_and.empty() && connection.requirements_or.empty()) continue;
 
                     has_rules = true;
 
@@ -1116,18 +947,16 @@ class LocationDict(TypedDict, total=False): \n\
                         fprintf(fout, "    if pro:\n");
                     }
 
-                    for (const auto& requirement_and_json: requirements_and_json)
+                    for (const auto& doom_type: connection.requirements_and)
                     {
-                        int doom_type = requirement_and_json.asInt();
                         ands.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                     }
-                    for (const auto& requirement_or_json: requirements_or_json)
+                    for (const auto& doom_type: connection.requirements_or)
                     {
-                        int doom_type = requirement_or_json.asInt();
                         ors.push_back("state.has(\"" + get_requirement_name(level_name, doom_type) + "\", player, 1)");
                     }
 
-                    auto target_name = level_name + " " + regions_json[target_region]["name"].asCString();
+                    auto target_name = level_name + " " + level->map_state->regions[target_region].name;
                     fprintf(fout, "%s    set_rule(world.get_entrance(\"%s -> %s\", player), lambda state:\n", indent.c_str(), region_name.c_str(), target_name.c_str());
                         
                     if (ands.empty())
@@ -1149,11 +978,11 @@ class LocationDict(TypedDict, total=False): \n\
             }
         }
 
-        if (game == game_t::doom)
+        if (game->episodic)
         {
-            fprintf(fout, "\ndef set_rules(doom_1993_world: \"DOOM1993World\", included_episodes, pro):\n");
-            fprintf(fout, "    player = doom_1993_world.player\n");
-            fprintf(fout, "    world = doom_1993_world.multiworld\n\n");
+            fprintf(fout, "\ndef set_rules(%s_world: \"%sWorld\", included_episodes, pro):\n", game->world.c_str(), game->classname.c_str());
+            fprintf(fout, "    player = %s_world.player\n", game->world.c_str());
+            fprintf(fout, "    world = %s_world.multiworld\n\n", game->world.c_str());
             for (int ep = 0; ep < 4; ++ep)
             {
                 fprintf(fout, "    if included_episodes[%i]:\n", ep);
@@ -1166,55 +995,34 @@ class LocationDict(TypedDict, total=False): \n\
 
     // Generate location CSV that will be used for names
     {
-        FILE* fout = nullptr;
-        switch (game)
-        {
-            case game_t::doom: fout = fopen((pop_tracker_data_dir + "location_names.csv").c_str(), "w"); break;
-            case game_t::doom2: fout = fopen((pop_tracker_data_dir + "d2_location_names.csv").c_str(), "w"); break;
-        }
+        FILE* fout = fopen((pop_tracker_data_dir + game->codename + "_location_names.csv").c_str(), "w");
+
         fprintf(fout, "Map,Type,Index,Name,Description\n");
-        const auto& maps_json = levels_json["maps"];
-        for (const auto& level_json : maps_json)
+
+        for (auto level : levels)
         {
-            int ep = level_json["ep"].asInt();
-            int lvl = level_json["map"].asInt();
-            int d2_map = level_json["d2_map"].asInt();
-            level_index_t level_idx = {ep, lvl, d2_map};
-
-            switch (game)
-            {
-                case game_t::doom:
-                    if (ep == -1) continue;
-                    break;
-                case game_t::doom2:
-                    if (d2_map == -1) continue;
-                    break;
-            }
-
             fprintf(fout, ",,,,\n");
 
-            const auto& locations_json = level_json["locations"];
-            for (const auto& location_json : locations_json)
+            for (const auto& location_kv : level->map_state->locations)
             {
-                if (!location_json["unreachable"].asBool()) continue;
+                const auto& location = location_kv.second;
+                if (location.unreachable) continue;
 
-                std::string level_name = get_level_name(level_idx);
-                int index = location_json["index"].asInt();
+                int index = location_kv.first;
 
-                fprintf(fout, "%s,", level_name.c_str());
-                fprintf(fout, "%s,", get_doom_type_name(get_map(level_idx)->things[index].type));
+                fprintf(fout, "%s,", level->name.c_str());
+                fprintf(fout, "%s,", game->location_doom_types[level->map->things[index].type].c_str());
                 fprintf(fout, "%i,", index);
-                fprintf(fout, "%s,", escape_csv(location_json["name"].asString()).c_str());
-                fprintf(fout, "%s,\n", escape_csv(location_json["description"].asString()).c_str());
+                fprintf(fout, "%s,", escape_csv(location.name).c_str());
+                fprintf(fout, "%s,\n", escape_csv(location.description).c_str());
             }
         }
         fclose(fout);
     }
-#endif
 
-    // Now for Poptracker, rasterize levels onto a 1024x1024
+    // TODO: Pop tracker logic
 
     // Clean up
-    for (auto level : levels) delete level; // We don't need to
+    for (auto level : levels) delete level;
     return 0;
 }

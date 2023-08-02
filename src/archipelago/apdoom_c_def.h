@@ -1,11 +1,11 @@
-#ifndef _AP_DOOM_C_DEF_
-#define _AP_DOOM_C_DEF_
+// This file is auto generated. More info: https://github.com/Daivuk/apdoom
+#ifndef _AP_doom_C_DEF_
+#define _AP_doom_C_DEF_
 
 static int is_doom_type_ap_location(int doom_type)
 {
     switch (doom_type)
     {
-        case -1:
         case 5:
         case 6:
         case 8:
@@ -26,8 +26,6 @@ static int is_doom_type_ap_location(int doom_type)
         case 2023:
         case 2024:
         case 2026:
-        case 82:
-        case 83:
             return 1;
     }
 

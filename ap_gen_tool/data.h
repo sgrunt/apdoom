@@ -206,9 +206,11 @@ struct ap_key_def_t
 
 struct game_t
 {
-    std::string name;
-    std::string world;
-    std::string wad_name;
+    std::string name; // Official name used on websites. i.e. "DOOM 1993"
+    std::string world; // World folder name. i.e. "doom_1993", which will result in a world placed in "Archipelago/worlds/doom_1993/"
+    std::string codename; // Used for C and C++ function/struct names. i.e. "doom", which will result in things like "ap_doom_location_table[]"
+    std::string classname; // Class name prefixed to classes in Archipelago. i.e. "DOOM1993", which result in "DOOM1993World", "DOOM1993Web", etc.
+    std::string wad_name; // Wad file to load and analyze for this game. i.e. "DOOM.WAD"
     int64_t item_ids = 0;
     int64_t loc_ids = 0;
     std::map<int, std::string> location_doom_types;

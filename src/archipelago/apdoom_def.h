@@ -6,7 +6,7 @@
 #include <map>
 
 
-const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table = {
+const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_doom_location_table = {
     {1, {
         {1, {
             {-1, 351331},
@@ -565,7 +565,7 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
 
 
 // Map item id
-const std::map<int64_t, ap_item_t> item_doom_type_table = {
+const std::map<int64_t, ap_item_t> ap_doom_item_table = {
     {350000, {-1, 1, 1}},
     {350001, {2026, 1, 1}},
     {350002, {-1, 1, 2}},
@@ -760,7 +760,7 @@ const std::map<int64_t, ap_item_t> item_doom_type_table = {
 };
 
 
-ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = 
+ap_level_info_t ap_doom_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = 
 {
     {
         {{false, false, false}, {0, 0, 0}, 3, 143, {

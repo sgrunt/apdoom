@@ -1,6 +1,8 @@
 {
     "name": "Heretic",
     "world": "heretic",
+    "codename": "heretic",
+    "classname": "Heretic",
     "wad": "HERETIC.WAD",
     "item_ids": 370000,
     "loc_ids": 371000,

@@ -22,6 +22,8 @@ void init_data()
 
         game.name = game_json["name"].asString();
         game.world = game_json["world"].asString();
+        game.codename = game_json["codename"].asString();
+        game.classname = game_json["classname"].asString();
         game.wad_name = game_json["wad"].asString();
         game.item_ids = game_json["item_ids"].asInt64();
         game.loc_ids = game_json["loc_ids"].asInt64();
