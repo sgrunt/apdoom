@@ -44,72 +44,71 @@ typedef struct
 extern int cursor_x;
 extern int cursor_y;
 
-
 static level_pos_t level_pos_infos[5][9] =
 {
     // Episode 1
     {
-        { 185, 164 + 10, 22, "IN_YAH", 0, 0 },	// location of level 0 (CJ)
-	    { 148, 143, 18, "IN_YAH", 0, 0 },	// location of level 1 (CJ)
-	    { 69, 122, 18, "IN_YAH", 0, 0 },	// location of level 2 (CJ)
-	    { 209 + 20, 102, 22, "IN_YAH", 0, 0 },	// location of level 3 (CJ)
-	    { 116, 89, 26, "IN_YAH", 0, 0 },	// location of level 4 (CJ)
-	    { 166 + 10, 55 - 2, 22, "IN_YAH", 0, 0 },	// location of level 5 (CJ)
-	    { 71, 56, 18, "IN_YAH", 0, 0 },	// location of level 6 (CJ)
-	    { 135, 29, 18, "IN_YAH", -2, 4 },	// location of level 7 (CJ)
-	    { 71, 24, 22, "IN_YAH", 0, 0 }	// location of level 8 (CJ)
+        { 172, 78, 20, "IN_YAH", 0, 0 },
+	    { 86, 90, 20, "IN_YAH", 0, 0 },
+	    { 73, 66, 20, "IN_YAH", 0, 0 },
+	    { 159, 95, 20, "IN_YAH", 0, 0 },
+	    { 148, 126, 20, "IN_YAH", 0, 0 },
+	    { 132, 54, 20, "IN_YAH", 0, 0 },
+	    { 131, 74, 20, "IN_YAH", 0, 0 },
+	    { 208, 138, 20, "IN_YAH", 0, 0 },
+	    { 52, 101, 20, "IN_YAH", 0, 0 }
     },
-
+    
     // Episode 2
     {
-	    { 254, 25, 18, "IN_YAH", 0, 0 },	// location of level 0 (CJ)
-	    { 97, 50, 22, "IN_YAH", 0, 0 },	// location of level 1 (CJ)
-	    { 188, 64, 18, "IN_YAH", 0, 0 },	// location of level 2 (CJ)
-	    { 128, 78 + 5, 22, "IN_YAH", 0, 0 },	// location of level 3 (CJ)
-	    { 214, 92, 22, "IN_YAH", 0, 0 },	// location of level 4 (CJ)
-	    { 133, 130, 20, "IN_YAH", 0, 0 },	// location of level 5 (CJ)
-	    { 208, 136 - 1, 18, "IN_YAH", 0, 0 },	// location of level 6 (CJ)
-	    { 148, 140 + 20, 22, "IN_YAH", 0, 0 },	// location of level 7 (CJ)
-	    { 235, 158 + 10, 18, "IN_YAH", 0, 0 }	// location of level 8 (CJ)
+        { 218, 57, 0, "IN_YAH", 0, 0 },
+        { 137, 81, 0, "IN_YAH", 0, 0 },
+        { 155, 124, 0, "IN_YAH", 0, 0 },
+        { 171, 68, 0, "IN_YAH", 0, 0 },
+        { 250, 86, 0, "IN_YAH", 0, 0 },
+        { 136, 98, 0, "IN_YAH", 0, 0 },
+        { 203, 90, 0, "IN_YAH", 0, 0 },
+        { 220, 140, 0, "IN_YAH", 0, 0 },
+        { 279, 106, 0, "IN_YAH", 0, 0 }
     },
 
     // Episode 3
     {
-	    { 156, 168, 22, "IN_YAH", 0, 0 },	// location of level 0 (CJ)
-	    { 48, 154, 22, "IN_YAH", 0, 0 },	// location of level 1 (CJ)
-	    { 174, 95, -26, "IN_YAH", 0, 0 },	// location of level 2 (CJ)
-	    { 265, 75, 22, "IN_YAH", 0, 0 },	// location of level 3 (CJ)
-	    { 130, 48 + 4, -24, "IN_YAH", 0, 0 },	// location of level 4 (CJ)
-	    { 279, 23, -26, "IN_YAH", 8, 0 },	// location of level 5 (CJ)
-	    { 198, 48, 18, "IN_YAH", 0, 0 },	// location of level 6 (CJ)
-	    { 140, 25, 22, "IN_YAH", 0, 0 },	// location of level 7 (CJ)
-	    { 281, 136, -26, "IN_YAH", 0, 0 }	// location of level 8 (CJ)
+        { 86, 99, 0, "IN_YAH", 0, 0 },
+        { 124, 103, 0, "IN_YAH", 0, 0 },
+        { 154, 79, 0, "IN_YAH", 0, 0 },
+        { 202, 83, 0, "IN_YAH", 0, 0 },
+        { 178, 59, 0, "IN_YAH", 0, 0 },
+        { 142, 58, 0, "IN_YAH", 0, 0 },
+        { 219, 66, 0, "IN_YAH", 0, 0 },
+        { 247, 57, 0, "IN_YAH", 0, 0 },
+        { 107, 80, 0, "IN_YAH", 0, 0 }
     },
 
     // Episode 4
     {
-        { 101, 177, 22, "IN_YAH", 0, 0 },	// location of level 0 (CJ)
-	    { 183, 148, 18, "IN_YAH", 0, 0 },	// location of level 1 (CJ)
-	    { 172, 97, 18, "IN_YAH", 0, 0 },	// location of level 2 (CJ)
-	    { 78, 85, 22, "IN_YAH", 0, 0 },	// location of level 3 (CJ)
-	    { 251, 85, 26, "IN_YAH", 0, 0 },	// location of level 4 (CJ)
-	    { 33 + 4, 24, -24, "IN_YAH", 3, -20 },	// location of level 5 (CJ)
-	    { 260, 47, 18, "IN_YAH", -5, -4 },	// location of level 6 (CJ)
-	    { 191, 24, 28, "IN_YAH", 0, 0 },	// location of level 7 (CJ)
-	    { 88, 58, 17, "IN_YAH", 0, 0 }	// location of level 8 (CJ)
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 }
     },
 
     // Episode 5
     {
-        { 101, 177, 22, "IN_YAH", 0, 0 },	// location of level 0 (CJ)
-	    { 183, 148, 18, "IN_YAH", 0, 0 },	// location of level 1 (CJ)
-	    { 172, 97, 18, "IN_YAH", 0, 0 },	// location of level 2 (CJ)
-	    { 78, 85, 22, "IN_YAH", 0, 0 },	// location of level 3 (CJ)
-	    { 251, 85, 26, "IN_YAH", 0, 0 },	// location of level 4 (CJ)
-	    { 33 + 4, 24, -24, "IN_YAH", 3, -20 },	// location of level 5 (CJ)
-	    { 260, 47, 18, "IN_YAH", -5, -4 },	// location of level 6 (CJ)
-	    { 191, 24, 28, "IN_YAH", 0, 0 },	// location of level 7 (CJ)
-	    { 88, 58, 17, "IN_YAH", 0, 0 }	// location of level 8 (CJ)
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, 0, "IN_YAH", 0, 0 }
     }
 };
 

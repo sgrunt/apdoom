@@ -209,7 +209,7 @@ static char numeric_entry_str[NUMERIC_ENTRY_NUMDIGITS + 1];
 static int numeric_entry_index;
 
 static MenuItem_t MainItems[] = {
-    {ITT_EFUNC, "PLAY", SCLevelSelect, 1, MENU_NONE},
+    {ITT_EFUNC, "PLAY", SCLevelSelect, 0, MENU_NONE},
     {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
     {ITT_EFUNC, "INFO", SCInfo, 0, MENU_NONE},
     {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
@@ -225,7 +225,7 @@ static Menu_t MainMenu = {
 
 static MenuItem_t InGameItems[] = {
     {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
-    {ITT_EFUNC, "KILL", SCKill, 1, MENU_NONE},
+    {ITT_EFUNC, "KILL", SCKill, 0, MENU_NONE},
     {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
 };
 

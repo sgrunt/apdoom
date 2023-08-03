@@ -55,6 +55,7 @@ namespace APDoomLauncher
             {
                 case 0: command_line += " -game doom"; break;
                 case 1: command_line += " -game doom2"; break;
+                case 2: command_line += " -game heretic"; break;
             }
 
             if (chkFullscreen.Checked)
@@ -66,7 +67,17 @@ namespace APDoomLauncher
                 command_line += $" -nofullscreen -width {txtWidth.Text} -height {txtHeight.Text}";
             }
             if (txtCommandLine.Text != "") command_line += " " + txtCommandLine.Text;
-            System.Diagnostics.Process.Start("crispy-apdoom.exe", command_line);
+
+            switch (cboGame.SelectedIndex)
+            {
+                case 0:
+                case 1:
+                    System.Diagnostics.Process.Start("crispy-apdoom.exe", command_line);
+                    break;
+                case 2:
+                    System.Diagnostics.Process.Start("crispy-apheretic.exe", command_line);
+                    break;
+            }
 
             Environment.Exit(0);
         }
@@ -93,11 +104,13 @@ namespace APDoomLauncher
 
             pictureBox1.Visible = false;
             pictureBox2.Visible = false;
+            pictureBox3.Visible = false;
 
             switch (cboGame.SelectedIndex)
             {
                 case 0: pictureBox1.Visible = true; break;
                 case 1: pictureBox2.Visible = true; break;
+                case 2: pictureBox3.Visible = true; break;
             }
         }
 
@@ -105,11 +118,13 @@ namespace APDoomLauncher
         {
             pictureBox1.Visible = false;
             pictureBox2.Visible = false;
+            pictureBox3.Visible = false;
 
             switch (cboGame.SelectedIndex)
             {
                 case 0: pictureBox1.Visible = true; break;
                 case 1: pictureBox2.Visible = true; break;
+                case 2: pictureBox3.Visible = true; break;
             }
         }
     }
