@@ -36,6 +36,7 @@
 #include "v_trans.h" // [crispy] dp_translation
 
 #include "crispy.h"
+#include "apdoom.h"
 
 // Macros
 
@@ -74,6 +75,7 @@ typedef enum
     MENU_MOUSE,
     MENU_CRISPNESS1,
     MENU_CRISPNESS2,
+    MENU_INGAME,
     MENU_NONE
 } MenuType_t;
 
@@ -144,6 +146,7 @@ static boolean CrispyFpsLimit(int option);
 static boolean CrispyVsync(int option);
 static boolean CrispyNextPage(int option);
 static boolean CrispyPrevPage(int option);
+static void DrawInGameMenu(void);
 static void DrawMainMenu(void);
 static void DrawEpisodeMenu(void);
 static void DrawSkillMenu(void);
@@ -160,6 +163,8 @@ static void DrawCrispness(void);
 static void DrawCrispness1(void);
 static void DrawCrispness2(void);
 void MN_LoadSlotText(void);
+static boolean SCLevelSelect(int option);
+static boolean SCKill(int option);
 
 // External Functions
 
@@ -204,9 +209,8 @@ static char numeric_entry_str[NUMERIC_ENTRY_NUMDIGITS + 1];
 static int numeric_entry_index;
 
 static MenuItem_t MainItems[] = {
-    {ITT_EFUNC, "NEW GAME", SCNetCheck, 1, MENU_EPISODE},
+    {ITT_EFUNC, "PLAY", SCLevelSelect, 1, MENU_NONE},
     {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
-    {ITT_SETMENU, "GAME FILES", NULL, 0, MENU_FILES},
     {ITT_EFUNC, "INFO", SCInfo, 0, MENU_NONE},
     {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
 };
@@ -214,7 +218,21 @@ static MenuItem_t MainItems[] = {
 static Menu_t MainMenu = {
     110, 56,
     DrawMainMenu,
-    5, MainItems,
+    4, MainItems,
+    0,
+    MENU_NONE
+};
+
+static MenuItem_t InGameItems[] = {
+    {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
+    {ITT_EFUNC, "KILL", SCKill, 1, MENU_NONE},
+    {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
+};
+
+static Menu_t InGameMenu = {
+    110, 56,
+    DrawInGameMenu,
+    3, InGameItems,
     0,
     MENU_NONE
 };
@@ -841,6 +859,23 @@ void MN_Drawer(void)
 //
 //---------------------------------------------------------------------------
 
+static void DrawInGameMenu(void)
+{
+    int frame;
+
+    frame = (MenuTime / 3) % 18;
+    V_DrawPatch(88, 0, W_CacheLumpName(DEH_String("M_HTIC"), PU_CACHE));
+    V_DrawPatch(40, 10, W_CacheLumpNum(SkullBaseLump + (17 - frame),
+                                       PU_CACHE));
+    V_DrawPatch(232, 10, W_CacheLumpNum(SkullBaseLump + frame, PU_CACHE));
+}
+
+//---------------------------------------------------------------------------
+//
+// PROC DrawMainMenu
+//
+//---------------------------------------------------------------------------
+
 static void DrawMainMenu(void)
 {
     int frame;
@@ -1042,6 +1077,72 @@ static void DrawOptions2Menu(void)
     DrawSlider(&Options2Menu, 5, 16, snd_MusicVolume);
 }
 
+
+void draw_apdoom_version(void)
+{
+    const char* version_text = APDOOM_VERSION_FULL_TEXT;
+    auto len = strlen(APDOOM_VERSION_FULL_TEXT);
+    int x = 0;
+    for (int i = 0; i < len; ++i)
+    {
+        if (version_text[i] == ' ')
+        {
+            x += 8;
+            continue;
+        }
+        const char* char_name[9];
+        sprintf(char_name, "FONTA%02i", ((int)version_text[i] - '!') + 1);
+        patch_t* patch = W_CacheLumpName(char_name, PU_CACHE);
+        V_DrawPatchDirect(x, 200 - 8, patch);
+        x += patch->width;
+    }
+}
+
+
+//---------------------------------------------------------------------------
+//
+// PROC SCKill
+//
+//---------------------------------------------------------------------------
+
+static boolean SCKill(int option)
+{
+    if (players[consoleplayer].mo)
+    {
+        if (players[consoleplayer].mo->health > 0)
+        {
+            MenuActive = false;
+            P_KillMobj_Real(0, players[consoleplayer].mo, false);
+            return;
+        }
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------
+//
+// PROC SCLevelSelect
+//
+//---------------------------------------------------------------------------
+
+static boolean SCLevelSelect(int option)
+{
+    MenuActive = false;
+
+    // Was the game quit during a level?
+    if (ap_state.ep != 0 && ap_state.map != 0)
+    {
+        play_level(ap_state.ep - 1, ap_state.map - 1);
+    }
+    else
+    {
+        ShowLevelSelect();
+    }
+
+    return true;
+}
+
 //---------------------------------------------------------------------------
 //
 // PROC SCNetCheck
@@ -1086,6 +1187,13 @@ static boolean SCQuitGame(int option)
     {
         paused = true;
     }
+
+    // [AP] Save state if we are currently in a level
+    if (!netgame && /*ap_state.ep != 0 && */ap_state.map != 0 && gamestate == GS_LEVEL)
+    {
+        G_DoSaveGame();
+    }
+
     return true;
 }
 
@@ -2387,7 +2495,12 @@ void MN_ActivateMenu(void)
     MenuActive = true;
     FileMenuKeySteal = false;
     MenuTime = 0;
-    CurrentMenu = &MainMenu;
+
+    if (gamestate == 3)
+        CurrentMenu = &MainMenu;
+    else
+        CurrentMenu = &InGameMenu;
+
     CurrentItPos = CurrentMenu->oldItPos;
     if (!netgame && !demoplayback)
     {

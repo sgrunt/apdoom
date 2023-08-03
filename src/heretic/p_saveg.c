@@ -25,11 +25,15 @@
 #include "p_local.h"
 #include "v_video.h"
 
+#include "apdoom.h"
+
 static FILE *SaveGameFP;
 
 int vanilla_savegame_limit = 1;
 
 int savepage; // [crispy]
+
+mobj_t *just_loaded_hub = 0;
 
 //==========================================================================
 //
@@ -852,6 +856,13 @@ static void saveg_read_mobj_t(mobj_t *str)
     // state_t *state;
     saveg_read_state_ptr(&str->state);
 
+    if (mobjinfo[str->type].restore_state_on_load)
+    {
+        str->state = &states[mobjinfo[str->type].spawnstate];
+        str->tics = str->state->tics;
+        str->frame = 0;
+    }
+
     // int damage;
     str->damage = SV_ReadLong();
 
@@ -928,6 +939,11 @@ static void saveg_read_mobj_t(mobj_t *str)
 
     // mapthing_t spawnpoint;
     saveg_read_mapthing_t(&str->spawnpoint);
+
+    str->index = SV_ReadLong();
+
+    if (str->type == MT_LVSTEL)
+        just_loaded_hub = str;
 }
 
 // [crispy] enumerate all thinker pointers
@@ -1100,6 +1116,8 @@ static void saveg_write_mobj_t(mobj_t *str)
 
     // mapthing_t spawnpoint;
     saveg_write_mapthing_t(&str->spawnpoint);
+
+    SV_WriteLong(str->index);
 }
 
 

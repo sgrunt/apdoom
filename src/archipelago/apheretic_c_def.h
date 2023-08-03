@@ -10,6 +10,7 @@ static int is_heretic_type_ap_location(int doom_type)
         case 30:
         case 31:
         case 32:
+        case 33:
         case 35:
         case 36:
         case 53:

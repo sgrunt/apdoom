@@ -28,7 +28,10 @@
 #include "s_sound.h"
 #include "p_extnodes.h"
 
-void P_SpawnMapThing(mapthing_t * mthing);
+#include "apheretic_c_def.h"
+#include "apdoom.h"
+
+void P_SpawnMapThing(mapthing_t * mthing, int index);
 
 int numvertexes;
 vertex_t *vertexes;
@@ -75,6 +78,25 @@ fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
     r = (fixed_t)(sqrt(dx*dx + dy*dy))<<FRACBITS;
 
     return r;
+}
+
+boolean validate_doom_location(int ep, int map, int doom_type, int index)
+{
+    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
+    if (index >= level_info->thing_count) return false;
+    return level_info->thing_infos[index].doom_type == doom_type;
+}
+
+
+unsigned long long hash_seed(unsigned char *str)
+{
+    unsigned long long hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
 }
 
 /*
@@ -351,13 +373,480 @@ void P_LoadNodes(int lump)
 void P_LoadThings(int lump)
 {
     byte *data;
-    int i;
+    int i, j;
     mapthing_t spawnthing;
+    mapthing_t spawnthing_player1_start;
     mapthing_t *mt;
     int numthings;
+    int bit;
 
     data = W_CacheLumpNum(lump, PU_STATIC);
     numthings = W_LumpLength(lump) / sizeof(mapthing_t);
+
+    // Generate unique random seed from ap seed + level
+    const char* ap_seed = apdoom_get_seed();
+    unsigned long long seed = hash_seed(ap_seed);
+    seed += gameepisode * 9 + gamemap;
+    srand(seed);
+
+    int things_type_remap[1024] = {0};
+
+    mt = (mapthing_t *)data;
+    for (i = 0; i < numthings; i++, mt++)
+    {
+        things_type_remap[i] = mt->type;
+    }
+
+    
+#if 0
+    if (ap_state.random_monsters > 0)
+    {
+        // Make sure at the right difficulty level
+        if (gameskill == sk_baby)
+            bit = 1;
+        else if (gameskill == sk_nightmare)
+            bit = 4;
+        else
+            bit = 1<<(gameskill-1);
+
+        if (ap_state.random_monsters == 1) // Shuffle
+        {
+            int monsters[1024];
+            int monster_count = 0;
+            int indices[1024];
+            int index_count = 0;
+
+            // Collect all monsters
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (!(mt->options & bit))
+                    continue;
+
+                if (gameepisode == 1 && gamemap == 8)
+                    if (mt->y > E1M8_CUTOFF_OFFSET)
+                        continue;
+
+                switch (mt->type)
+                {
+                    case 3004: // Former Human
+                    case 9: // Former Human Sergeant
+                    case 3001: // Imp
+                    case 3002: // Demon
+                    case 58: // SPECTRE
+                    case 3006: // Lost soul
+                    case 3005: // Cacodemon
+                    case 3003: // Baron of hell
+
+                    case 68:	// Arachnotron
+                    case 64:	// Archvile
+                    case 69:	// Hell Knight
+                    case 67:	// Mancubus
+                    case 71:	// Pain Elemental
+                    case 65:	// Former Human Commando
+                    case 66:	// Revenant
+                    case 84:	// Wolf SS
+
+                    //case 16: // Cyberdemon [Too big, keep them there]
+                    //case 7: // Spiderdemon [Too big, keep them there]
+                    //case 88:	// Boss Brain
+                    //case 89:	// Boss Shooter
+                    {
+                        monsters[monster_count++] = mt->type;
+                        indices[index_count++] = i;
+                        break;
+                    }
+                }
+            }
+
+            // Randomly pick them until empty, and place them in different spots
+            for (i = 0; i < index_count; i++)
+            {
+                int idx = rand() % monster_count;
+                things_type_remap[indices[i]] = monsters[idx];
+                monsters[idx] = monsters[monster_count - 1];
+                monster_count--;
+            }
+        }
+        else if (ap_state.random_monsters == 2) // Random balanced
+        {
+            int ratios[3] = {0, 0, 0};
+            int total = 0;
+            int indices[1024];
+            int index_count = 0;
+
+            // Make sure at the right difficulty level
+            if (gameskill == sk_baby)
+                bit = 1;
+            else if (gameskill == sk_nightmare)
+                bit = 4;
+            else
+                bit = 1<<(gameskill-1);
+
+            // Calculate ratios
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (!(mt->options & bit))
+                    continue;
+
+                if (gameepisode == 1 && gamemap == 8)
+                    if (mt->y > E1M8_CUTOFF_OFFSET)
+                        continue;
+
+                switch (mt->type)
+                {
+                    case 3004: // Former Human
+                    case 9: // Former Human Sergeant
+                    case 3001: // Imp
+                    case 65:	// Former Human Commando
+                    case 84:	// Wolf SS
+                        ratios[0]++;
+                        total++;
+                        indices[index_count++] = i;
+                        break;
+
+                    case 3002: // Demon
+                    case 58: // SPECTRE
+                    case 3006: // Lost soul
+                    case 3005: // Cacodemon
+                    case 67:	// Mancubus
+                    case 71:	// Pain Elemental
+                    case 64:	// Archvile
+                    case 68:	// Arachnotron
+                    case 66:	// Revenant
+                        ratios[1]++;
+                        total++;
+                        indices[index_count++] = i;
+                        break;
+
+                    case 3003: // Baron of hell
+                    case 69:	// Hell Knight
+                        ratios[2]++;
+                        total++;
+                        indices[index_count++] = i;
+                        break;
+
+
+
+                }
+            }
+
+            // Randomly pick monsters based on ratio
+            int barron_count = 0;
+            for (i = 0; i < index_count; i++)
+            {
+                mt = &((mapthing_t*)data)[indices[i]];
+                if (gameepisode == 1 && gamemap == 8)
+                {
+                    if (index_count - i <= 2 - barron_count)
+                    {
+                        barron_count++;
+                        things_type_remap[indices[i]] = 3003; // Baron of hell
+                        continue;
+                    }
+                }
+                if (gamemode == commercial)
+                {
+                    switch (mt->type)
+                    {
+                        case 3004: // Former Human
+                        case 9: // Former Human Sergeant
+                        case 3001: // Imp
+                        case 3002: // Demon
+                        case 58: // SPECTRE
+                        case 3006: // Lost soul
+                        case 3005: // Cacodemon
+                        case 3003: // Baron of hell
+
+                        case 68:	// Arachnotron
+                        case 64:	// Archvile
+                        case 69:	// Hell Knight
+                        case 67:	// Mancubus
+                        case 71:	// Pain Elemental
+
+                        case 66:	// Revenant
+                        case 65:	// Former Human Commando
+                        case 84:	// Wolf SS
+                        {
+                            int rnd = rand() % total;
+                            if (rnd < ratios[0])
+                            {
+                                switch (rand()%4)
+                                {
+                                    case 0:
+                                        if (rand()%3) things_type_remap[indices[i]] = 3004; // Former Human
+                                        else things_type_remap[indices[i]] = 65; // Former Human Commando
+                                        break;
+                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
+                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
+                                    case 3: things_type_remap[indices[i]] = 84; break; // Wolf SS
+                                }
+                            }
+                            else if (rnd < ratios[0] + ratios[1])
+                            {
+                                switch (rand()%18)
+                                {
+                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 3: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 4: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 5: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 6: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 7: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 8: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 9: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 10: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 11: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 12: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 13:
+                                        if (rand()%2) things_type_remap[indices[i]] = 3005; // Cacodemon
+                                        else things_type_remap[indices[i]] = 71; // Pain Elemental
+                                        break;
+                                    case 14: things_type_remap[indices[i]] = 3006; break; // Lost soul
+                                    case 15:
+                                        if (rand()%5) things_type_remap[indices[i]] = 3006; // Lost soul
+                                        else things_type_remap[indices[i]] = 64; // Archvile
+                                        break;
+
+                                    case 16: things_type_remap[indices[i]] = 68; break; // Arachnotron
+                                    case 17: things_type_remap[indices[i]] = 67; break; // Mancubus
+                                }
+                            }
+                            else
+                            {
+                                if (rand()%3) things_type_remap[indices[i]] = 69; // Hell Knight
+                                else things_type_remap[indices[i]] = 3003; // Baron of hell
+                            }
+                            break;
+                        }
+                        case 16: // Cyberdemon
+                        case 7: // Spiderdemon
+                            if (rand()%2) things_type_remap[indices[i]] = 16;
+                            else things_type_remap[indices[i]] = 7;
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (mt->type)
+                    {
+                        case 3004: // Former Human
+                        case 9: // Former Human Sergeant
+                        case 3001: // Imp
+                        case 3002: // Demon
+                        case 58: // SPECTRE
+                        case 3006: // Lost soul
+                        case 3005: // Cacodemon
+                        case 3003: // Baron of hell
+                        {
+                            int rnd = rand() % total;
+                            if (rnd < ratios[0])
+                            {
+                                switch (rand()%3)
+                                {
+                                    case 0: things_type_remap[indices[i]] = 3004; break; // Former Human
+                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
+                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
+                                }
+                            }
+                            else if (rnd < ratios[0] + ratios[1])
+                            {
+                                switch (rand()%8)
+                                {
+                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
+                                    case 3: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 4: things_type_remap[indices[i]] = 58; break; // SPECTRE
+                                    case 5: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 6: things_type_remap[indices[i]] = 3005; break; // Cacodemon
+                                    case 7: things_type_remap[indices[i]] = 3006; break; // Lost soul
+                                }
+                            }
+                            else
+                            {
+                                barron_count++;
+                                things_type_remap[indices[i]] = 3003; // Baron of hell
+                            }
+                            break;
+                        }
+                        case 16: // Cyberdemon
+                        case 7: // Spiderdemon
+                            if (rand()%2) things_type_remap[indices[i]] = 16;
+                            else things_type_remap[indices[i]] = 7;
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    if (ap_state.random_items > 0)
+    {
+        // Make sure at the right difficulty level
+        if (gameskill == sk_baby)
+            bit = 1;
+        else if (gameskill == sk_nightmare)
+            bit = 4;
+        else
+            bit = 1<<(gameskill-1);
+
+        if (ap_state.random_items == 1) // Shuffle
+        {
+            int items[1024];
+            int item_count = 0;
+            int indices[1024];
+            int index_count = 0;
+
+            // Collect all items
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (mt->options & 16)
+                    continue; // Multiplayer item
+                if (!(mt->options & bit))
+                    continue;
+
+                switch (mt->type)
+                {
+                    case 2008: // 4 shotgun shells
+                    case 2048: // box of bullets
+                    case 2046: // box of rockets
+                    case 2049: // box of shotgun shells
+                    case 2007: // clip
+                    case 2047: // energy cell
+                    case 17: // energy cell pack
+                    case 2010: // rocket
+                    case 2015: // armor bonus
+                    case 2014: // health bonus
+                    case 2012: // medikit
+                    case 2011: // Stimpack
+                    {
+                        items[item_count++] = mt->type;
+                        indices[index_count++] = i;
+                        break;
+                    }
+                }
+            }
+
+            // Randomly pick them until empty, and place them in different spots
+            mt = (mapthing_t *)data;
+            for (i = 0; i < index_count; i++)
+            {
+                int idx = rand() % item_count;
+                things_type_remap[indices[i]] = items[idx];
+                items[idx] = items[item_count - 1];
+                item_count--;
+            }
+        }
+        else if (ap_state.random_items == 2) // Random balanced
+        {
+            int ratios[3] = {0, 0, 0};
+            int total = 0;
+
+            // Make sure at the right difficulty level
+            if (gameskill == sk_baby)
+                bit = 1;
+            else if (gameskill == sk_nightmare)
+                bit = 4;
+            else
+                bit = 1<<(gameskill-1);
+
+            // Calculate ratios
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (mt->options & 16)
+                    continue; // Multiplayer item
+
+                switch (mt->type)
+                {
+                    case 2015: // armor bonus
+                    case 2014: // health bonus
+                        ratios[0]++;
+                        total++;
+                        break;
+
+                    case 2011: // Stimpack
+                    case 2008: // 4 shotgun shells
+                    case 2007: // clip
+                    case 2047: // energy cell
+                    case 2010: // rocket
+                        ratios[1]++;
+                        total++;
+                        break;
+
+                    case 2048: // box of bullets
+                    case 2046: // box of rockets
+                    case 2049: // box of shotgun shells
+                    case 17: // energy cell pack
+                    case 2012: // medikit
+                        ratios[2]++;
+                        total++;
+                        break;
+                }
+            }
+
+            // Randomly pick items based on ratio
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                switch (mt->type)
+                {
+                    case 2008: // 4 shotgun shells
+                    case 2048: // box of bullets
+                    case 2046: // box of rockets
+                    case 2049: // box of shotgun shells
+                    case 2007: // clip
+                    case 2047: // energy cell
+                    case 17: // energy cell pack
+                    case 2010: // rocket
+                    case 2015: // armor bonus
+                    case 2014: // health bonus
+                    case 2012: // medikit
+                    case 2011: // Stimpack
+                    {
+                        int rnd = rand() % total;
+                        if (rnd < ratios[0])
+                        {
+                            switch (rand()%2)
+                            {
+                                case 0: things_type_remap[i] = 2015; break; // armor bonus
+                                case 1: things_type_remap[i] = 2014; break; // health bonus
+                            }
+                        }
+                        else if (rnd < ratios[0] + ratios[1])
+                        {
+                            switch (rand()%5)
+                            {
+                                case 0: things_type_remap[i] = 2011; break; // Stimpack
+                                case 1: things_type_remap[i] = 2008; break; // 4 shotgun shells
+                                case 2: things_type_remap[i] = 2007; break; // clip
+                                case 3: things_type_remap[i] = 2047; break; // energy cell
+                                case 4: things_type_remap[i] = 2010; break; // rocket
+                            }
+                        }
+                        else
+                        {
+                            switch (rand()%5)
+                            {
+                                case 0: things_type_remap[i] = 2048; break; // box of bullets
+                                case 1: things_type_remap[i] = 2046; break; // box of rockets
+                                case 2: things_type_remap[i] = 2049; break; // box of shotgun shells
+                                case 3: things_type_remap[i] = 17; break; // energy cell pack
+                                case 4: things_type_remap[i] = 2012; break; // medikit
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+#endif
+
 
     mt = (mapthing_t *) data;
     for (i = 0; i < numthings; i++, mt++)
@@ -365,10 +854,47 @@ void P_LoadThings(int lump)
         spawnthing.x = SHORT(mt->x);
         spawnthing.y = SHORT(mt->y);
         spawnthing.angle = SHORT(mt->angle);
-        spawnthing.type = SHORT(mt->type);
+        spawnthing.type = SHORT(things_type_remap[i]);
         spawnthing.options = SHORT(mt->options);
-        P_SpawnMapThing(&spawnthing);
+        
+        auto type_before = spawnthing.type;
+
+        // Replace AP locations with AP item
+        if (is_heretic_type_ap_location(spawnthing.type))
+        {
+            // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
+            if (!validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
+            {
+                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD or DOOM2.WAD from the steam releases.");
+            }
+            if (apdoom_is_location_progression(gameepisode, gamemap, i))
+                spawnthing.type = 20001;
+            else
+                spawnthing.type = 20000;
+            int skip = 0;
+            ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+            for (j = 0; j < level_state->check_count; ++j)
+            {
+                if (level_state->checks[j] == i)
+                {
+                    skip = 1;
+                    break;
+                }
+            }
+            if (skip)
+                continue;
+        }
+
+        // [AP] On player start 1, put level select teleport "HUB"
+        if (spawnthing.type == 1)
+            spawnthing_player1_start = spawnthing;
+
+	    P_SpawnMapThing(&spawnthing, i);
     }
+    
+    // [AP] Spawn level select teleport "HUB"
+    spawnthing_player1_start.type = 20002;
+    P_SpawnMapThing(&spawnthing_player1_start, i);
 
     if (!deathmatch)
     {
@@ -411,6 +937,11 @@ void P_LoadLineDefs(int lump)
 
     mld = (maplinedef_t *) data;
     ld = lines;
+
+
+    // [AP] TODO Add special line changes
+
+
     for (i = 0; i < numlines; i++, mld++, ld++)
     {
         ld->flags = (unsigned short)SHORT(mld->flags); // [crispy] extended nodes
@@ -710,7 +1241,7 @@ static void P_RemoveSlimeTrails(void)
 =
 =================
 */
-
+extern int leveltimesinceload;
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 {
     int i;
@@ -751,6 +1282,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     lumpname[3] = '0' + map;
     lumpname[4] = 0;
     leveltime = 0;
+    leveltimesinceload = 0;
     oldleveltime = 0;  // [crispy] Track if game is running
 
     lumpnum = W_GetNumForName(lumpname);

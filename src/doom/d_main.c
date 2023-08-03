@@ -2129,6 +2129,9 @@ void D_DoomMain (void)
     //  3. PWAD dehacked patches in DEHACKED lumps.
     DEH_ParseCommandLine();
 
+    // Always merge Archipelago WAD
+    W_MergeFile("apdoom.wad");
+
     // Load PWAD files.
     modifiedgame = W_ParseCommandLine();
 

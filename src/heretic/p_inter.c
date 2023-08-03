@@ -24,6 +24,7 @@
 #include "p_local.h"
 #include "s_sound.h"
 #include "am_map.h"
+#include "apdoom.h"
 
 
 #define BONUSADD 6
@@ -578,6 +579,7 @@ void A_RestoreSpecialThing2(mobj_t * thing, player_t *player, pspdef_t *psp)
 // PROC P_TouchSpecialThing
 //
 //---------------------------------------------------------------------------
+extern int leveltimesinceload;
 
 void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 {
@@ -892,6 +894,19 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             P_SetMessage(player, DEH_String(TXT_WPNGAUNTLETS), false);
             sound = sfx_wpnup;
             break;
+	    case SPR_APJI:
+	    case SPR_APPI:
+		    apdoom_check_location(gameepisode, gamemap, special->index);
+		    break;
+
+	    case SPR_LVST:
+		    // Teleport back to level select!
+		    if (leveltimesinceload > 350)
+		    {
+			    S_StartSound(NULL, sfx_telept);
+			    G_LevelSelect();
+		    }
+		    return; // Don't pick up this
         default:
             I_Error("P_SpecialThing: Unknown gettable thing");
     }
@@ -921,7 +936,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 //
 //---------------------------------------------------------------------------
 
-void P_KillMobj(mobj_t * source, mobj_t * target)
+void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean died_by_death_link)
 {
     target->flags &= ~(MF_SHOOTABLE | MF_FLOAT | MF_SKULLFLY | MF_NOGRAVITY);
     target->flags |= MF_CORPSE | MF_DROPOFF;
@@ -968,6 +983,8 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
         target->player->powers[pw_flight] = 0;
         target->player->powers[pw_weaponlevel2] = 0;
         target->player->playerstate = PST_DEAD;
+	    if (!died_by_death_link)
+		    apdoom_on_death();
         P_DropWeapon(target->player);
         if (target->flags2 & MF2_FIREDAMAGE)
         {                       // Player flame death
@@ -987,6 +1004,11 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
     }
     target->tics -= P_Random() & 3;
 //      I_StartSound(&actor->r, actor->info->deathsound);
+}
+
+void P_KillMobj(mobj_t*	source, mobj_t*	target)
+{
+	P_KillMobj_Real(source, target, false);
 }
 
 //---------------------------------------------------------------------------

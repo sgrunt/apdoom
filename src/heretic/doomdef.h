@@ -91,7 +91,8 @@ typedef enum
     GS_LEVEL,
     GS_INTERMISSION,
     GS_FINALE,
-    GS_DEMOSCREEN
+    GS_DEMOSCREEN,
+    GS_LEVEL_SELECT
 } gamestate_t;
 
 typedef enum
@@ -105,7 +106,8 @@ typedef enum
     ga_completed,
     ga_victory,
     ga_worlddone,
-    ga_screenshot
+    ga_screenshot,
+    ga_levelselect
 } gameaction_t;
 
 typedef enum
@@ -200,6 +202,9 @@ typedef struct mobj_s
     fixed_t		oldy;
     fixed_t		oldz;
     angle_t		oldangle;
+
+    // [AP] index of the obj in the file. This is how we uniquely refer
+    int index;
 } mobj_t;
 
 // each sector has a degenmobj_t in it's center for sound origin purposes

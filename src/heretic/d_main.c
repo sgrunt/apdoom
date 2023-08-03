@@ -49,6 +49,10 @@
 #include "v_trans.h" // [crispy] dp_translation
 
 #include "heretic_icon.c"
+#include "apdoom.h"
+
+#include "level_select.h" // [ap]
+#include "ap_msg.h"
 
 #define CT_KEY_GREEN    'g'
 #define CT_KEY_YELLOW   'y'
@@ -88,6 +92,214 @@ void D_CheckNetGame(void);
 void D_PageDrawer(void);
 void D_AdvanceDemo(void);
 boolean F_Responder(event_t * ev);
+
+
+void tick_sticky_msgs()
+{
+    HU_TickAPMessages();
+}
+
+
+void on_ap_message(const char* text) // This string is cached for several seconds
+{
+    //if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
+    HU_AddAPMessage(text);
+    S_StartSound(NULL, sfx_chat);
+}
+
+
+void on_ap_victory()
+{
+    F_StartFinale();
+}
+
+
+boolean P_GiveArmor(player_t* player, int armortype);
+boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
+
+
+// Kind of a copy of P_TouchSpecialThing
+void on_ap_give_item(int doom_type, int ep, int map)
+{
+    player_t* player = &players[consoleplayer];
+    int sound = sfx_itemup;
+    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
+
+    switch (doom_type)
+    {
+        // Level specifics
+        case 79:
+            if (ep == gameepisode && map == gamemap)
+            {
+                if (!player->keys[key_blue])
+                {
+                    player->keys[key_blue] = true;
+                    player->message = DEH_String(TXT_GOTBLUEKEY);
+                    sound = sfx_keyup;
+                }
+            }
+            break;
+        case 80:
+            if (ep == gameepisode && map == gamemap)
+            {
+                if (!player->keys[key_yellow])
+                {
+                    player->keys[key_yellow] = true;
+	                player->message = DEH_String(TXT_GOTYELLOWKEY);
+                    sound = sfx_keyup;
+                }
+            }
+            break;
+        case 73:
+            if (ep == gameepisode && map == gamemap)
+            {
+                if (!player->keys[key_green])
+                {
+                    player->keys[key_green] = true;
+	                player->message = DEH_String(TXT_GOTGREENKEY);
+                    sound = sfx_keyup;
+                }
+            }
+            break;
+        case 35: // Map
+            if (ep == gameepisode && map == gamemap)
+            {
+	            if (P_GivePower(player, pw_allmap))
+                {
+                    player->message = DEH_String(TXT_ITEMSUPERMAP);
+                }
+            }
+            break;
+
+        case 8: // Backpack
+	        if (!player->backpack)
+	        {
+	            for (int i = 0; i < NUMAMMO; i++)
+		            player->maxammo[i] *= 2;
+	            player->backpack = true;
+                player->message = DEH_String(TXT_ITEMBAGOFHOLDING);
+	        }
+            break;
+
+        // Weapons
+        case 2005:
+            P_GiveWeapon(player, wp_gauntlets, false);
+	        player->message = DEH_String(TXT_WPNGAUNTLETS);
+	        sound = sfx_wpnup;	
+            break;
+        case 2001:
+            P_GiveWeapon(player, wp_crossbow, false);
+	        player->message = DEH_String(TXT_WPNCROSSBOW);
+	        sound = sfx_wpnup;	
+            break;
+        case 53:
+            P_GiveWeapon(player, wp_blaster, false);
+	        player->message = DEH_String(TXT_WPNBLASTER);
+	        sound = sfx_wpnup;	
+            break;
+        case 2003:
+            P_GiveWeapon(player, wp_phoenixrod, false);
+	        player->message = DEH_String(TXT_WPNPHOENIXROD);
+	        sound = sfx_wpnup;	
+            break;
+        case 2002:
+            P_GiveWeapon(player, wp_mace, false);
+	        player->message = DEH_String(TXT_WPNMACE);
+	        sound = sfx_wpnup;	
+            break;
+        case 2004:
+            P_GiveWeapon(player, wp_skullrod, false);
+	        player->message = DEH_String(TXT_WPNSKULLROD);
+	        sound = sfx_wpnup;	
+            break;
+
+        // Powerups
+        case 85:
+	        P_GiveArmor (player, 1);
+            player->message = DEH_String(TXT_ITEMSHIELD1);
+            break;
+        case 31:
+	        P_GiveArmor (player, 2);
+            player->message = DEH_String(TXT_ITEMSHIELD2);
+            break;
+
+        // Artifacts
+        case 36: // Chaos Device
+            P_GiveArtifact(player, arti_teleport, 0);
+            player->message = DEH_String(TXT_ARTITELEPORT);
+            break;
+        case 30: // Morph Ovum
+            P_GiveArtifact(player, arti_egg, 0);
+            player->message = DEH_String(TXT_ARTIEGG);
+            break;
+        case 32: // Mystic Urn
+            P_GiveArtifact(player, arti_superhealth, 0);
+            player->message = DEH_String(TXT_ARTISUPERHEALTH);
+            break;
+        case 82: // Quartz Flask
+            P_GiveArtifact(player, arti_health, 0);
+            player->message = DEH_String(TXT_ARTIHEALTH);
+            break;
+        case 84: // Ring of Invincibility
+            P_GiveArtifact(player, arti_invulnerability, 0);
+            player->message = DEH_String(TXT_ARTIINVULNERABILITY);
+            break;
+        case 75: // Shadowsphere
+            P_GiveArtifact(player, arti_invisibility, 0);
+            player->message = DEH_String(TXT_ARTIINVISIBILITY);
+            break;
+        case 34: // Timebomb of the Ancients
+            P_GiveArtifact(player, arti_firebomb, 0);
+            player->message = DEH_String(TXT_ARTIFIREBOMB);
+            break;
+        case 86: // Timebomb of the Ancients
+            P_GiveArtifact(player, arti_tomeofpower, 0);
+            player->message = DEH_String(TXT_ARTITOMEOFPOWER);
+            break;
+        case 83: // Wings of Wrath
+            P_GiveArtifact(player, arti_fly, 0);
+            player->message = DEH_String(TXT_ARTIFLY);
+            break;
+        case 33: // Torch
+            P_GiveArtifact(player, arti_torch, 0);
+            player->message = DEH_String(TXT_ARTITORCH);
+            break;
+
+        // Junk
+        case 12: // Crystal Geode
+            if (!P_GiveAmmo(player, am_goldwand, AMMO_GWND_HEFTY))
+                return;
+            player->message = DEH_String(TXT_AMMOGOLDWAND2);
+            break;
+        case 55: // Energy Orb
+            if (!P_GiveAmmo(player, am_blaster, AMMO_BLSR_HEFTY))
+                return;
+            player->message = DEH_String(TXT_AMMOBLASTER2);
+            break;
+        case 21: // Greater Runes
+            if (!P_GiveAmmo(player, am_skullrod, AMMO_SKRD_HEFTY))
+                return;
+            player->message = DEH_String(TXT_AMMOSKULLROD2);
+            break;
+        case 23: // Inferno Orb
+            if (!P_GiveAmmo(player, am_phoenixrod, AMMO_PHRD_HEFTY))
+                return;
+            player->message = DEH_String(TXT_AMMOPHOENIXROD2);
+            break;
+        case 16: // Pile of Mace Spheres
+            if (!P_GiveAmmo(player, am_mace, AMMO_MACE_HEFTY))
+                return;
+            player->message = DEH_String(TXT_AMMOMACE2);
+            break;
+        case 19: // Quiver of Ethereal Arrows
+            if (!P_GiveAmmo(player, am_crossbow, AMMO_CBOW_HEFTY))
+                return;
+            player->message = DEH_String(TXT_AMMOCROSSBOW2);
+            break;
+    }
+
+	S_StartSound(NULL, sound); // [NS] Fallback to itemup.
+}
 
 //---------------------------------------------------------------------------
 //
@@ -290,6 +502,9 @@ void D_Display(void)
         case GS_DEMOSCREEN:
             D_PageDrawer();
             break;
+        case GS_LEVEL_SELECT:
+            DrawLevelSelect();
+            break;
     }
 
     if (testcontrols)
@@ -317,6 +532,7 @@ void D_Display(void)
 
     // Menu drawing
     MN_Drawer();
+    HU_DrawAPMessages();   // [AP] Sticky messages on top of everything
 
     // Send out any new accumulation
     NetUpdate();
@@ -394,6 +610,8 @@ void D_DoomLoop(void)
 
     while (1)
     {
+        apdoom_update();
+
         // Frame syncronous IO operations
         I_StartFrame();
 
@@ -853,6 +1071,7 @@ void D_BindVariables(void)
     }
 
     // [crispy] bind "crispness" config variables
+    crispy->coloredhud = COLOREDHUD_TEXT; // [AP] Default - Not used in Heretic?
     M_BindIntVariable("crispy_hires",           &crispy->hires);
     M_BindIntVariable("crispy_smoothscaling",   &crispy->smoothscaling);
     M_BindIntVariable("crispy_automapoverlay",  &crispy->automapoverlay);
@@ -1071,9 +1290,54 @@ void D_DoomMain(void)
     DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
     Z_Init();
 
+    
+    // Grab parameters for AP
+    int apserver_arg_id = M_CheckParmWithArgs("-apserver", 1);
+    if (!apserver_arg_id)
+	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-apserver' parameter requires an argument.");
+    int applayer_arg_id = M_CheckParmWithArgs("-applayer", 1);
+    if (!applayer_arg_id)
+	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-applayer' parameter requires an argument.");
+    const char* password = "";
+    if (M_CheckParm("-password"))
+    {
+        int password_arg_id = M_CheckParmWithArgs("-password", 1);
+        if (!password_arg_id)
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-password' parameter requires an argument.");
+        password = myargv[password_arg_id + 1];
+    }
+
+    GameMission_t mission = heretic;
+    if (M_CheckParm("-game"))
+    {
+        int game_arg_id = M_CheckParmWithArgs("-game", 1);
+        if (!game_arg_id)
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-game' parameter requires an argument.");
+        const char* game_name = myargv[game_arg_id + 1];
+        if (strcmp(game_name, "heretic") == 0) mission = heretic;
+    }
+
+    // Initialize AP
+    ap_settings_t settings;
+    settings.ip = myargv[apserver_arg_id + 1];
+    if (mission == heretic)
+        settings.game = "Heretic";
+    settings.player_name = myargv[applayer_arg_id + 1];
+    settings.passwd = password;
+    settings.message_callback = on_ap_message;
+    settings.give_item_callback = on_ap_give_item;
+    settings.victory_callback = on_ap_victory;
+    if (!apdoom_init(&settings))
+    {
+	    I_Error("Failed to initialize Archipelago.");
+    }
+
+
     DEH_printf("W_Init: Init WADfiles.\n");
 
+
     iwadfile = D_FindIWAD(IWAD_MASK_HERETIC, &gamemission);
+
 
     if (iwadfile == NULL)
     {
@@ -1154,6 +1418,9 @@ void D_DoomMain(void)
 
     // Load dehacked patches specified on the command line.
     DEH_ParseCommandLine();
+    
+    // Always merge Archipelago WAD
+    W_MergeFile("apheretic.wad");
 
     // Load PWAD files.
     W_ParseCommandLine();
@@ -1300,7 +1567,10 @@ void D_DoomMain(void)
         gamedescription = "Heretic (registered)";
     }
 
-    I_SetWindowTitle(gamedescription);
+    static char window_title[260];
+    sprintf(window_title, "%s - Archipelago", gamedescription);
+    I_SetWindowTitle(window_title);
+
 
     savegamedir = M_GetSaveGameDir("heretic.wad");
 

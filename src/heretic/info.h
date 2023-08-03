@@ -147,6 +147,10 @@ typedef enum
     SPR_AMP2,
     SPR_AMB1,
     SPR_AMB2,
+	// [AP] Archipelago junk item (APJI) and progression (APPI)
+    SPR_APJI, SPR_APPI,
+    // [AP] Select select teleport "HUB"
+    SPR_LVST,
     NUMSPRITES
 } spritenum_t;
 
@@ -1360,6 +1364,30 @@ typedef enum
     S_AMB2_3,
     S_SND_WIND,
     S_SND_WATERFALL,
+
+    // [AP] Archipelago junk item (APJI) and progression (APPI)
+    S_APJI,
+    S_APJIB,
+    S_APJIC,
+    S_APJID,
+    S_APJIE,
+    S_APJIF,
+    S_APJIG,
+
+    S_APPI,
+    S_APPIB,
+    S_APPIC,
+    S_APPID,
+    S_APPIE,
+    S_APPIF,
+    S_APPIG,
+
+    // [AP] Level select teleport "HUB"
+    S_LVST,
+    S_LVSTB,
+    S_LVSTC,
+    S_LVSTD,
+
     NUMSTATES
 } statenum_t;
 
@@ -1547,6 +1575,10 @@ typedef enum
     MT_AMBLSRHEFTY,
     MT_SOUNDWIND,
     MT_SOUNDWATERFALL,
+    // [AP] Archipelago junk item (APJI) and progression (APPI)
+    MT_APJI, MT_APPI,
+    // [AP] Level select teleport "HUB"
+    MT_LVSTEL,
     NUMMOBJTYPES
 } mobjtype_t;
 
@@ -1576,6 +1608,9 @@ typedef struct
     int activesound;
     int flags;
     int flags2;
+
+    // [AP] Allow a type to restart to it's original state when loaded from a save file
+    int restore_state_on_load;
 } mobjinfo_t;
 
 extern mobjinfo_t mobjinfo[NUMMOBJTYPES];

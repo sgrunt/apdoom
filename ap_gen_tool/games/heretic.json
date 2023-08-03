@@ -82,6 +82,7 @@
         "75": "Shadowsphere",
         "86": "Tome of Power",
         "83": "Wings of Wrath",
+        "33": "Torch",
         "85": "Silver Shield",
         "31": "Enchanted Shield"
     },
@@ -99,23 +100,24 @@
         {"doom_type": 8, "name": "Bag of Holding", "group": "", "sprite": "BAGHA0"}
     ],
     "fillers": [
-        {"doom_type": 36, "name": "Chaos Device", "group": "Weapons", "sprite": "ATLPA0"},
-        {"doom_type": 30, "name": "Morph Ovum", "group": "Weapons", "sprite": "EGGCB0"},
-        {"doom_type": 32, "name": "Mystic Urn", "group": "Weapons", "sprite": "SPHLA0"},
-        {"doom_type": 82, "name": "Quartz Flask", "group": "Weapons", "sprite": "PTN2B0"},
-        {"doom_type": 84, "name": "Ring of Invincibility", "group": "Weapons", "sprite": "INVUA0"},
-        {"doom_type": 75, "name": "Shadowsphere", "group": "Weapons", "sprite": "INVSA0"},
-        {"doom_type": 34, "name": "Timebomb of the Ancients", "group": "Weapons", "sprite": "FBMBC0"},
-        {"doom_type": 86, "name": "Tome of Power", "group": "Weapons", "sprite": "PWBKA0"},
-        {"doom_type": 83, "name": "Wings of Wrath", "group": "Weapons", "sprite": "SOARB0"},
-        {"doom_type": 85, "name": "Silver Shield", "group": "Weapons", "sprite": "SHLDA0"},
-        {"doom_type": 31, "name": "Enchanted Shield", "group": "Weapons", "sprite": "SHD2A0"},
-        {"doom_type": 12, "name": "Crystal Geode", "group": "Weapons", "sprite": "AMG2A0"},
-        {"doom_type": 55, "name": "Energy Orb", "group": "Weapons", "sprite": "AMB2C0"},
-        {"doom_type": 21, "name": "Greater Runes", "group": "Weapons", "sprite": "AMS2A0"},
-        {"doom_type": 23, "name": "Inferno Orb", "group": "Weapons", "sprite": "AMP2B0"},
-        {"doom_type": 16, "name": "Pile of Mace Spheres", "group": "Weapons", "sprite": "AMM2A0"},
-        {"doom_type": 19, "name": "Quiver of Ethereal Arrows", "group": "Weapons", "sprite": "AMC2B0"}
+        {"doom_type": 36, "name": "Chaos Device", "group": "Artifacts", "sprite": "ATLPA0"},
+        {"doom_type": 30, "name": "Morph Ovum", "group": "Artifacts", "sprite": "EGGCB0"},
+        {"doom_type": 32, "name": "Mystic Urn", "group": "Artifacts", "sprite": "SPHLA0"},
+        {"doom_type": 82, "name": "Quartz Flask", "group": "Artifacts", "sprite": "PTN2B0"},
+        {"doom_type": 84, "name": "Ring of Invincibility", "group": "Artifacts", "sprite": "INVUA0"},
+        {"doom_type": 75, "name": "Shadowsphere", "group": "Artifacts", "sprite": "INVSA0"},
+        {"doom_type": 34, "name": "Timebomb of the Ancients", "group": "Artifacts", "sprite": "FBMBC0"},
+        {"doom_type": 86, "name": "Tome of Power", "group": "Artifacts", "sprite": "PWBKA0"},
+        {"doom_type": 83, "name": "Wings of Wrath", "group": "Artifacts", "sprite": "SOARB0"},
+        {"doom_type": 33, "name": "Torch", "group": "Artifacts", "sprite": "TRCHA0"},
+        {"doom_type": 85, "name": "Silver Shield", "group": "Armors", "sprite": "SHLDA0"},
+        {"doom_type": 31, "name": "Enchanted Shield", "group": "Armors", "sprite": "SHD2A0"},
+        {"doom_type": 12, "name": "Crystal Geode", "group": "Ammos", "sprite": "AMG2A0"},
+        {"doom_type": 55, "name": "Energy Orb", "group": "Ammos", "sprite": "AMB2C0"},
+        {"doom_type": 21, "name": "Greater Runes", "group": "Ammos", "sprite": "AMS2A0"},
+        {"doom_type": 23, "name": "Inferno Orb", "group": "Ammos", "sprite": "AMP2B0"},
+        {"doom_type": 16, "name": "Pile of Mace Spheres", "group": "Ammos", "sprite": "AMM2A0"},
+        {"doom_type": 19, "name": "Quiver of Ethereal Arrows", "group": "Ammos", "sprite": "AMC2B0"}
     ],
     "unique_progressions": [
     ],
@@ -123,9 +125,9 @@
         {"doom_type": 35, "name": "Map Scroll", "group": "Map Scrolls", "sprite": "SPMPA0"}
     ],
     "keys": [
-        {"doom_type": 79, "name": "Blue key", "group": "Keys", "key": 0, "region_name": "Blue", "color": [0, 0, 1], "sprite": "BKYYA0"},
-        {"doom_type": 80, "name": "Yellow key", "group": "Keys", "key": 1, "region_name": "Yellow", "color": [1, 1, 0], "sprite": "CKYYA0"},
-        {"doom_type": 73, "name": "Green key", "group": "Keys", "key": 2, "region_name": "Green", "color": [0, 1, 0], "sprite": "AKYYA0"}
+        {"doom_type": 80, "name": "Yellow key", "group": "Keys", "key": 0, "region_name": "Yellow", "color": [1, 1, 0], "sprite": "CKYYA0"},
+        {"doom_type": 73, "name": "Green key", "group": "Keys", "key": 1, "region_name": "Green", "color": [0, 1, 0], "sprite": "AKYYA0"},
+        {"doom_type": 79, "name": "Blue key", "group": "Keys", "key": 2, "region_name": "Blue", "color": [0, 0, 1], "sprite": "BKYYA0"}
     ],
     "loc_remap": {},
     "item_remap": {}

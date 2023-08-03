@@ -36,6 +36,11 @@
 #include "deh_main.h" // [crispy] for demo footer
 #include "memio.h"
 
+#include "level_select.h" // [ap]
+#include "apdoom.h"
+#include "ap_msg.h"
+
+
 // Macros
 
 #define AM_STARTKEY     9
@@ -140,6 +145,7 @@ char *savegamedir;
 
 boolean testcontrols = false;
 int testcontrols_mousespeed;
+int was_in_level = 0;
 
 
 //
@@ -218,6 +224,8 @@ int vanilla_demo_limit = 1;
 int inventoryTics;
 
 // haleyjd: removed WATCOMC
+
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean died_by_death_link);
 
 //=============================================================================
 // Not used - ripped out for Heretic
@@ -1087,6 +1095,12 @@ boolean G_Responder(event_t * ev)
         }
     }
 
+    if (gamestate == GS_LEVEL_SELECT)
+    {
+        if (LevelSelectResponder(ev))
+            return true; // ate the event
+    }
+
     if (ev->type == ev_mouse)
     {
         testcontrols_mousespeed = abs(ev->data2);
@@ -1176,6 +1190,8 @@ boolean G_Responder(event_t * ev)
 ===============================================================================
 */
 
+void set_ap_player_states();
+
 void G_Ticker(void)
 {
     int i, buf;
@@ -1199,12 +1215,34 @@ void G_Ticker(void)
         {
             case ga_loadlevel:
                 G_DoLoadLevel();
+                set_ap_player_states();
+                player_t* p = &players[consoleplayer];
+                for (i = 0; i < NUMWEAPONS; ++i)
+                {
+                    p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+                    if (p->weaponowned[i])
+                    {
+                        switch (i)
+                        {
+                            case wp_goldwand: p->ammo[am_goldwand] = max(p->ammo[am_goldwand], 50); break;
+                            case wp_crossbow: p->ammo[am_crossbow] = max(p->ammo[am_crossbow], 30); break;
+                            case wp_blaster: p->ammo[am_blaster] = max(p->ammo[am_blaster], 50); break;
+                            case wp_skullrod: p->ammo[am_skullrod] = max(p->ammo[am_skullrod], 150); break;
+                            case wp_phoenixrod: p->ammo[am_phoenixrod] = max(p->ammo[am_phoenixrod], 10); break;
+                            case wp_mace: p->ammo[am_mace] = max(p->ammo[am_mace], 150); break;
+                        }
+                    }
+                }
+                p->health = 100;
+                if (p->mo) p->mo->health = p->health;
                 break;
             case ga_newgame:
                 G_DoNewGame();
+                set_ap_player_states();
                 break;
             case ga_loadgame:
                 G_DoLoadGame();
+                set_ap_player_states();
                 break;
             case ga_savegame:
                 G_DoSaveGame();
@@ -1224,6 +1262,9 @@ void G_Ticker(void)
                 break;
             case ga_victory:
                 F_StartFinale();
+                break;
+            case ga_levelselect:
+                ShowLevelSelect();
                 break;
             default:
                 break;
@@ -1327,6 +1368,7 @@ void G_Ticker(void)
 //
 // do main actions
 //
+    ap_is_in_game = 0;
     switch (gamestate)
     {
         case GS_LEVEL:
@@ -1334,6 +1376,16 @@ void G_Ticker(void)
             SB_Ticker();
             AM_Ticker();
             CT_Ticker();
+            ap_is_in_game = (players[consoleplayer].playerstate == PST_LIVE && !paused) ? 1 : 0;
+
+            if (ap_is_in_game)
+            {
+                if (apdoom_should_die() && players[consoleplayer].mo)
+                {
+                    HU_AddAPMessage("Death by Deathlink");
+                    P_KillMobj_Real(NULL, players[consoleplayer].mo, true);
+                }
+            }
             break;
         case GS_INTERMISSION:
             IN_Ticker();
@@ -1343,6 +1395,9 @@ void G_Ticker(void)
             break;
         case GS_DEMOSCREEN:
             D_PageTicker();
+            break;
+        case GS_LEVEL_SELECT:
+            TickLevelSelect();
             break;
     }
 }
@@ -1491,6 +1546,11 @@ void G_PlayerReborn(int player)
         inv_ptr = 0;            // reset the inventory pointer
         curpos = 0;
     }
+
+    // Re-apply some AP states that we want to be persistent even after death
+    p->backpack = ap_state.player_state.backpack ? true : false;
+    for (int i = 0; i < NUMAMMO; ++i)
+        p->maxammo[i] = ap_state.player_state.max_ammo[i];
 }
 
 /*
@@ -1624,6 +1684,55 @@ void G_ScreenShot(void)
 }
 
 
+void G_LevelSelect(void)
+{
+    gameaction = ga_levelselect; 
+}
+
+
+void set_ap_player_states()
+{
+    //G_PlayerReborn(consoleplayer); // This will reset the player completely (Nah, this crashes)
+
+    player_t* p = &players[consoleplayer];
+
+    // [AP] If player is this player, then override with ap_state.
+    //      We don't support multiplayer anyway.
+    p->armorpoints = ap_state.player_state.armor_points;
+    p->armortype = ap_state.player_state.armor_type;
+    p->backpack = ap_state.player_state.backpack ? true : false;
+    if (!was_in_level)
+        p->readyweapon = p->pendingweapon = (weapontype_t)ap_state.player_state.ready_weapon;
+    //p->pendingweapon = wp_nochange;
+    //p->killcount = ap_state.player_state.kill_count;
+    //p->itemcount = ap_state.player_state.item_count;
+    //p->secretcount = ap_state.player_state.secret_count;
+    for (int i = 0; i < NUMPOWERS; ++i)
+        p->powers[i] = ap_state.player_state.powers[i];
+    p->powers[pw_allmap] = ap_get_level_state(gameepisode, gamemap)->has_map;
+    for (int i = 0; i < NUMWEAPONS; ++i)
+        p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+    for (int i = 0; i < NUMAMMO; ++i)
+        p->ammo[i] = ap_state.player_state.ammo[i];
+    for (int i = 0; i < NUMAMMO; ++i)
+        p->maxammo[i] = ap_state.player_state.max_ammo[i];
+
+    // Cards
+    ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
+
+    p->keys[0] = level_state->keys[0];
+    p->keys[1] = level_state->keys[1];
+    p->keys[2] = level_state->keys[2];
+
+    // mo
+    if (p->mo)
+    {
+        p->mo->health = p->health;
+    }
+}
+
+
 /*
 ====================
 =
@@ -1719,10 +1828,38 @@ static void G_WriteLevelStat(void)
             playerItems, totalitems, playerSecrets, totalsecret);
 }
 
+void cache_ap_player_state(void)
+{
+    player_t* p = &players[consoleplayer];
+
+    ap_state.player_state.health = p->health;
+    ap_state.player_state.armor_points = p->armorpoints;
+    ap_state.player_state.armor_type = p->armortype;
+    ap_state.player_state.backpack = p->backpack;
+    ap_state.player_state.ready_weapon = p->readyweapon;
+    ap_state.player_state.kill_count = p->killcount;
+    ap_state.player_state.item_count = p->itemcount;
+    ap_state.player_state.secret_count = p->secretcount;
+    for (int i = 0; i < NUMPOWERS; ++i)
+        ap_state.player_state.powers[i] = p->powers[i];
+    for (int i = 0; i < NUMWEAPONS; ++i)
+        ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
+    for (int i = 0; i < NUMAMMO; ++i)
+        ap_state.player_state.ammo[i] = p->ammo[i];
+    for (int i = 0; i < NUMAMMO; ++i)
+        ap_state.player_state.max_ammo[i] = p->maxammo[i];
+}
+
 void G_DoCompleted(void)
 {
     int i;
     static int afterSecret[5] = { 7, 5, 5, 5, 4 };
+
+    // [AP]
+    cache_ap_player_state();
+    apdoom_complete_level(gameepisode, gamemap);
+    apdoom_save_state();
+    G_DoSaveGame();
 
     // [crispy] Write level statistics upon exit
     if (M_ParmExists("-levelstat"))
@@ -1744,6 +1881,8 @@ void G_DoCompleted(void)
             G_PlayerFinishLevel(i);
         }
     }
+
+#if 0 // [AP] No intermission for AP
     prevmap = gamemap;
     if (secretexit == true)
     {
@@ -1768,6 +1907,13 @@ void G_DoCompleted(void)
 
     gamestate = GS_INTERMISSION;
     IN_Start();
+#endif
+
+    // [AP] Ignore most we did above.
+    ShowLevelSelect();
+
+    // [AP] Check for victory
+    apdoom_check_victory();
 }
 
 //============================================================================
@@ -1809,7 +1955,7 @@ void G_DoWorldDone(void)
 //
 //---------------------------------------------------------------------------
 
-static char *savename = NULL;
+char *savename = NULL;
 
 void G_LoadGame(char *name)
 {
@@ -1827,13 +1973,17 @@ void G_LoadGame(char *name)
 
 #define VERSIONSIZE 16
 
+extern mobj_t *just_loaded_hub;
+extern int leveltimesinceload;
 void G_DoLoadGame(void)
 {
     int i;
     int a, b, c;
     char savestr[SAVESTRINGSIZE];
     char vcheck[VERSIONSIZE], readversion[VERSIONSIZE];
-
+    
+    leveltimesinceload = 0;
+    just_loaded_hub = 0;
     gameaction = ga_nothing;
 
     SV_OpenRead(savename);
@@ -1860,6 +2010,7 @@ void G_DoLoadGame(void)
         playeringame[i] = SV_ReadByte();
     }
     // Load a base level
+    was_in_level = (ap_state.ep != 0 && ap_state.map != 0) ? 1 : 0;
     G_InitNew(gameskill, gameepisode, gamemap);
 
     // Create leveltime
@@ -1878,6 +2029,37 @@ void G_DoLoadGame(void)
     if (SV_ReadByte() != SAVE_GAME_TERMINATOR)
     {                           // Missing savegame termination marker
         I_Error("Bad savegame");
+    }
+
+    // [AP] Move player back to player spawn and reset its velocity (Make sure z is set to floor too)
+    if (!was_in_level)
+    {
+        player_t* player = &players[consoleplayer];
+        player->pendingweapon = wp_nochange;
+        player->attackdown = 0;
+        player->usedown = 0;
+        player->refire = 0;
+        player->refire = 0;
+        player->damagecount = 0;
+        player->bonuscount = 0;
+        player->attacker = 0;
+        player->extralight = 0;
+        player->fixedcolormap = 0;
+        player->colormap = 0;
+        if (just_loaded_hub && player->mo)
+        {
+            P_UnsetThingPosition(player->mo);
+            player->mo->x = just_loaded_hub->x;
+            player->mo->y = just_loaded_hub->y;
+            player->mo->z = just_loaded_hub->z;
+            player->mo->angle = just_loaded_hub->angle;
+            player->mo->floorz = just_loaded_hub->floorz;
+            player->mo->ceilingz = just_loaded_hub->ceilingz;
+            player->mo->momx = just_loaded_hub->momx;
+            player->mo->momy = just_loaded_hub->momy;
+            player->mo->momz = just_loaded_hub->momz;
+            P_SetThingPosition(player->mo);
+        }
     }
 }
 
@@ -1925,6 +2107,9 @@ void G_InitNew(skill_t skill, int episode, int map)
     static const char *skyLumpNames[5] = {
         "SKY1", "SKY2", "SKY3", "SKY1", "SKY3"
     };
+
+    ap_state.ep = episode;
+    ap_state.map = map;
 
     if (paused)
     {
@@ -1975,7 +2160,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     viewactive = true;
     gameepisode = episode;
     gamemap = map;
-    gameskill = skill;
+    gameskill = (skill_t)ap_state.difficulty;// skill;
     BorderNeedRefresh = true;
 
     // [crispy] total time for all completed levels
@@ -2257,6 +2442,8 @@ static const char *defdemoname;
 
 void G_DeferedPlayDemo(const char *name)
 {
+    return; // [AP] Don't play demo. Picking up items in the demo will break our state!
+
     defdemoname = name;
     gameaction = ga_playdemo;
 
@@ -2331,6 +2518,8 @@ void G_DoPlayDemo(void)
 
 void G_TimeDemo(char *name)
 {
+    return; // [AP] Don't play demo. Picking up items in the demo will break our state!
+
     skill_t skill;
     int episode, map, i;
 
@@ -2526,15 +2715,18 @@ void G_SaveGame(int slot, char *description)
 // Called by G_Ticker based on gameaction.
 //
 //==========================================================================
+void cache_ap_player_state(void);
 
 void G_DoSaveGame(void)
 {
     int i;
-    char *filename;
+    char filename[260];
     char verString[VERSIONSIZE];
     char *description;
+    
+    cache_ap_player_state();
 
-    filename = SV_Filename(savegameslot);
+    snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), gameepisode, gamemap);
 
     description = savedescription;
 

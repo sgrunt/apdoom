@@ -24,6 +24,8 @@
 #include "s_sound.h"
 #include "v_video.h"
 #include "am_map.h"
+#include "doomkeys.h"
+#include "level_select.h"
 
 static int finalestage;                // 0 = text, 1 = art screen
 static int finalecount;
@@ -31,8 +33,8 @@ static int finalecount;
 #define TEXTSPEED       3
 #define TEXTWAIT        250
 
-static const char *finaletext;
-static const char *finaleflat;
+const char *finaletext;
+const char *finaleflat;
 
 static int FontABaseLump;
 
@@ -55,29 +57,8 @@ void F_StartFinale(void)
     players[consoleplayer].message = NULL;
     players[consoleplayer].centerMessage = NULL;
 
-    switch (gameepisode)
-    {
-        case 1:
-            finaleflat = DEH_String("FLOOR25");
-            finaletext = DEH_String(E1TEXT);
-            break;
-        case 2:
-            finaleflat = DEH_String("FLATHUH1");
-            finaletext = DEH_String(E2TEXT);
-            break;
-        case 3:
-            finaleflat = DEH_String("FLTWAWA2");
-            finaletext = DEH_String(E3TEXT);
-            break;
-        case 4:
-            finaleflat = DEH_String("FLOOR28");
-            finaletext = DEH_String(E4TEXT);
-            break;
-        case 5:
-            finaleflat = DEH_String("FLOOR08");
-            finaletext = DEH_String(E5TEXT);
-            break;
-    }
+    finaleflat = "FINAL1";
+    finaletext = "You beat AP, congrats";
 
     finalestage = 0;
     finalecount = 0;
@@ -91,20 +72,24 @@ void F_StartFinale(void)
 
 boolean F_Responder(event_t * event)
 {
-    if (event->type != ev_keydown)
-    {
+    if (finalecount < 35 * 3)
         return false;
+
+    switch (event->type)
+    {
+        case ev_keydown:
+        {
+            switch (event->data1)
+            {
+                case KEY_ENTER:
+                case 'e':
+                case ' ':
+                    ShowLevelSelect();
+                    return true;
+            }
+        }
     }
-    if (finalestage == 1 && gameepisode == 2)
-    {                           // we're showing the water pic, make any key kick to demo mode
-        finalestage++;
-        /*
-        memset((byte *) 0xa0000, 0, SCREENWIDTH * SCREENHEIGHT);
-        memset(I_VideoBuffer, 0, SCREENWIDTH * SCREENHEIGHT);
-        I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-        */
-        return true;
-    }
+
     return false;
 }
 
@@ -160,6 +145,7 @@ void F_TextWrite(void)
 //
 // erase the entire screen to a tiled background
 //
+#if 0
     src = W_CacheLumpName(finaleflat, PU_CACHE);
     dest = I_VideoBuffer;
     for (y = 0; y < SCREENHEIGHT; y++)
@@ -175,6 +161,9 @@ void F_TextWrite(void)
             dest += (SCREENWIDTH & 63);
         }
     }
+#else
+    V_DrawPatchFullScreen (W_CacheLumpName(finaleflat, PU_CACHE), false);
+#endif
 
 //      V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
 
@@ -182,7 +171,7 @@ void F_TextWrite(void)
 // draw some of the text onto the screen
 //
     cx = 20;
-    cy = 5;
+    cy = 8 * 8; // 5; [AP] Center it a bit much, so we can still see AP messages at the top
     ch = finaletext;
 
     count = (finalecount - 10) / TEXTSPEED;

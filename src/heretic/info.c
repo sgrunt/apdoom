@@ -15,6 +15,7 @@
 //
 #include "doomdef.h"
 #include "p_action.h"
+#include "apdoom.h"
 
 const char *sprnames[] = {
     "IMPX","ACLO","PTN1","SHLD","SHD2","BAGH","SPMP","INVS","PTN2","SOAR",
@@ -30,8 +31,33 @@ const char *sprnames[] = {
     "WZRD","FX11","FX10","KNIG","SPAX","RAXE","SRCR","FX14","SOR2","SDTH",
     "FX16","MNTR","FX12","FX13","AKYY","BKYY","CKYY","AMG2","AMM1","AMM2",
     "AMC1","AMC2","AMS1","AMS2","AMP1","AMP2","AMB1","AMB2", 
+	// [AP] Archipelago junk item (APJI) and progression (APPI)
+	"APJI", "APPI",
+	// [AP] Level select teleport "HUB".
+	"LVST",
+
     NULL
 };
+
+
+extern int gameepisode;
+extern int gamemap;
+void P_RemoveMobj(mobj_t* mobj);
+
+void A_check_collected(mobj_t *actor, player_t *player, pspdef_t *psp)
+{
+	int j, lenj;
+	ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+    for (j = 0, lenj = level_state->check_count; j < lenj; ++j)
+    {
+        if (level_state->checks[j] == actor->index)
+        {
+			P_RemoveMobj(actor);
+			return;
+        }
+    }
+}
+
 
 state_t states[NUMSTATES] = {
     {SPR_IMPX, 0, -1, NULL, S_NULL, 0, 0},      // S_NULL
@@ -1243,7 +1269,30 @@ state_t states[NUMSTATES] = {
     {SPR_AMB2, 1, 4, NULL, S_AMB2_3, 0, 0},     // S_AMB2_2
     {SPR_AMB2, 2, 4, NULL, S_AMB2_1, 0, 0},     // S_AMB2_3
     {SPR_AMG1, 0, 100, A_ESound, S_SND_WIND, 0, 0},     // S_SND_WIND
-    {SPR_AMG1, 0, 85, A_ESound, S_SND_WATERFALL, 0, 0}  // S_SND_WATERFALL
+    {SPR_AMG1, 0, 85, A_ESound, S_SND_WATERFALL, 0, 0},  // S_SND_WATERFALL
+
+	// [AP]
+	{SPR_APJI,32768,3,A_check_collected,S_APJIB,0,0}, // S_APJI
+	{SPR_APJI,32769,3,A_check_collected,S_APJIC,0,0}, // S_APJIB
+	{SPR_APJI,32770,3,A_check_collected,S_APJID,0,0}, // S_APJIC
+	{SPR_APJI,32771,3,A_check_collected,S_APJIE,0,0}, // S_APJID
+	{SPR_APJI,32772,3,A_check_collected,S_APJIF,0,0}, // S_APJIE
+	{SPR_APJI,32773,3,A_check_collected,S_APJIG,0,0}, // S_APJIF
+	{SPR_APJI,32774,3,A_check_collected,S_APJI,0,0}, // S_APJIG
+
+	{SPR_APPI,32768,3,A_check_collected,S_APPIB,0,0}, // S_APJP
+	{SPR_APPI,32769,3,A_check_collected,S_APPIC,0,0}, // S_APJPB
+	{SPR_APPI,32770,3,A_check_collected,S_APPID,0,0}, // S_APJPC
+	{SPR_APPI,32771,3,A_check_collected,S_APPIE,0,0}, // S_APJPD
+	{SPR_APPI,32772,3,A_check_collected,S_APPIF,0,0}, // S_APJPE
+	{SPR_APPI,32773,3,A_check_collected,S_APPIG,0,0}, // S_APJPF
+	{SPR_APPI,32774,3,A_check_collected,S_APPI,0,0}, // S_APJPG
+
+	// [AP] Level select teleport "HUB"
+	{SPR_LVST,32768,350,NULL,S_LVSTB,0,0}, // S_LVST
+	{SPR_LVST,32769,6,NULL,S_LVSTC,0,0}, // S_LVSTB
+	{SPR_LVST,32770,6,NULL,S_LVSTD,0,0}, // S_LVSTC
+	{SPR_LVST,32771,6,NULL,S_LVSTB,0,0}, // S_LVSTD
 };
 
 
@@ -5598,5 +5647,88 @@ mobjinfo_t mobjinfo[NUMMOBJTYPES] = {
      sfx_None,                  // activesound
      MF_NOBLOCKMAP | MF_NOSECTOR,       // flags
      0                          // flags2
-     }
+     },
+
+         
+    {		// MT_APJI
+	    20000,		// doomednum
+	    S_APJI,		// spawnstate
+	    1000,		// spawnhealth
+	    S_NULL,		// seestate
+	    sfx_None,		// seesound
+	    8,		// reactiontime
+	    sfx_None,		// attacksound
+	    S_NULL,		// painstate
+	    0,		// painchance
+	    sfx_None,		// painsound
+	    S_NULL,		// meleestate
+	    S_NULL,		// missilestate
+        S_NULL,     // crashstate
+	    S_NULL,		// deathstate
+	    S_NULL,		// xdeathstate
+	    sfx_None,		// deathsound
+	    0,		// speed
+	    20*FRACUNIT,		// radius
+	    16*FRACUNIT,		// height
+	    100,		// mass
+	    0,		// damage
+	    sfx_None,		// activesound
+	    MF_SPECIAL|MF_NOTDMATCH,		// flags
+	    0		// flags2
+    },
+
+    {		// MT_APPI
+	    20001,		// doomednum
+	    S_APPI,		// spawnstate
+	    1000,		// spawnhealth
+	    S_NULL,		// seestate
+	    sfx_None,		// seesound
+	    8,		// reactiontime
+	    sfx_None,		// attacksound
+	    S_NULL,		// painstate
+	    0,		// painchance
+	    sfx_None,		// painsound
+	    S_NULL,		// meleestate
+	    S_NULL,		// missilestate
+        S_NULL,     // crashstate
+	    S_NULL,		// deathstate
+	    S_NULL,		// xdeathstate
+	    sfx_None,		// deathsound
+	    0,		// speed
+	    20*FRACUNIT,		// radius
+	    16*FRACUNIT,		// height
+	    100,		// mass
+	    0,		// damage
+	    sfx_None,		// activesound
+	    MF_SPECIAL|MF_NOTDMATCH,		// flags
+	    0		// flags2
+    },
+
+    {		// MT_LVSTEL
+	    20002,		// doomednum
+	    S_LVST,		// spawnstate
+	    1000,		// spawnhealth
+	    S_NULL,		// seestate
+	    sfx_None,		// seesound
+	    8,		// reactiontime
+	    sfx_None,		// attacksound
+	    S_NULL,		// painstate
+	    0,		// painchance
+	    sfx_None,		// painsound
+	    S_NULL,		// meleestate
+	    S_NULL,		// missilestate
+        S_NULL,     // crashstate
+	    S_NULL,		// deathstate
+	    S_NULL,		// xdeathstate
+	    sfx_None,		// deathsound
+	    0,		// speed
+	    20*FRACUNIT,		// radius
+	    16*FRACUNIT,		// height
+	    100,		// mass
+	    0,		// damage
+	    sfx_None,		// activesound
+	    MF_SPECIAL|MF_NOTDMATCH,		// flags
+	    0,		// flags2
+	    1 // restore_state_on_load
+    }
 };

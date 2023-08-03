@@ -1063,7 +1063,7 @@ void P_SpawnPlayer(mapthing_t * mthing)
 //
 //----------------------------------------------------------------------------
 
-void P_SpawnMapThing(mapthing_t * mthing)
+void P_SpawnMapThing(mapthing_t * mthing, int index)
 {
     int i;
     int bit;
@@ -1110,7 +1110,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
     }
 
 // check for appropriate skill level
-    if (!netgame && (mthing->options & 16))
+    if (!netgame && (mthing->options & 16) && mthing->type != 20002)
         return;
 
     if (gameskill == sk_baby)
@@ -1120,7 +1120,10 @@ void P_SpawnMapThing(mapthing_t * mthing)
     else
         bit = 1 << (gameskill - 1);
     if (!(mthing->options & bit))
-        return;
+    {
+        if (mthing->type != 20000 && mthing->type != 20001 && mthing->type != 20002)
+	        return;
+    }
 
 // find which type to spawn
     for (i = 0; i < NUMMOBJTYPES; i++)
@@ -1183,11 +1186,12 @@ void P_SpawnMapThing(mapthing_t * mthing)
         z = ONFLOORZ;
     }
     mobj = P_SpawnMobj(x, y, z, i);
+    mobj->index = index;
     if (mobj->flags2 & MF2_FLOATBOB)
     {                           // Seed random starting index for bobbing motion
         mobj->health = P_Random();
     }
-    if (mobj->tics > 0)
+    if (mobj->tics > 0 && mobj->type != MT_LVSTEL) // [AP] We want the HUB to stay put 10 sec, no random
     {
         mobj->tics = 1 + (P_Random() % mobj->tics);
     }

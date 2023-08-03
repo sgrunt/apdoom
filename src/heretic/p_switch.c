@@ -169,7 +169,7 @@ void P_ChangeSwitchTexture(line_t * line, int useAgain)
     int i;
     int sound;
 
-    if (!useAgain)
+    if (!useAgain && line->special != 11) // [AP] Exit switch can be used again
         line->special = 0;
 
     texTop = sides[line->sidenum[0]].toptexture;
@@ -325,7 +325,7 @@ boolean P_UseSpecialLine(mobj_t * thing, line_t * line)
                 P_ChangeSwitchTexture(line, 0);
             break;
         case 51:               // Secret EXIT
-            G_SecretExitLevel();
+            //G_SecretExitLevel(); // [AP] No secret exit for now
             P_ChangeSwitchTexture(line, 0);
             break;
         case 55:               // Raise Floor Crush

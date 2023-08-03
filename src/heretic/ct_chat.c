@@ -145,10 +145,12 @@ boolean CT_Responder(event_t * ev)
 
     int sendto;
 
+#if 0 // [AP] We always enable chat in AP
     if (!netgame)
     {
         return false;
     }
+#endif
     if (ev->data1 == KEY_LALT || ev->data2 == KEY_RALT)
     {
         altdown = (ev->type == ev_keydown);

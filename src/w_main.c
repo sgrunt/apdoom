@@ -46,9 +46,6 @@ boolean W_ParseCommandLine(void)
     // into the main IWAD.  Multiple files may be specified.
     //
 
-    // Always merge Archipelago WAD
-    W_MergeFile("apdoom.wad");
-
 
     p = M_CheckParmWithArgs("-merge", 1);
 
