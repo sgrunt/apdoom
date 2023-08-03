@@ -56,7 +56,7 @@ add_library(heretic STATIC
             sounds.c            sounds.h
             s_sound.c           s_sound.h)
 
-target_include_directories(heretic PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+target_include_directories(heretic PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../" "../archipelago/")
 target_link_libraries(heretic textscreen SDL2::SDL2)
 if(ENABLE_SDL2_MIXER)
     target_link_libraries(heretic SDL2_mixer::SDL2_mixer)
