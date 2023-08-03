@@ -760,7 +760,7 @@ const std::map<int64_t, ap_item_t> ap_doom_item_table = {
 };
 
 
-ap_level_info_t ap_doom_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = 
+ap_level_info_t ap_doom_level_infos[4][9] = 
 {
     {
         {{false, false, false}, {0, 0, 0}, 3, 143, {

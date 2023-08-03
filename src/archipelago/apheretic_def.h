@@ -1403,7 +1403,7 @@ const std::map<int64_t, ap_item_t> ap_heretic_item_table = {
 };
 
 
-ap_level_info_t ap_heretic_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = 
+ap_level_info_t ap_heretic_level_infos[5][9] = 
 {
     {
         {{false, true, false}, {0, 0, 0}, 6, 242, {

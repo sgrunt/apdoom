@@ -1199,14 +1199,14 @@ void set_ap_player_states()
     //p->killcount = ap_state.player_state.kill_count;
     //p->itemcount = ap_state.player_state.item_count;
     //p->secretcount = ap_state.player_state.secret_count;
-    for (int i = 0; i < AP_NUM_POWERS; ++i)
+    for (int i = 0; i < NUMPOWERS; ++i)
         p->powers[i] = ap_state.player_state.powers[i];
     p->powers[pw_allmap] = ap_get_level_state(gameepisode, gamemap)->has_map;
-    for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+    for (int i = 0; i < NUMWEAPONS; ++i)
         p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
-    for (int i = 0; i < AP_NUM_AMMO; ++i)
+    for (int i = 0; i < NUMAMMO; ++i)
         p->ammo[i] = ap_state.player_state.ammo[i];
-    for (int i = 0; i < AP_NUM_AMMO; ++i)
+    for (int i = 0; i < NUMAMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 
     // Cards
@@ -1253,7 +1253,7 @@ void G_Ticker (void)
 	    G_DoLoadLevel(); 
         set_ap_player_states();
         player_t* p = &players[consoleplayer];
-        for (i = 0; i < AP_NUM_WEAPONS; ++i)
+        for (i = 0; i < NUMWEAPONS; ++i)
         {
             p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
             if (p->weaponowned[i])
@@ -1579,7 +1579,7 @@ void G_PlayerReborn (int player)
 	
     // Re-apply some AP states that we want to be persistent even after death
     p->backpack = ap_state.player_state.backpack ? true : false;
-    for (int i = 0; i < AP_NUM_AMMO; ++i)
+    for (int i = 0; i < NUMAMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 }
 
@@ -1956,13 +1956,13 @@ void cache_ap_player_state(void)
     ap_state.player_state.kill_count = p->killcount;
     ap_state.player_state.item_count = p->itemcount;
     ap_state.player_state.secret_count = p->secretcount;
-    for (int i = 0; i < AP_NUM_POWERS; ++i)
+    for (int i = 0; i < NUMPOWERS; ++i)
         ap_state.player_state.powers[i] = p->powers[i];
-    for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+    for (int i = 0; i < NUMWEAPONS; ++i)
         ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
-    for (int i = 0; i < AP_NUM_AMMO; ++i)
+    for (int i = 0; i < NUMAMMO; ++i)
         ap_state.player_state.ammo[i] = p->ammo[i];
-    for (int i = 0; i < AP_NUM_AMMO; ++i)
+    for (int i = 0; i < NUMAMMO; ++i)
         ap_state.player_state.max_ammo[i] = p->maxammo[i];
 }
  

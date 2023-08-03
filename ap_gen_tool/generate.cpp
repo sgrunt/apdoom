@@ -811,7 +811,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "};\n\n\n");
 
         // Level infos
-        fprintf(fout, "ap_level_info_t ap_%s_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] = \n", game->codename.c_str());
+        fprintf(fout, "ap_level_info_t ap_%s_level_infos[%i][%i] = \n", game->codename.c_str(), game->ep_count, game->map_count);
         fprintf(fout, "{\n");
         for (int ep = 0; ep < game->ep_count; ++ep)
         {

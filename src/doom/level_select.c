@@ -55,7 +55,7 @@ extern int cursor_x;
 extern int cursor_y;
 
 
-static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
+static level_pos_t level_pos_infos[4][9] =
 {
     // Episode 1
     {
@@ -113,60 +113,17 @@ static level_pos_t level_pos_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT] =
 };
 
 
-static const char* d2_level_names[AP_D2_LEVEL_COUNT] = {
-    // Episode 1: The Space Station
-    "Entryway (MAP01)",
-    "Underhalls (MAP02)",
-    "The Gantlet (MAP03)",
-    "The Focus (MAP04)",
-    "The Waste Tunnels (MAP05)",
-    "The Crusher (MAP06)",
-    "Dead Simple (MAP07)",
-    "Tricks and Traps (MAP08)",
-    "The Pit (MAP09)",
-    "Refueling Base (MAP10)",
-    "Circle of Death (MAP11)", // 'O' of Destruction!1 ?
-    
-    // Episode 2: The City
-    "The Factory (MAP12)",
-    "Downtown (MAP13)",
-    "The Inmost Dens (MAP14)",
-    "Industrial Zone (MAP15)", // (Exit to secret level)
-    "Suburbs (MAP16)",
-    "Tenements (MAP17)",
-    "The Courtyard (MAP18)",
-    "The Citadel (MAP19)",
-    "Gotcha! (MAP20)",
-
-    // Episode 3: Hell
-    "Nirvana (MAP21)",
-    "The Catacombs (MAP22)",
-    "Barrels o Fun (MAP23)",
-    "The Chasm (MAP24)",
-    "Bloodfalls (MAP25)",
-    "The Abandoned Mines (MAP26)",
-    "Monster Condo (MAP27)",
-    "The Spirit World (MAP28)",
-    "The Living End (MAP29)",
-    "Icon of Sin (MAP30)",
-
-    // Secret levels:
-    "Wolfenstein2 (MAP31)", // (Exit to super secret level, IDKFA in BFG Edition)
-    "Grosse2 (MAP32)" // (Keen in BFG Edition)
-};
-
-
 static wbstartstruct_t wiinfo;
 
 extern int bcnt;
 
-int selected_level[AP_EPISODE_COUNT] = {0};
+int selected_level[4] = {0};
 int selected_ep = 0;
 int prev_ep = 0;
 int ep_anim = 0;
 int urh_anim = 0;
 
-static hu_textline_t level_lines[AP_D2_LEVEL_COUNT][3];
+static hu_textline_t level_lines[32][3];
 
 static const char* YELLOW_DIGIT_LUMP_NAMES[] = {
     "STYSNUM0", "STYSNUM1", "STYSNUM2", "STYSNUM3", "STYSNUM4", 
@@ -257,7 +214,7 @@ boolean LevelSelectResponder(event_t* ev)
 
     int ep_count = 0;
     if (gamemode != commercial)
-        for (int i = 0; i < AP_EPISODE_COUNT; ++i)
+        for (int i = 0; i < ap_episode_count; ++i)
             if (ap_state.episodes[i])
                 ep_count++;
 
@@ -272,7 +229,7 @@ boolean LevelSelectResponder(event_t* ev)
                     if (gamemode == commercial)
                     {
                         selected_level[selected_ep] -= 16;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] += AP_D2_LEVEL_COUNT;
+                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] += ap_map_count;
                         urh_anim = 0;
                         S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     }
@@ -281,11 +238,11 @@ boolean LevelSelectResponder(event_t* ev)
                         prev_ep = selected_ep;
                         ep_anim = -10;
                         selected_ep--;
-                        if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
+                        if (selected_ep < 0) selected_ep = ap_episode_count - 1;
                         while (!ap_state.episodes[selected_ep])
                         {
                             selected_ep--;
-                            if (selected_ep < 0) selected_ep = AP_EPISODE_COUNT - 1;
+                            if (selected_ep < 0) selected_ep = ap_episode_count - 1;
                             if (selected_ep == prev_ep) // oops;
                                 break;
                         }
@@ -298,7 +255,7 @@ boolean LevelSelectResponder(event_t* ev)
                     if (gamemode == commercial)
                     {
                         selected_level[selected_ep] += 16;
-                        if (selected_level[selected_ep] >= AP_D2_LEVEL_COUNT) selected_level[selected_ep] -= 32;
+                        if (selected_level[selected_ep] >= ap_map_count) selected_level[selected_ep] -= 32;
                         urh_anim = 0;
                         S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     }
@@ -306,10 +263,10 @@ boolean LevelSelectResponder(event_t* ev)
                     {
                         prev_ep = selected_ep;
                         ep_anim = 10;
-                        selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+                        selected_ep = (selected_ep + 1) % ap_episode_count;
                         while (!ap_state.episodes[selected_ep])
                         {
-                            selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+                            selected_ep = (selected_ep + 1) % ap_episode_count;
                             if (selected_ep == prev_ep) // oops;
                                 break;
                         }
@@ -330,10 +287,10 @@ boolean LevelSelectResponder(event_t* ev)
                     else if (selected_ep == 1)
                     {
                         selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
+                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = ap_map_count - 1;
                     }
                     else
-                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;
+                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % ap_map_count;
                     urh_anim = 0;
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
@@ -346,11 +303,11 @@ boolean LevelSelectResponder(event_t* ev)
                             selected_level[selected_ep]++;
                     }
                     else if (selected_ep == 1)
-                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % AP_LEVEL_COUNT;
+                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % ap_map_count;
                     else
                     {
                         selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = AP_LEVEL_COUNT - 1;
+                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = ap_map_count - 1;
                     }
                     urh_anim = 0;
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
@@ -399,7 +356,7 @@ void ShowLevelSelect()
     {
         while (!ap_state.episodes[selected_ep])
         {
-            selected_ep = (selected_ep + 1) % AP_EPISODE_COUNT;
+            selected_ep = (selected_ep + 1) % ap_episode_count;
             if (selected_ep == 0) // oops;
                 break;
         }
@@ -418,7 +375,7 @@ void ShowLevelSelect()
 
     if (gamemode == commercial && !level_lines[0][0].f)
     {
-        for (int i = 0; i < AP_D2_LEVEL_COUNT; ++i)
+        for (int i = 0; i < ap_map_count; ++i)
         {
             for (int j = 0; j < 3; ++j)
             {
@@ -468,7 +425,7 @@ void DrawEpisodicLevelSelectStats()
     const int key_spacing = 8;
     const int start_y_offset = 10;
 
-    for (int i = 0; i < AP_LEVEL_COUNT; ++i)
+    for (int i = 0; i < ap_map_count; ++i)
     {
         level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
         ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
@@ -571,7 +528,7 @@ void DrawNonEpisodicLevelSelectStats()
     ap_level_state_t* ap_level_state;
     hu_textline_t* level_line;
 
-    for (int i = 0; i < AP_D2_LEVEL_COUNT; ++i)
+    for (int i = 0; i < ap_map_count; ++i)
     {
         ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
         ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);

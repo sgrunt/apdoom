@@ -36,18 +36,6 @@ extern "C"
 #define APDOOM_VERSION_FULL_TEXT "APDOOM " APDOOM_VERSION_TEXT
 
 
-//#define FIRST_EP_ONLY 1
-
-#ifdef FIRST_EP_ONLY
-#define AP_EPISODE_COUNT 1
-#else
-#define AP_EPISODE_COUNT 4
-#endif
-#define AP_LEVEL_COUNT 9
-#define AP_D2_LEVEL_COUNT 32
-#define AP_NUM_POWERS 6
-#define AP_NUM_AMMO 4
-#define AP_NUM_WEAPONS 9
 #define AP_CHECK_MAX 64 // Arbitrary number
 #define AP_MAX_THING 1024 // Twice more than current max for every level
 
@@ -92,18 +80,17 @@ typedef struct
     int kill_count; // We accumulate globally
     int item_count;
     int secret_count;
-    int powers[AP_NUM_POWERS];
-    int weapon_owned[AP_NUM_WEAPONS];
-    int ammo[AP_NUM_AMMO];
-    int max_ammo[AP_NUM_AMMO]; // Could be deduced by checking backpack
+    int* powers;
+    int* weapon_owned;
+    int* ammo;
+    int* max_ammo; // Could be deduced by checking backpack
 
 } ap_player_state_t;
 
 
 typedef struct
 {
-    ap_level_state_t level_states[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
-    ap_level_state_t d2_level_states[AP_D2_LEVEL_COUNT];
+    ap_level_state_t* level_states;
     ap_player_state_t player_state;
     int ep; // Useful when reloading, to load directly where we left
     int map;
@@ -111,7 +98,7 @@ typedef struct
     int random_monsters;
     int random_items;
     int two_ways_keydoors;
-    int episodes[AP_EPISODE_COUNT];
+    int* episodes;
     int victory;
     
 } ap_state_t;
@@ -129,14 +116,10 @@ typedef struct
 } ap_settings_t;
 
 
-#ifdef FIRST_EP_ONLY
-extern ap_level_info_t ap_level_infos[1][AP_LEVEL_COUNT];
-#else
-extern ap_level_info_t ap_level_infos[AP_EPISODE_COUNT][AP_LEVEL_COUNT];
-extern ap_level_info_t ap_d2_level_infos[AP_D2_LEVEL_COUNT];
-#endif
 extern ap_state_t ap_state;
 extern int ap_is_in_game; // Don't give items when in menu (Or when dead on the ground).
+extern int ap_episode_count;
+extern int ap_map_count;
 
 
 int apdoom_init(ap_settings_t* settings);

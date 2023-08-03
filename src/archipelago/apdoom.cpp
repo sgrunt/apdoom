@@ -29,6 +29,7 @@
 
 #include "apdoom_def.h"
 #include "apdoom2_def.h"
+#include "apheretic_def.h"
 #include "Archipelago.h"
 #include <json/json.h>
 #include <memory.h>
@@ -179,6 +180,11 @@ enum class ap_game_t
 ap_state_t ap_state;
 int ap_is_in_game = 0;
 ap_game_t ap_game;
+int ap_episode_count = -1;
+int ap_map_count = -1;
+int ap_weapon_count = -1;
+int ap_ammo_count = -1;
+int ap_powerup_count = -1;
 
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
@@ -188,9 +194,6 @@ static std::set<int64_t> ap_progressive_locations;
 static bool ap_initialized = false;
 static std::vector<std::string> ap_cached_messages;
 static std::string ap_save_dir_name;
-static bool ap_is_episodic = true;
-static int ap_episode_count = -1;
-static int ap_map_count = -1;
 
 
 void f_itemclr();
@@ -214,40 +217,37 @@ ap_level_info_t* ap_get_level_info(int ep, int map)
 {
 	switch (ap_game)
 	{
-		case ap_game_t::doom: return &ap_level_infos[ep - 1][map - 1];
-		case ap_game_t::doom2: return &ap_d2_level_infos[map - 1];
+		case ap_game_t::doom: return &ap_doom_level_infos[ep - 1][map - 1];
+		case ap_game_t::doom2: return &ap_doom2_level_infos[ep - 1][map - 1];
+		case ap_game_t::heretic: return &ap_heretic_level_infos[ep - 1][map - 1];
 	}
 }
 
 
 ap_level_state_t* ap_get_level_state(int ep, int map)
 {
-	if (ap_is_episodic)
-		return &ap_state.level_states[ep - 1][map - 1];
-	else
-		return &ap_state.d2_level_states[map - 1];
+	return &ap_state.level_states[(ep - 1) * ap_map_count + (map - 1)];
 }
 
 
-static const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>>& get_episodic_location_table()
+static const std::map<int64_t, ap_item_t>& get_item_type_table()
 {
 	switch (ap_game)
 	{
-		case ap_game_t::doom:
-		{
-			return location_table;
-		}
+		case ap_game_t::doom: return ap_doom_item_table;
+		case ap_game_t::doom2: return ap_doom2_item_table;
+		case ap_game_t::heretic: return ap_heretic_item_table;
 	}
 }
 
-static const std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>& get_location_table()
+
+static const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>>& get_location_table()
 {
 	switch (ap_game)
 	{
-		case ap_game_t::doom2:
-		{
-			return d2_location_table;
-		}
+		case ap_game_t::doom: return ap_doom_location_table;
+		case ap_game_t::doom2: return ap_doom2_location_table;
+		case ap_game_t::heretic: return ap_heretic_location_table;
 	}
 }
 
@@ -277,22 +277,49 @@ int apdoom_init(ap_settings_t* settings)
 	if (strcmp(settings->game, "DOOM 1993") == 0)
 	{
 		ap_game = ap_game_t::doom;
-		ap_is_episodic = true;
-		ap_episode_count = AP_EPISODE_COUNT;
-		ap_map_count = AP_LEVEL_COUNT;
+		ap_episode_count = 4;
+		ap_map_count = 9;
+		ap_weapon_count = 9;
+		ap_ammo_count = 4;
+		ap_powerup_count = 6;
 	}
 	else if (strcmp(settings->game, "DOOM II") == 0)
 	{
 		ap_game = ap_game_t::doom2;
-		ap_is_episodic = false;
-		ap_episode_count = -1;
-		ap_map_count = AP_D2_LEVEL_COUNT;
+		ap_episode_count = 1;
+		ap_map_count = 32;
+		ap_weapon_count = 9;
+		ap_ammo_count = 4;
+		ap_powerup_count = 6;
+	}
+	else if (strcmp(settings->game, "Heretic") == 0)
+	{
+		ap_game = ap_game_t::heretic;
+		ap_episode_count = 5;
+		ap_map_count = 9;
+		ap_weapon_count = 9;
+		ap_ammo_count = 4;
+		ap_powerup_count = 6;
 	}
 	else
 	{
 		printf("APDOOM: Invalid game: %s\n", settings->game);
 		return 0;
 	}
+
+	ap_state.level_states = new ap_level_state_t[ap_episode_count * ap_map_count];
+	ap_state.episodes = new int[ap_episode_count];
+	ap_state.player_state.powers = new int[ap_powerup_count];
+	ap_state.player_state.weapon_owned = new int[ap_weapon_count];
+	ap_state.player_state.ammo = new int[ap_ammo_count];
+	ap_state.player_state.max_ammo = new int[ap_ammo_count];
+
+	memset(ap_state.level_states, 0, sizeof(ap_level_state_t) * ap_episode_count * ap_map_count);
+	memset(ap_state.episodes, 0, sizeof(int) * ap_episode_count);
+	memset(ap_state.player_state.powers, 0, sizeof(int) * ap_powerup_count);
+	memset(ap_state.player_state.weapon_owned, 0, sizeof(int) * ap_weapon_count);
+	memset(ap_state.player_state.ammo, 0, sizeof(int) * ap_ammo_count);
+	memset(ap_state.player_state.max_ammo, 0, sizeof(int) * ap_ammo_count);
 
 	ap_state.player_state.health = 100;
 	ap_state.player_state.ready_weapon = 1;
@@ -303,15 +330,16 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.max_ammo[1] = 50;
 	ap_state.player_state.max_ammo[2] = 300;
 	ap_state.player_state.max_ammo[3] = 50;
-	if (ap_is_episodic)
-		for (int ep = 0; ep < ap_episode_count; ++ep)
-			for (int map = 0; map < ap_map_count; ++map)
-				for (int k = 0; k < AP_CHECK_MAX; ++k)
-					ap_state.level_states[ep][map].checks[k] = -1;
-	else
+	for (int ep = 0; ep < ap_episode_count; ++ep)
+	{
 		for (int map = 0; map < ap_map_count; ++map)
+		{
 			for (int k = 0; k < AP_CHECK_MAX; ++k)
-				ap_state.d2_level_states[map].checks[k] = -1;
+			{
+				ap_state.level_states[ep * ap_map_count + map].checks[k] = -1;
+			}
+		}
+	}
 
 	ap_settings = *settings;
 
@@ -370,42 +398,24 @@ int apdoom_init(ap_settings_t* settings)
 	}
 
 	// If none episode is selected, select the first one.
-	if (ap_is_episodic)
-	{
-		int ep_count = 0;
-		for (int i = 0; i < ap_episode_count; ++i)
-			if (ap_state.episodes[i])
-				ep_count++;
-		if (!ep_count)
-			ap_state.episodes[0] = 1;
-	}
+	int ep_count = 0;
+	for (int i = 0; i < ap_episode_count; ++i)
+		if (ap_state.episodes[i])
+			ep_count++;
+	if (!ep_count)
+		ap_state.episodes[0] = 1;
 
 	// Scout locations to see which are progressive
 	if (ap_progressive_locations.empty())
 	{
 		std::vector<int64_t> location_scouts;
 
-		if (ap_is_episodic)
+		const auto& loc_table = get_location_table();
+		for (const auto& kv1 : loc_table)
 		{
-			const auto& loc_table = get_episodic_location_table();
-			for (const auto& kv1 : loc_table)
-			{
-				if (!ap_state.episodes[kv1.first - 1])
-					continue;
-				for (const auto& kv2 : kv1.second)
-				{
-					for (const auto& kv3 : kv2.second)
-					{
-						if (kv3.first == -1) continue;
-						location_scouts.push_back(kv3.second);
-					}
-				}
-			}
-		}
-		else
-		{
-			const auto& loc_table = get_location_table();
-			for (const auto& kv2 : loc_table)
+			if (!ap_state.episodes[kv1.first - 1])
+				continue;
+			for (const auto& kv2 : kv1.second)
 			{
 				for (const auto& kv3 : kv2.second)
 				{
@@ -495,13 +505,13 @@ void load_state()
 	json_get_int(json["player"]["kill_count"], ap_state.player_state.kill_count);
 	json_get_int(json["player"]["item_count"], ap_state.player_state.item_count);
 	json_get_int(json["player"]["secret_count"], ap_state.player_state.secret_count);
-	for (int i = 0; i < AP_NUM_POWERS; ++i)
+	for (int i = 0; i < ap_powerup_count; ++i)
 		json_get_int(json["player"]["powers"][i], ap_state.player_state.powers[i]);
-	for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+	for (int i = 0; i < ap_weapon_count; ++i)
 		json_get_bool_or(json["player"]["weapon_owned"][i], ap_state.player_state.weapon_owned[i]);
-	for (int i = 0; i < AP_NUM_AMMO; ++i)
+	for (int i = 0; i < ap_ammo_count; ++i)
 		json_get_int(json["player"]["ammo"][i], ap_state.player_state.ammo[i]);
-	for (int i = 0; i < AP_NUM_AMMO; ++i)
+	for (int i = 0; i < ap_ammo_count; ++i)
 		json_get_int(json["player"]["max_ammo"][i], ap_state.player_state.max_ammo[i]);
 
 	if (ap_state.player_state.backpack)
@@ -513,44 +523,23 @@ void load_state()
 	}
 
 	// Level states
-	if (ap_is_episodic)
-	{
-		for (int i = 0; i < ap_episode_count; ++i)
-		{
-			for (int j = 0; j < ap_map_count; ++j)
-			{
-				json_get_bool_or(json["episodes"][i][j]["completed"], ap_state.level_states[i][j].completed);
-				json_get_bool_or(json["episodes"][i][j]["keys0"], ap_state.level_states[i][j].keys[0]);
-				json_get_bool_or(json["episodes"][i][j]["keys1"], ap_state.level_states[i][j].keys[1]);
-				json_get_bool_or(json["episodes"][i][j]["keys2"], ap_state.level_states[i][j].keys[2]);
-				json_get_bool_or(json["episodes"][i][j]["check_count"], ap_state.level_states[i][j].check_count);
-				json_get_bool_or(json["episodes"][i][j]["has_map"], ap_state.level_states[i][j].has_map);
-				json_get_bool_or(json["episodes"][i][j]["unlocked"], ap_state.level_states[i][j].unlocked);
-
-				int k = 0;
-				for (const auto& json_check : json["episodes"][i][j]["checks"])
-				{
-					json_get_bool_or(json_check, ap_state.level_states[i][j].checks[k++]);
-				}
-			}
-		}
-	}
-	else
+	for (int i = 0; i < ap_episode_count; ++i)
 	{
 		for (int j = 0; j < ap_map_count; ++j)
 		{
-			json_get_bool_or(json["maps"][j]["completed"], ap_state.d2_level_states[j].completed);
-			json_get_bool_or(json["maps"][j]["keys0"], ap_state.d2_level_states[j].keys[0]);
-			json_get_bool_or(json["maps"][j]["keys1"], ap_state.d2_level_states[j].keys[1]);
-			json_get_bool_or(json["maps"][j]["keys2"], ap_state.d2_level_states[j].keys[2]);
-			json_get_bool_or(json["maps"][j]["check_count"], ap_state.d2_level_states[j].check_count);
-			json_get_bool_or(json["maps"][j]["has_map"], ap_state.d2_level_states[j].has_map);
-			json_get_bool_or(json["maps"][j]["unlocked"], ap_state.d2_level_states[j].unlocked);
+			auto level_state = ap_get_level_state(i + 1, j + 1);
+			json_get_bool_or(json["episodes"][i][j]["completed"], level_state->completed);
+			json_get_bool_or(json["episodes"][i][j]["keys0"], level_state->keys[0]);
+			json_get_bool_or(json["episodes"][i][j]["keys1"], level_state->keys[1]);
+			json_get_bool_or(json["episodes"][i][j]["keys2"], level_state->keys[2]);
+			json_get_bool_or(json["episodes"][i][j]["check_count"], level_state->check_count);
+			json_get_bool_or(json["episodes"][i][j]["has_map"], level_state->has_map);
+			json_get_bool_or(json["episodes"][i][j]["unlocked"], level_state->unlocked);
 
 			int k = 0;
-			for (const auto& json_check : json["maps"][j]["checks"])
+			for (const auto& json_check : json["episodes"][i][j]["checks"])
 			{
-				json_get_bool_or(json_check, ap_state.d2_level_states[j].checks[k++]);
+				json_get_bool_or(json_check, level_state->checks[k++]);
 			}
 		}
 	}
@@ -561,13 +550,9 @@ void load_state()
 		ap_item_queue.push_back(item_id_json.asInt64());
 	}
 
-	if (ap_is_episodic)
-	{
-		json_get_int(json["ep"], ap_state.ep);
-		int i = 0;
-		for (auto& ep : ap_state.episodes)
-			json_get_int(json["enabled_episodes"][i++], ep);
-	}
+	json_get_int(json["ep"], ap_state.ep);
+	for (int i = 0; i < ap_episode_count; ++i)
+		json_get_int(json["enabled_episodes"][i++], ap_state.episodes[i]);
 	json_get_int(json["map"], ap_state.map);
 
 	for (const auto& prog_json : json["progressive_locations"])
@@ -610,21 +595,11 @@ std::vector<ap_level_index_t> get_level_indices()
 {
 	std::vector<ap_level_index_t> ret;
 
-	if (ap_is_episodic)
-	{
-		for (int i = 0; i < ap_episode_count; ++i)
-		{
-			for (int j = 0; j < ap_map_count; ++j)
-			{
-				ret.push_back({i + 1, j + 1});
-			}
-		}
-	}
-	else
+	for (int i = 0; i < ap_episode_count; ++i)
 	{
 		for (int j = 0; j < ap_map_count; ++j)
 		{
-			ret.push_back({-1, j + 1});
+			ret.push_back({i + 1, j + 1});
 		}
 	}
 
@@ -658,51 +633,39 @@ void save_state()
 	json_player["secret_count"] = ap_state.player_state.secret_count;
 
 	Json::Value json_powers(Json::arrayValue);
-	for (int i = 0; i < AP_NUM_POWERS; ++i)
+	for (int i = 0; i < ap_powerup_count; ++i)
 		json_powers.append(ap_state.player_state.powers[i]);
 	json_player["powers"] = json_powers;
 
 	Json::Value json_weapon_owned(Json::arrayValue);
-	for (int i = 0; i < AP_NUM_WEAPONS; ++i)
+	for (int i = 0; i < ap_weapon_count; ++i)
 		json_weapon_owned.append(ap_state.player_state.weapon_owned[i]);
 	json_player["weapon_owned"] = json_weapon_owned;
 
 	Json::Value json_ammo(Json::arrayValue);
-	for (int i = 0; i < AP_NUM_AMMO; ++i)
+	for (int i = 0; i < ap_ammo_count; ++i)
 		json_ammo.append(ap_state.player_state.ammo[i]);
 	json_player["ammo"] = json_ammo;
 
 	Json::Value json_max_ammo(Json::arrayValue);
-	for (int i = 0; i < AP_NUM_AMMO; ++i)
+	for (int i = 0; i < ap_ammo_count; ++i)
 		json_max_ammo.append(ap_state.player_state.max_ammo[i]);
 	json_player["max_ammo"] = json_max_ammo;
 
 	json["player"] = json_player;
 
 	// Level states
-	if (ap_is_episodic)
-	{
-		Json::Value json_episodes(Json::arrayValue);
-		for (int i = 0; i < ap_episode_count; ++i)
-		{
-			Json::Value json_levels(Json::arrayValue);
-			for (int j = 0; j < ap_map_count; ++j)
-			{
-				json_levels.append(serialize_level(i + 1, j + 1));
-			}
-			json_episodes.append(json_levels);
-		}
-		json["episodes"] = json_episodes;
-	}
-	else
+	Json::Value json_episodes(Json::arrayValue);
+	for (int i = 0; i < ap_episode_count; ++i)
 	{
 		Json::Value json_levels(Json::arrayValue);
 		for (int j = 0; j < ap_map_count; ++j)
 		{
-			json_levels.append(serialize_level(-1, j + 1));
+			json_levels.append(serialize_level(i + 1, j + 1));
 		}
-		json["maps"] = json_levels;
+		json_episodes.append(json_levels);
 	}
+	json["episodes"] = json_episodes;
 
 	// Item queue
 	Json::Value json_item_queue(Json::arrayValue);
@@ -712,13 +675,9 @@ void save_state()
 	}
 	json["item_queue"] = json_item_queue;
 
-	if (ap_is_episodic)
-	{
-		json["ep"] = ap_state.ep;
-		int i = 0;
-		for (auto ep : ap_state.episodes)
-			json["enabled_episodes"][i++] = ep ? true : false;
-	}
+	json["ep"] = ap_state.ep;
+	for (int i = 0; i < ap_episode_count; ++i)
+		json["enabled_episodes"][i++] = ap_state.episodes[i] ? true : false;
 	json["map"] = ap_state.map;
 
 	// Progression items (So we don't scout everytime we connect)
@@ -736,16 +695,6 @@ void save_state()
 void f_itemclr()
 {
 	// Not sure what use this would have here.
-}
-
-
-static const std::map<int64_t, ap_item_t>& get_item_type_table()
-{
-	switch (ap_game)
-	{
-		case ap_game_t::doom: return item_doom_type_table;
-		case ap_game_t::doom2: return d2_item_doom_type_table;
-	}
 }
 
 
@@ -839,49 +788,26 @@ bool find_location(int64_t loc_id, int &ep, int &map, int &index)
 	map = -1;
 	index = -1;
 
-	if (ap_is_episodic)
+	const auto& loc_table = get_location_table();
+	for (const auto& loc_map_table : loc_table)
 	{
-		const auto& loc_table = get_episodic_location_table();
-		for (const auto& loc_map_table : loc_table)
-		{
-			for (const auto& loc_index_table : loc_map_table.second)
-			{
-				for (const auto& loc_index : loc_index_table.second)
-				{
-					if (loc_index.second == loc_id)
-					{
-						ep = loc_map_table.first;
-						map = loc_index_table.first;
-						index = loc_index.first;
-						break;
-					}
-				}
-				if (ep != -1) break;
-			}
-			if (ep != -1) break;
-		}
-		return (ep > 0);
-	}
-	else
-	{
-		//const std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>> d2_location_table;
-		const auto& loc_table = get_location_table();
-		for (const auto& loc_index_table : loc_table)
+		for (const auto& loc_index_table : loc_map_table.second)
 		{
 			for (const auto& loc_index : loc_index_table.second)
 			{
 				if (loc_index.second == loc_id)
 				{
-					ep = -1;
+					ep = loc_map_table.first;
 					map = loc_index_table.first;
 					index = loc_index.first;
 					break;
 				}
 			}
-			if (map != -1) break;
+			if (ep != -1) break;
 		}
-		return (map > 0);
+		if (ep != -1) break;
 	}
+	return (ep > 0);
 }
 
 
@@ -974,33 +900,18 @@ const char* apdoom_get_seed()
 void apdoom_check_location(int ep, int map, int index)
 {
 	int64_t id = 0;
-	if (ap_is_episodic)
-	{
-		const auto& loc_table = get_episodic_location_table();
+	const auto& loc_table = get_location_table();
 
-		auto it1 = loc_table.find(ep);
-		if (it1 == loc_table.end()) return;
+	auto it1 = loc_table.find(ep);
+	if (it1 == loc_table.end()) return;
 
-		auto it2 = it1->second.find(map);
-		if (it2 == it1->second.end()) return;
+	auto it2 = it1->second.find(map);
+	if (it2 == it1->second.end()) return;
 
-		auto it3 = it2->second.find(index);
-		if (it3 == it2->second.end()) return;
+	auto it3 = it2->second.find(index);
+	if (it3 == it2->second.end()) return;
 
-		id = it3->second;
-	}
-	else
-	{
-		const auto& loc_table = get_location_table();
-
-		auto it2 = loc_table.find(map);
-		if (it2 == loc_table.end()) return;
-
-		auto it3 = it2->second.find(index);
-		if (it3 == it2->second.end()) return;
-
-		id = it3->second;
-	}
+	id = it3->second;
 
 	if (index >= 0)
 	{
@@ -1021,37 +932,20 @@ void apdoom_check_location(int ep, int map, int index)
 
 int apdoom_is_location_progression(int ep, int map, int index)
 {
-	if (ap_is_episodic)
-	{
-		const auto& loc_table = get_episodic_location_table();
+	const auto& loc_table = get_location_table();
 
-		auto it1 = loc_table.find(ep);
-		if (it1 == loc_table.end()) return 0;
+	auto it1 = loc_table.find(ep);
+	if (it1 == loc_table.end()) return 0;
 
-		auto it2 = it1->second.find(map);
-		if (it2 == it1->second.end()) return 0;
+	auto it2 = it1->second.find(map);
+	if (it2 == it1->second.end()) return 0;
 
-		auto it3 = it2->second.find(index);
-		if (it3 == it2->second.end()) return 0;
+	auto it3 = it2->second.find(index);
+	if (it3 == it2->second.end()) return 0;
 
-		int64_t id = it3->second;
+	int64_t id = it3->second;
 
-		return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
-	}
-	else
-	{
-		const auto& loc_table = get_location_table();
-
-		auto it2 = loc_table.find(map);
-		if (it2 == loc_table.end()) return 0;
-
-		auto it3 = it2->second.find(index);
-		if (it3 == it2->second.end()) return 0;
-
-		int64_t id = it3->second;
-
-		return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
-	}
+	return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
 }
 
 
@@ -1067,22 +961,12 @@ void apdoom_check_victory()
 {
 	if (ap_state.victory) return;
 
-	if (ap_is_episodic)
+	for (int ep = 0; ep < ap_episode_count; ++ep)
 	{
-		for (int ep = 0; ep < ap_episode_count; ++ep)
-		{
-			if (!ap_state.episodes[ep]) continue;
-			for (int map = 0; map < ap_map_count; ++map)
-			{
-				if (!ap_state.level_states[ep][map].completed) return;
-			}
-		}
-	}
-	else
-	{
+		if (!ap_state.episodes[ep]) continue;
 		for (int map = 0; map < ap_map_count; ++map)
 		{
-			if (!ap_state.d2_level_states[map].completed) return;
+			if (!ap_get_level_state(ep + 1, map + 1)->completed) return;
 		}
 	}
 
