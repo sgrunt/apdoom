@@ -651,6 +651,7 @@ void reset_level()
             region.tint = key_item.color;
             region.rules.x = rules_pos.x - (RULES_W * 3 / 2);
             region.rules.y = rules_pos.y - RULES_H * 3 + i * RULES_H * 3;
+            state->regions[0].rules.connections.push_back({(int)state->regions.size()});
             state->regions.push_back(region);
         }
     }
@@ -1974,6 +1975,9 @@ void renderUI()
 
                         for (const auto& requirement : game->item_requirements)
                         {
+                            float biggest = requirement.icon->getSizef().x;
+                            ImVec2 img_scale(requirement.icon->getSizef().x / biggest * 64.0f, requirement.icon->getSizef().y / biggest * 64.0f);
+
                             {
                                 ImVec4 tint(0.25f, 0.25f, 0.25f, 1);
                                 bool has_requirement = false;
@@ -1987,7 +1991,7 @@ void renderUI()
                                 if (ImGui::ImageButton(
                                     ("or_btn_" + std::to_string(requirement.doom_type)).c_str(), // str_id
                                     (ImTextureID)&requirement.icon, // user_texture_id
-                                    ImVec2(64, 64), // size
+                                    img_scale, // size
                                     ImVec2(0, 0), // uv0
                                     ImVec2(1, 1), // uv1
                                     ImVec4(0, 0, 0, 0), // bgcolor
@@ -2003,6 +2007,7 @@ void renderUI()
                                     }
                                     push_undo();
                                 }
+                                if (ImGui::IsItemHovered()) ImGui::SetTooltip(requirement.name.c_str());
                                 ImGui::NextColumn();
                             }
                             {
@@ -2017,7 +2022,7 @@ void renderUI()
                                 if (ImGui::ImageButton(
                                     ("and_btn_" + std::to_string(requirement.doom_type)).c_str(), // str_id
                                     (ImTextureID)&requirement.icon, // user_texture_id
-                                    ImVec2(64, 64), // size
+                                    img_scale, // size
                                     ImVec2(0, 0), // uv0
                                     ImVec2(1, 1), // uv1
                                     ImVec4(0, 0, 0, 0), // bgcolor
@@ -2033,6 +2038,7 @@ void renderUI()
                                     }
                                     push_undo();
                                 }
+                                if (ImGui::IsItemHovered()) ImGui::SetTooltip(requirement.name.c_str());
                                 ImGui::NextColumn();
                             }
                         }

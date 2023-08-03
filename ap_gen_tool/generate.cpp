@@ -137,24 +137,6 @@ static std::string get_requirement_name(game_t* game, const std::string& level_n
 }
 
 
-    //switch (doom_type)
-    //{
-    //    case 5: return level_name + " - Blue keycard";
-    //    case 40: return level_name + " - Blue skull key";
-    //    case 6: return level_name + " - Yellow keycard";
-    //    case 39: return level_name + " - Yellow skull key";
-    //    case 13: return level_name + " - Red keycard";
-    //    case 38: return level_name + " - Red skull key";
-    //    case 2005: return "Chainsaw";
-    //    case 2001: return has_ssg ? "Super Shotgun" : "Shotgun";
-    //    case 2002: return "Chaingun";
-    //    case 2003: return "Rocket launcher";
-    //    case 2004: return "Plasma gun";
-    //    case 2006: return "BFG9000";
-    //}
-    //return "ERROR";
-
-
 bool loc_name_taken(const std::string& name)
 {
     for (const auto& loc : ap_locations)
