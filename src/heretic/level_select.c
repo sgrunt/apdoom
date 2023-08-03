@@ -37,7 +37,8 @@ typedef struct
     char* urhere_lump_name;
     int urhere_x_offset;
     int urhere_y_offset;
-
+    int progress_x_offset;
+    int progress_y_offset;
 } level_pos_t;
 
 
@@ -48,8 +49,8 @@ static level_pos_t level_pos_infos[5][9] =
 {
     // Episode 1
     {
-        { 172, 78, 20, "IN_YAH", 0, 0 },
-	    { 86, 90, 20, "IN_YAH", 0, 0 },
+        { 172, 78, 20, "IN_YAH", 0, 0, 0, -27 },
+	    { 86, 90, -20, "IN_YAH", 0, 0, 0, -27 },
 	    { 73, 66, 20, "IN_YAH", 0, 0 },
 	    { 159, 95, 20, "IN_YAH", 0, 0 },
 	    { 148, 126, 20, "IN_YAH", 0, 0 },
@@ -385,9 +386,9 @@ void DrawEpisodicLevelSelectStats()
         }
 
         // Progress
-        print_right_aligned_yellow_digit(x - 4, y + start_y_offset, ap_level_state->check_count);
-        V_DrawPatch(x - 3, y + start_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(x + 4, y + start_y_offset, ap_level_info->check_count);
+        print_right_aligned_yellow_digit(x - 4 + level_pos->progress_x_offset, y + start_y_offset + level_pos->progress_y_offset, ap_level_state->check_count);
+        V_DrawPatch(x - 3 + level_pos->progress_x_offset, y + start_y_offset + level_pos->progress_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
+        print_left_aligned_yellow_digit(x + 3 + level_pos->progress_x_offset, y + start_y_offset + level_pos->progress_y_offset, ap_level_info->check_count);
 
         // "You are here"
         if (i == selected_level[selected_ep] && urh_anim < 25)
