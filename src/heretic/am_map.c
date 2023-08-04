@@ -174,7 +174,7 @@ static byte *aliasmax[NUMALIAS] = {
 	&antialias[0][7], &antialias[1][7], &antialias[2][7]
 };*/
 
-static byte *maplump;           // pointer to the raw data for the automap background.
+byte *maplump;           // pointer to the raw data for the automap background.
 static short mapystart = 0;     // y-value for the start of the map bitmap...used in the paralax stuff.
 static short mapxstart = 0;     //x-value for the bitmap.
 static short prev_mapxstart, prev_mapystart; // [crispy] for interpolation

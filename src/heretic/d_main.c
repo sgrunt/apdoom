@@ -540,6 +540,8 @@ void D_Display(void)
     DrawCenterMessage();
 
     // Menu drawing
+    if (MenuActive)
+        V_DrawFullscreenRawOrPatch(W_GetNumForName("TITLE"));
     MN_Drawer();
     HU_DrawAPMessages();   // [AP] Sticky messages on top of everything
 
