@@ -278,6 +278,11 @@ void CT_Ticker(void)
             }
             else if (c == KEY_ENTER)
             {
+                if (strlen(chat_msg[i]) > 0)
+                {
+                    apdoom_send_message(chat_msg[i]);
+                }
+
                 numplayers = 0;
                 for (j = 0; j < MAXPLAYERS; j++)
                 {
@@ -361,7 +366,7 @@ void CT_Drawer(void)
                 patch = W_CacheLumpNum(FontABaseLump +
                                        chat_msg[consoleplayer][i] - 33,
                                        PU_CACHE);
-                V_DrawPatch(x, 10, patch);
+                V_DrawPatch(x, 158-20, patch);
                 x += patch->width;
             }
         }

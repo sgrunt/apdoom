@@ -381,6 +381,8 @@ void load(game_t* game)
 
         _map_state->world_rules = deserialize_rules(_map_json["world_rules"]);
         _map_state->exit_rules = deserialize_rules(_map_json["exit_rules"]);
+
+        meta->view.cam_pos = Vector2((float)(map->bb[2] + map->bb[0]) / 2, -(float)(map->bb[3] + map->bb[1]) / 2);
     }
 }
 

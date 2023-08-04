@@ -598,11 +598,64 @@ void MN_Init(void)
 //
 //---------------------------------------------------------------------------
 
+static patch_t* FontAColoredLumps[4]['Z' + 1 - '!'];
+static int ColoredIdRemap[10] = { 0, 0, 0, 1, 2, 0, 0, 0, 0, 3 };
+#define OG_FONT_BASE_IDX 10
+#define OG_FONT_TOP_IDX 35
+static int colored_font_pal_remap[4][2] = { {OG_FONT_BASE_IDX, OG_FONT_TOP_IDX}, {209, 224}, {116, 136}, {177, 184} };
+
 static void InitFonts(void)
 {
+    patch_t *p, *q;
+    int size;
+    byte* ptr;
+    post_t* post;
+    byte pixel;
+
     FontABaseLump = W_GetNumForName(DEH_String("FONTA_S")) + 1;
     FontBBaseLump = W_GetNumForName(DEH_String("FONTB_S")) + 1;
+
+    // [AP] We generate different colors for fonta
+    for (int c = '!'; c <= 'Z'; ++c)
+    {
+        p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+        size = W_LumpLength(FontABaseLump + c - 33);
+
+        for (int i = 0; i < 4; ++i)
+        {
+            q = malloc(size);
+            memcpy(q, p, size);
+            FontAColoredLumps[i][c - '!'] = q;
+
+            if (i == 0) continue; // Don't modify original text
+
+            for (int col = 0; col < q->width; ++col)
+            {
+                ptr = (byte*)q + q->columnofs[col];
+                while (*ptr != 0xFF)
+                {
+                    post = ptr;
+                    ptr += 3;
+                    for (int row = 0; row < post->length; ++row, ++ptr)
+                    {
+                        pixel = *ptr;
+                        if (pixel >= 36 && pixel <= 51) // Some green-ish dark color they used in the white. Bring that back to white
+                            pixel -= (36 - 10);
+                        
+                        if (pixel >= OG_FONT_BASE_IDX && pixel <= OG_FONT_TOP_IDX)
+                        {
+                            float pixelf = (float)(pixel - OG_FONT_BASE_IDX) / (float)(OG_FONT_TOP_IDX - OG_FONT_BASE_IDX + 1);
+                            pixel = (int)(pixelf * (float)(colored_font_pal_remap[i][1] - colored_font_pal_remap[i][0] + 1)) + colored_font_pal_remap[i][0];
+                        }
+                        *ptr = pixel;
+                    }
+                    ++ptr;
+                }
+            }
+        }
+    }
 }
+
 
 //---------------------------------------------------------------------------
 //
@@ -616,16 +669,25 @@ void MN_DrTextA(const char *text, int x, int y)
 {
     char c;
     patch_t *p;
+    int font = 0;
 
     while ((c = *text++) != 0)
     {
+        c = toupper(c);
+        if (c == '~')
+        {
+            c = *text++;
+            if (c >= '0' && c <= '9')
+                font = ColoredIdRemap[c - '0'];
+            continue;
+        }
         if (c < 33)
         {
             x += 5;
         }
-        else
+        else if (c >= '!' && c <= 'Z')
         {
-            p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+            p = FontAColoredLumps[font][c - '!'];
             V_DrawPatch(x, y, p);
             x += SHORT(p->width) - 1;
         }
@@ -649,6 +711,11 @@ int MN_TextAWidth(const char *text)
     width = 0;
     while ((c = *text++) != 0)
     {
+        if (c == '~')
+        {
+            text++;
+            continue;
+        }
         if (c < 33)
         {
             width += 5;
@@ -661,6 +728,35 @@ int MN_TextAWidth(const char *text)
     }
     return (width);
 }
+
+
+int MN_TextAWidth_len(const char *text, int len)
+{
+    char c;
+    int width;
+    patch_t *p;
+
+    width = 0;
+    while ((c = *text++) != 0 && len-- != 0)
+    {
+        if (c == '~')
+        {
+            text++;
+            continue;
+        }
+        if (c < 33)
+        {
+            width += 5;
+        }
+        else
+        {
+            p = FontAColoredLumps[0][c - '!'];
+            width += SHORT(p->width) - 1;
+        }
+    }
+    return (width);
+}
+
 
 //---------------------------------------------------------------------------
 //

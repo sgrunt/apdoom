@@ -342,7 +342,13 @@ void DrawMessage(void)
     {                           // No message
         return;
     }
-    MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, 1);
+
+    int y = 0;
+    if (viewheight == SCREENHEIGHT && (!automapactive || crispy->automapoverlay))
+        y = 190;
+    else
+        y = 158 - 10;
+    MN_DrTextA(player->message, 160 - MN_TextAWidth(player->message) / 2, y);
 }
 
 //---------------------------------------------------------------------------

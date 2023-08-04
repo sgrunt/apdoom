@@ -276,6 +276,13 @@ void P_LoadSectors(int lump)
     data = W_CacheLumpNum(lump, PU_STATIC);
 
     ms = (mapsector_t *) data;
+
+    if (gameepisode == 1 && gamemap == 7)
+    {
+        ms[74].tag = 3333;
+        sprintf(ms[74].floorpic, "FLOOR28");
+    }
+
     ss = sectors;
     for (i = 0; i < numsectors; i++, ss++, ms++)
     {
@@ -939,7 +946,13 @@ void P_LoadLineDefs(int lump)
     ld = lines;
 
 
-    // [AP] TODO Add special line changes
+    // [AP] Add special line changes
+    if (gameepisode == 1 && gamemap == 7)
+    {
+        mld[779].special = 62;
+        mld[779].tag = 3333;
+        mld[779].flags &= ~0x0010; // LINE_FLAGS_LOWER_UNPEGGED;
+    }
 
 
     for (i = 0; i < numlines; i++, mld++, ld++)
@@ -1020,6 +1033,14 @@ void P_LoadSideDefs(int lump)
     data = W_CacheLumpNum(lump, PU_STATIC);
 
     msd = (mapsidedef_t *) data;
+    
+    if (gameepisode == 1 && gamemap == 7)
+    {
+        sprintf(msd[1119].bottomtexture, "%s", "METL2");
+        sprintf(msd[1533].bottomtexture, "%s", "METL2");
+        sprintf(msd[2223].bottomtexture, "%s", "METL2");
+    }
+
     sd = sides;
     for (i = 0; i < numsides; i++, msd++, sd++)
     {
