@@ -33,13 +33,70 @@ typedef struct
 {
     int x;
     int y;
-    int keys_offset;
     char* urhere_lump_name;
     int urhere_x_offset;
     int urhere_y_offset;
-    int progress_x_offset;
-    int progress_y_offset;
 } level_pos_t;
+
+
+
+const char* level_names[5][9] = {
+    {
+        "THE DOCKS - E1M1",
+        "THE DUNGEONS - E1M2",
+        "THE GATEHOUSE - E1M3",
+        "THE GUARD TOWER - E1M4",
+        "THE CITADEL - E1M5",
+        "THE CATHEDRAL - E1M6",
+        "THE CRYPTS - E1M7",
+        "HELL'S MAW - E1M8",
+        "THE GRAVEYARD - E1M9"
+    },
+    {
+        "THE CRATER - E2M1",
+        "THE LAVA PITS - E2M2",
+        "THE RIVER OF FIRE - E2M3",
+        "THE ICE GROTTO - E2M4",
+        "THE CATACOMBS - E2M5",
+        "THE LABYRINTH - E2M6",
+        "THE GREAT HALL - E2M7",
+        "THE PORTALS OF CHAOS - E2M8",
+        "THE GLACIER - E2M9"
+    },
+    {
+        "THE STOREHOUSE - E3M1",
+        "THE CESSPOOL - E3M2",
+        "THE CONFLUENCE - E3M3",
+        "THE AZURE FORTRESS - E3M4",
+        "THE OPHIDIAN LAIR - E3M5",
+        "THE HALLS OF FEAR - E3M6",
+        "THE CHASM - E3M7",
+        "D'SPARIL'S KEEP - E3M8",
+        "THE AQUIFIER - E3M9"
+    },
+    {
+        "CATAFALQUE - E4M1",
+        "BLOCKHOUSE - E4M2",
+        "AMBULATORY - E4M3",
+        "SEPULCHER - E4M4",
+        "GREAT STAIR - E4M5",
+        "HALLS OF THE APOSTATE - E4M6",
+        "RAMPARTS OF PERDITION - E4M7",
+        "SHATTERED BRIDGE - E4M8",
+        "MAUSOLEUM - E4M9"
+    },
+    {
+        "OCHRE CLIFFS - E5M1",
+        "RAPIDS - E5M2",
+        "QUAY - E5M3",
+        "COURTYARD - E5M4",
+        "HYDRATYR - E5M5",
+        "COLONNADE - E5M6",
+        "FOETID MANSE - E5M7",
+        "FIELD OF JUDGEMENT - E5M8",
+        "SKEIN OF D'SPARIL - E5M9"
+    }
+};
 
 
 extern int cursor_x;
@@ -49,67 +106,67 @@ static level_pos_t level_pos_infos[5][9] =
 {
     // Episode 1
     {
-        { 172, 78, 20, "IN_YAH", 0, 0, 0, -27 },
-	    { 86, 90, -20, "IN_YAH", 0, 0, 0, -27 },
-	    { 73, 66, 20, "IN_YAH", 0, 0 },
-	    { 159, 95, 20, "IN_YAH", 0, 0 },
-	    { 148, 126, 20, "IN_YAH", 0, 0 },
-	    { 132, 54, 20, "IN_YAH", 0, 0 },
-	    { 131, 74, 20, "IN_YAH", 0, 0 },
-	    { 208, 138, 20, "IN_YAH", 0, 0 },
-	    { 52, 101, 20, "IN_YAH", 0, 0 }
+        { 172, 76, "IN_YAH", 0, 0 },
+	    { 87, 93, "IN_YAH", 0, 0 },
+	    { 73, 66, "IN_YAH", 0, 0 },
+	    { 155, 100, "IN_YAH", 0, 0 },
+	    { 147, 127, "IN_YAH", 0, 0 },
+	    { 126, 51, "IN_YAH", 0, 0 },
+	    { 127, 82, "IN_YAH", 0, 0 },
+	    { 207, 138, "IN_YAH", 0, 0 },
+	    { 53, 104, "IN_YAH", 0, 0 }
     },
     
     // Episode 2
     {
-        { 218, 57, 0, "IN_YAH", 0, 0 },
-        { 137, 81, 0, "IN_YAH", 0, 0 },
-        { 155, 124, 0, "IN_YAH", 0, 0 },
-        { 171, 68, 0, "IN_YAH", 0, 0 },
-        { 250, 86, 0, "IN_YAH", 0, 0 },
-        { 136, 98, 0, "IN_YAH", 0, 0 },
-        { 203, 90, 0, "IN_YAH", 0, 0 },
-        { 220, 140, 0, "IN_YAH", 0, 0 },
-        { 279, 106, 0, "IN_YAH", 0, 0 }
+        { 218, 57, "IN_YAH", 0, 0 },
+        { 137, 81, "IN_YAH", 0, 0 },
+        { 155, 124, "IN_YAH", 0, 0 },
+        { 171, 68, "IN_YAH", 0, 0 },
+        { 250, 86, "IN_YAH", 0, 0 },
+        { 136, 98, "IN_YAH", 0, 0 },
+        { 203, 90, "IN_YAH", 0, 0 },
+        { 220, 140, "IN_YAH", 0, 0 },
+        { 279, 106, "IN_YAH", 0, 0 }
     },
 
     // Episode 3
     {
-        { 86, 99, 0, "IN_YAH", 0, 0 },
-        { 124, 103, 0, "IN_YAH", 0, 0 },
-        { 154, 79, 0, "IN_YAH", 0, 0 },
-        { 202, 83, 0, "IN_YAH", 0, 0 },
-        { 178, 59, 0, "IN_YAH", 0, 0 },
-        { 142, 58, 0, "IN_YAH", 0, 0 },
-        { 219, 66, 0, "IN_YAH", 0, 0 },
-        { 247, 57, 0, "IN_YAH", 0, 0 },
-        { 107, 80, 0, "IN_YAH", 0, 0 }
+        { 86, 99, "IN_YAH", 0, 0 },
+        { 124, 103, "IN_YAH", 0, 0 },
+        { 154, 79, "IN_YAH", 0, 0 },
+        { 202, 83, "IN_YAH", 0, 0 },
+        { 178, 59, "IN_YAH", 0, 0 },
+        { 142, 58, "IN_YAH", 0, 0 },
+        { 219, 66, "IN_YAH", 0, 0 },
+        { 247, 57, "IN_YAH", 0, 0 },
+        { 107, 80, "IN_YAH", 0, 0 }
     },
 
     // Episode 4
     {
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 }
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 }
     },
 
     // Episode 5
     {
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, 0, "IN_YAH", 0, 0 }
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 },
+        { 0, 0, "IN_YAH", 0, 0 }
     }
 };
 
@@ -332,8 +389,8 @@ void TickLevelSelect()
 void DrawEpisodicLevelSelectStats()
 {
     int x, y;
-    const int key_spacing = 8;
-    const int start_y_offset = 10;
+    const int key_spacing = 5;
+    const int stat_y_offset = 8;
 
     for (int i = 0; i < ap_map_count; ++i)
     {
@@ -349,66 +406,42 @@ void DrawEpisodicLevelSelectStats()
             if (ap_level_info->keys[i])
                 key_count++;
 
-        const int key_start_offset = -key_spacing * key_count / 2;
+        const int key_start_offset = -key_spacing * key_count / 2 + (3 - key_count) * 2;
         
         // Level complete splash
         if (ap_level_state->completed)
-            V_DrawPatch(x, y, W_CacheLumpName("WISPLAT", PU_CACHE));
+            V_DrawPatch(x, y, W_CacheLumpName("IN_X", PU_CACHE));
 
         // Lock
         if (!ap_level_state->unlocked)
             V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
 
         // Keys
-        const char* key_lump_names[] = {"YKEYICON", "GKEYICON", "BKEYICON"};
-        int key_y = y + key_start_offset;
-        int key_x = x + level_pos->keys_offset;
+        const char* key_lump_names[] = {"SELKEYY", "SELKEYG", "SELKEYB"};
+        int key_y = y + key_start_offset - 1;
+        int key_x = x + 9;
         for (int k = 0; k < 3; ++k)
         {
             if (ap_level_info->keys[k])
             {
                 const char* key_lump_name = key_lump_names[k];
                 V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
-                V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
                 if (ap_level_state->keys[k])
-                {
-                    if (level_pos->keys_offset < 0)
-                    {
-                        V_DrawPatch(key_x - 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
-                    }
-                    else
-                    {
-                        V_DrawPatch(key_x + 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
-                    }
-                }
+                    V_DrawPatch(key_x, key_y, W_CacheLumpName(key_lump_name, PU_CACHE));
                 key_y += key_spacing;
             }
         }
 
         // Progress
-        print_right_aligned_yellow_digit(x - 4 + level_pos->progress_x_offset, y + start_y_offset + level_pos->progress_y_offset, ap_level_state->check_count);
-        V_DrawPatch(x - 3 + level_pos->progress_x_offset, y + start_y_offset + level_pos->progress_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(x + 3 + level_pos->progress_x_offset, y + start_y_offset + level_pos->progress_y_offset, ap_level_info->check_count);
+        print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
+        V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
+        print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_level_info->check_count);
 
         // "You are here"
         if (i == selected_level[selected_ep] && urh_anim < 25)
         {
             int x_offset = 2;
             int y_offset = -2;
-            if (level_pos->urhere_lump_name[5] == '1')
-            {
-                x_offset = -2;
-            }
-            if ((level_pos->urhere_lump_name[5] == '0' && level_pos->keys_offset > 0) ||
-                (level_pos->urhere_lump_name[5] == '1' && level_pos->keys_offset < 0))
-            {
-                y_offset += key_start_offset;
-            }
-            if (level_pos->urhere_lump_name[5] == '2' ||
-                level_pos->urhere_lump_name[5] == '3')
-            {
-                y_offset = 16;
-            }
             V_DrawPatch(x + x_offset + level_pos->urhere_x_offset, 
                         y + y_offset + level_pos->urhere_y_offset, 
                         W_CacheLumpName(level_pos->urhere_lump_name, PU_CACHE));
@@ -416,16 +449,10 @@ void DrawEpisodicLevelSelectStats()
     }
 
     // Level name
-    //char name[9];
-    //snprintf(name, 9, "WILV%d%d", selected_ep, selected_level[selected_ep]);
-    //if (W_CheckNumForName(name) != -1)
-    //{
-    //    patch_t* finished = W_CacheLumpName(name, PU_STATIC);
-    //    V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
-    //}
-
-    // Mouse Cursor
-    //V_DrawPatch(cursor_x, cursor_y, W_CacheLumpName("CURSOR", PU_STATIC));
+    const char* level_name = level_names[selected_ep][selected_level[selected_ep]];
+    int text_x = 160 - MN_TextBWidth(level_name) / 2;
+    int text_y = 200 - 20;
+    MN_DrTextB(level_name, text_x, text_y);
 }
 
 
