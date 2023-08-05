@@ -1955,11 +1955,12 @@ void G_DoWorldDone(void)
 //
 //---------------------------------------------------------------------------
 
-char *savename = NULL;
+char savename[256];
 
 void G_LoadGame(char *name)
 {
-    savename = M_StringDuplicate(name);
+    snprintf(savename, 256, "%s", name);
+    //savename = M_StringDuplicate(name);
     gameaction = ga_loadgame;
 }
 
@@ -1988,8 +1989,8 @@ void G_DoLoadGame(void)
 
     SV_OpenRead(savename);
 
-    free(savename);
-    savename = NULL;
+    //free(savename);
+    //savename = NULL;
 
     // Skip the description field
     SV_Read(savestr, SAVESTRINGSIZE);
