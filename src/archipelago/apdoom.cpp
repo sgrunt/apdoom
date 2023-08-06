@@ -318,7 +318,7 @@ int apdoom_init(ap_settings_t* settings)
 		ap_map_count = 9;
 		ap_weapon_count = 9;
 		ap_ammo_count = 6;
-		ap_powerup_count = 6;
+		ap_powerup_count = 9;
 		ap_inventory_count = 14;
 	}
 	else

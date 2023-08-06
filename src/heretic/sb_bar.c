@@ -631,6 +631,8 @@ extern int left_widget_w, right_widget_w; // [crispy]
 
 void SB_Drawer(void)
 {
+    SB_ForceRedraw(); // [AP] Always redraw status bar, because menu will erase it
+
     int frame;
     static boolean hitCenterFrame;
     int spinfly_x, spinbook_x; // [crispy]

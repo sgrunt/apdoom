@@ -1449,11 +1449,13 @@ void G_PlayerFinishLevel(int player)
 */
     // END HACK
     p = &players[player];
+#if 0 // [AP] Don't clamp inventory between levels
     for (i = 0; i < p->inventorySlotNum; i++)
     {
         p->inventory[i].count = 1;
     }
     p->artifactCount = p->inventorySlotNum;
+#endif
 
     if (!deathmatch)
     {
@@ -1716,11 +1718,17 @@ void set_ap_player_states()
         p->ammo[i] = ap_state.player_state.ammo[i];
     for (int i = 0; i < NUMAMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
+    p->artifactCount = 0;
+    p->inventorySlotNum = 0;
     for (int i = 0; i <NUMINVENTORYSLOTS; ++i)
     {
         p->inventory[i].type = ap_state.player_state.inventory[i].type;
         p->inventory[i].count = ap_state.player_state.inventory[i].count;
+        p->artifactCount += p->inventory[i].count;
+        if (p->inventory[i].count)
+            p->inventorySlotNum = i + 1;
     }
+    p->artifactCount = 0;
 
     // Cards
     ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
