@@ -96,8 +96,7 @@
         {"doom_type": 2003, "name": "Phoenix Rod", "group": "Weapons", "sprite": "WPHXA0"},
         {"doom_type": 2002, "name": "Firemace", "group": "Weapons", "sprite": "WMCEA0"},
         {"doom_type": 2004, "name": "Hellstaff", "group": "Weapons", "sprite": "WSKLA0"},
-        {"doom_type": 8, "name": "Bag of Holding", "group": "", "sprite": "BAGHA0"},
-        {"doom_type": 83, "name": "Wings of Wrath", "group": "Artifacts", "sprite": "ARTISOAR"}
+        {"doom_type": 8, "name": "Bag of Holding", "group": "", "sprite": "BAGHA0"}
     ],
     "fillers": [
         {"doom_type": 36, "name": "Chaos Device", "group": "Artifacts", "sprite": "ARTIATLP"},

@@ -534,7 +534,8 @@ void D_Display(void)
 #endif
 
     // Handle player messages
-    DrawMessage();
+    if (gamestate != GS_LEVEL_SELECT)
+        DrawMessage();
 
     // [crispy] Handle centered player messages
     DrawCenterMessage();

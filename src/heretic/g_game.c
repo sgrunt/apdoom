@@ -1720,15 +1720,20 @@ void set_ap_player_states()
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
     p->artifactCount = 0;
     p->inventorySlotNum = 0;
+    int inv_slot = 0;
     for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
     {
-        p->inventory[i].type = ap_state.player_state.inventory[i].type;
-        p->inventory[i].count = ap_state.player_state.inventory[i].count;
-        p->artifactCount += p->inventory[i].count;
-        if (p->inventory[i].count)
-            p->inventorySlotNum = i + 1;
+        if (ap_state.player_state.inventory[i].type == 9)
+            continue; // Skip wings
+            
+        p->inventory[inv_slot].type = ap_state.player_state.inventory[i].type;
+        p->inventory[inv_slot].count = ap_state.player_state.inventory[i].count;
+        p->artifactCount += p->inventory[inv_slot].count;
+        if (p->inventory[inv_slot].count)
+            p->inventorySlotNum = inv_slot + 1;
         else
             break;
+        ++inv_slot;
     }
     p->artifactCount = 0;
 
@@ -1739,6 +1744,13 @@ void set_ap_player_states()
     p->keys[0] = level_state->keys[0];
     p->keys[1] = level_state->keys[1];
     p->keys[2] = level_state->keys[2];
+
+    if (level_state->special)
+    {
+        p->inventory[p->inventorySlotNum].type = arti_fly;
+        p->inventory[p->inventorySlotNum].count = 1;
+        ++p->inventorySlotNum;
+    }
 
     // mo
     if (p->mo)
@@ -1863,10 +1875,15 @@ void cache_ap_player_state(void)
         ap_state.player_state.ammo[i] = p->ammo[i];
     for (int i = 0; i < NUMAMMO; ++i)
         ap_state.player_state.max_ammo[i] = p->maxammo[i];
+    int inv_slot = 0;
+    memset(ap_state.player_state.inventory, 0, sizeof(ap_inventory_slot_t) * NUMINVENTORYSLOTS);
     for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
     {
-        ap_state.player_state.inventory[i].type = i < p->inventorySlotNum ? p->inventory[i].type : 0;
-        ap_state.player_state.inventory[i].count = i < p->inventorySlotNum ? p->inventory[i].count : 0;
+        if (p->inventory[i].type == arti_fly)
+            continue; // Skip wings
+        ap_state.player_state.inventory[inv_slot].type = i < p->inventorySlotNum ? p->inventory[i].type : 0;
+        ap_state.player_state.inventory[inv_slot].count = i < p->inventorySlotNum ? p->inventory[i].count : 0;
+        ++inv_slot;
     }
 }
 
@@ -2079,6 +2096,11 @@ void G_DoLoadGame(void)
             player->mo->momx = just_loaded_hub->momx;
             player->mo->momy = just_loaded_hub->momy;
             player->mo->momz = just_loaded_hub->momz;
+
+            // When re-entering a level from the hub, remove fly
+            player->mo->flags &= ~MF_NOGRAVITY;
+            player->mo->flags2 &= ~MF2_FLY;
+
             P_SetThingPosition(player->mo);
         }
     }

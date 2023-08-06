@@ -83,6 +83,7 @@ boolean inventory;
 int curpos;
 int inv_ptr;
 int ArtifactFlash;
+extern int wings_timeout;
 
 static int DisplayTicker = 0;
 
@@ -908,10 +909,10 @@ void DrawMainBar(void)
         V_DrawPatch(180, 161, PatchBLACKSQ);
         if (CPlayer->readyArtifact > 0)
         {
-            if (CPlayer->readyArtifact == arti_fly && ap_state.player_state.wings_timeout > 0)
+            if (CPlayer->readyArtifact == arti_fly && wings_timeout > 0)
             {
                 V_DrawPatch(179, 160, W_CacheLumpName("ARTISOFF", PU_CACHE));
-                DrSmallNumber(ap_state.player_state.wings_timeout / TICRATE + 1, 201, 182);
+                DrSmallNumber(wings_timeout / TICRATE + 1, 201, 182);
             }
             else
             {
@@ -1030,10 +1031,10 @@ void DrawInventoryBar(void)
         {
             patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
 
-            if (CPlayer->inventory[x + i].type == arti_fly && ap_state.player_state.wings_timeout > 0)
+            if (CPlayer->inventory[x + i].type == arti_fly && wings_timeout > 0)
             {
                 V_DrawPatch(50 + i * 31, 160, W_CacheLumpName("ARTISOFF", PU_CACHE));
-                DrSmallNumber(ap_state.player_state.wings_timeout / TICRATE + 1, 69 + i * 31, 182);
+                DrSmallNumber(wings_timeout / TICRATE + 1, 69 + i * 31, 182);
             }
             else
             {

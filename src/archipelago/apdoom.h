@@ -66,6 +66,7 @@ typedef struct
     int has_map;
     int unlocked;
     int checks[AP_CHECK_MAX];
+    int special; // Berzerk or Wings
 
 } ap_level_state_t;
 
@@ -92,7 +93,6 @@ typedef struct
     int* ammo;
     int* max_ammo; // Could be deduced by checking backpack
     ap_inventory_slot_t* inventory;
-    int wings_timeout;
 
 } ap_player_state_t;
 

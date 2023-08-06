@@ -37,6 +37,7 @@ void P_PlayerNextArtifact(player_t * player);
 boolean onground;
 int newtorch;                   // used in the torch flicker effect.
 int newtorchdelta;
+int wings_timeout = 0;
 
 boolean WeaponInShareware[] = {
     true,                       // Staff
@@ -1046,9 +1047,9 @@ boolean P_UseArtifact(player_t * player, artitype_t arti)
             P_SPMAngle(mo, MT_EGGFX, mo->angle + (ANG45 / 3));
             break;
         case arti_fly:
-            if (ap_state.player_state.wings_timeout > 0)
+            if (wings_timeout > 0)
                 return (false);
-            ap_state.player_state.wings_timeout = TICRATE * 60 * 2; // 2mins cooldown
+            wings_timeout = TICRATE * 60 * 2; // 2mins cooldown
             if (!P_GivePower(player, pw_flight))
             {
                 return (false);

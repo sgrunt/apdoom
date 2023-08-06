@@ -463,6 +463,12 @@ boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo)
 {
     int i;
 
+    if (arti == arti_fly)
+    {
+        ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+        level_state->special = 1;
+    }
+
     i = 0;
     while (player->inventory[i].type != arti && i < player->inventorySlotNum)
     {
