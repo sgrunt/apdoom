@@ -72,6 +72,13 @@ typedef struct
 
 typedef struct
 {
+    int type;
+    int count;
+} ap_inventory_slot_t;
+
+
+typedef struct
+{
     int health;
     int armor_points;
     int armor_type;
@@ -84,6 +91,7 @@ typedef struct
     int* weapon_owned;
     int* ammo;
     int* max_ammo; // Could be deduced by checking backpack
+    ap_inventory_slot_t* inventory;
 
 } ap_player_state_t;
 

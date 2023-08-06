@@ -185,6 +185,7 @@ int ap_map_count = -1;
 int ap_weapon_count = -1;
 int ap_ammo_count = -1;
 int ap_powerup_count = -1;
+int ap_inventory_count = -1;
 
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
@@ -270,6 +271,22 @@ std::string string_to_hex(const char* str)
 }
 
 
+static const int doom_max_ammos[] = {200, 50, 300, 50};
+static const int doom2_max_ammos[] = {200, 50, 300, 50};
+static const int heretic_max_ammos[] = {100, 50, 200, 200, 20, 150};
+
+
+const int* get_max_ammos()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return doom_max_ammos;
+		case ap_game_t::doom2: return doom2_max_ammos;
+		case ap_game_t::heretic: return heretic_max_ammos;
+	}
+}
+
+
 int apdoom_init(ap_settings_t* settings)
 {
 	memset(&ap_state, 0, sizeof(ap_state));
@@ -282,6 +299,7 @@ int apdoom_init(ap_settings_t* settings)
 		ap_weapon_count = 9;
 		ap_ammo_count = 4;
 		ap_powerup_count = 6;
+		ap_inventory_count = 0;
 	}
 	else if (strcmp(settings->game, "DOOM II") == 0)
 	{
@@ -291,6 +309,7 @@ int apdoom_init(ap_settings_t* settings)
 		ap_weapon_count = 9;
 		ap_ammo_count = 4;
 		ap_powerup_count = 6;
+		ap_inventory_count = 0;
 	}
 	else if (strcmp(settings->game, "Heretic") == 0)
 	{
@@ -298,8 +317,9 @@ int apdoom_init(ap_settings_t* settings)
 		ap_episode_count = 5;
 		ap_map_count = 9;
 		ap_weapon_count = 9;
-		ap_ammo_count = 4;
+		ap_ammo_count = 6;
 		ap_powerup_count = 6;
+		ap_inventory_count = 14;
 	}
 	else
 	{
@@ -313,6 +333,7 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.weapon_owned = new int[ap_weapon_count];
 	ap_state.player_state.ammo = new int[ap_ammo_count];
 	ap_state.player_state.max_ammo = new int[ap_ammo_count];
+	ap_state.player_state.inventory = ap_inventory_count ? new ap_inventory_slot_t[ap_inventory_count] : nullptr;
 
 	memset(ap_state.level_states, 0, sizeof(ap_level_state_t) * ap_episode_count * ap_map_count);
 	memset(ap_state.episodes, 0, sizeof(int) * ap_episode_count);
@@ -320,16 +341,17 @@ int apdoom_init(ap_settings_t* settings)
 	memset(ap_state.player_state.weapon_owned, 0, sizeof(int) * ap_weapon_count);
 	memset(ap_state.player_state.ammo, 0, sizeof(int) * ap_ammo_count);
 	memset(ap_state.player_state.max_ammo, 0, sizeof(int) * ap_ammo_count);
+	if (ap_inventory_count)
+		memset(ap_state.player_state.inventory, 0, sizeof(ap_inventory_slot_t) * ap_inventory_count);
 
 	ap_state.player_state.health = 100;
 	ap_state.player_state.ready_weapon = 1;
 	ap_state.player_state.weapon_owned[0] = 1; // Fist
 	ap_state.player_state.weapon_owned[1] = 1; // Pistol
 	ap_state.player_state.ammo[0] = 50; // Clip
-	ap_state.player_state.max_ammo[0] = 200;
-	ap_state.player_state.max_ammo[1] = 50;
-	ap_state.player_state.max_ammo[2] = 300;
-	ap_state.player_state.max_ammo[3] = 50;
+	auto max_ammos = get_max_ammos();
+	for (int i = 0; i < ap_ammo_count; ++i)
+		ap_state.player_state.max_ammo[i] = max_ammos[i];
 	for (int ep = 0; ep < ap_episode_count; ++ep)
 	{
 		for (int map = 0; map < ap_map_count; ++map)
@@ -511,15 +533,18 @@ void load_state()
 		json_get_bool_or(json["player"]["weapon_owned"][i], ap_state.player_state.weapon_owned[i]);
 	for (int i = 0; i < ap_ammo_count; ++i)
 		json_get_int(json["player"]["ammo"][i], ap_state.player_state.ammo[i]);
-	for (int i = 0; i < ap_ammo_count; ++i)
-		json_get_int(json["player"]["max_ammo"][i], ap_state.player_state.max_ammo[i]);
-
+	for (int i = 0; i < ap_inventory_count; ++i)
+	{
+		const auto& inventory_slot = json["player"]["inventory"][i];
+		json_get_int(inventory_slot["type"], ap_state.player_state.inventory[i].type);
+		json_get_int(inventory_slot["count"], ap_state.player_state.inventory[i].count);
+	}
+	
 	if (ap_state.player_state.backpack)
 	{
-		ap_state.player_state.max_ammo[0] = 200 * 2;
-		ap_state.player_state.max_ammo[1] = 50 * 2;
-		ap_state.player_state.max_ammo[2] = 300 * 2;
-		ap_state.player_state.max_ammo[3] = 50 * 2;
+		auto max_ammos = get_max_ammos();
+		for (int i = 0; i < ap_ammo_count; ++i)
+			ap_state.player_state.max_ammo[i] = max_ammos[i] * (ap_state.player_state.backpack ? 2 : 1);
 	}
 
 	// Level states
@@ -647,10 +672,15 @@ void save_state()
 		json_ammo.append(ap_state.player_state.ammo[i]);
 	json_player["ammo"] = json_ammo;
 
-	Json::Value json_max_ammo(Json::arrayValue);
-	for (int i = 0; i < ap_ammo_count; ++i)
-		json_max_ammo.append(ap_state.player_state.max_ammo[i]);
-	json_player["max_ammo"] = json_max_ammo;
+	Json::Value json_inventory(Json::arrayValue);
+	for (int i = 0; i < ap_inventory_count; ++i)
+	{
+		Json::Value json_inventory_slot;
+		json_inventory_slot["type"] = ap_state.player_state.inventory[i].type;
+		json_inventory_slot["count"] = ap_state.player_state.inventory[i].count;
+		json_inventory.append(json_inventory_slot);
+	}
+	json_player["inventory"] = json_inventory;
 
 	json["player"] = json_player;
 
@@ -698,6 +728,49 @@ void f_itemclr()
 }
 
 
+static const std::map<int, int> doom_keys_map = {{5, 0}, {40, 0}, {6, 1}, {39, 1}, {13, 2}, {38, 2}};
+static const std::map<int, int> doom2_keys_map = {{5, 0}, {40, 0}, {6, 1}, {39, 1}, {13, 2}, {38, 2}};
+static const std::map<int, int> heretic_keys_map = {{80, 0}, {73, 1}, {79, 2}};
+
+
+const std::map<int, int>& get_keys_map()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return doom_keys_map;
+		case ap_game_t::doom2: return doom2_keys_map;
+		case ap_game_t::heretic: return heretic_keys_map;
+	}
+}
+
+
+int get_map_doom_type()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return 2026;
+		case ap_game_t::doom2: return 2026;
+		case ap_game_t::heretic: return 35;
+	}
+}
+
+
+static const std::map<int, int> doom_weapons_map = {{2001, 2}, {2002, 3}, {2003, 4}, {2004, 5}, {2006, 6}, {2005, 7}};
+static const std::map<int, int> doom2_weapons_map = {{2001, 2}, {2002, 3}, {2003, 4}, {2004, 5}, {2006, 6}, {2005, 7}, {82, 1}};
+static const std::map<int, int> heretic_weapons_map = {{2005, 7}, {2001, 2}, {53, 3}, {2003, 5}, {2002, 6}, {2004, 4}};
+
+
+const std::map<int, int>& get_weapons_map()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return doom_weapons_map;
+		case ap_game_t::doom2: return doom2_weapons_map;
+		case ap_game_t::heretic: return heretic_weapons_map;
+	}
+}
+
+
 void f_itemrecv(int64_t item_id, bool notify_player)
 {
 	const auto& item_type_table = get_item_type_table();
@@ -708,59 +781,33 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 
 	auto level_state = ap_get_level_state(item.ep, item.map);
 
-	switch (item.doom_type)
+	// Key?
+	const auto& keys_map = get_keys_map();
+	auto key_it = keys_map.find(item.doom_type);
+	if (key_it != keys_map.end())
+		level_state->keys[key_it->second] = 1;
+
+	// Map?
+	if (item.doom_type == get_map_doom_type())
+		level_state->has_map = 1;
+
+	// Backpack?
+	if (item.doom_type == 8)
 	{
-		// Is it a key?
-		case 5:
-		case 40:
-			level_state->keys[0] = 1;
-			break;
-		case 6:
-		case 39:
-			level_state->keys[1] = 1;
-			break;
-		case 13:
-		case 38:
-			level_state->keys[2] = 1;
-			break;
-
-		// Map
-		case 2026:
-			level_state->has_map = 1;
-			break;
-
-		// Backpack
-		case 8:
-			ap_state.player_state.backpack = 1;
-			ap_state.player_state.max_ammo[0] = 200 * 2;
-			ap_state.player_state.max_ammo[1] = 50 * 2;
-			ap_state.player_state.max_ammo[2] = 300 * 2;
-			ap_state.player_state.max_ammo[3] = 50 * 2;
-            break;
-
-		// Is it a weapon?
-        case 2001:
-			ap_state.player_state.weapon_owned[2] = 1;
-            break;
-        case 2002:
-			ap_state.player_state.weapon_owned[3] = 1;
-            break;
-        case 2003:
-			ap_state.player_state.weapon_owned[4] = 1;	
-            break;
-        case 2004:
-			ap_state.player_state.weapon_owned[5] = 1;	
-            break;
-        case 2006:
-			ap_state.player_state.weapon_owned[6] = 1;	
-            break;
-        case 2005:
-			ap_state.player_state.weapon_owned[7] = 1;	
-            break;
-		case 82:
-			ap_state.player_state.weapon_owned[8] = 1;
-			break;
+		ap_state.player_state.backpack = 1;
+		auto max_ammos = get_max_ammos();
+		for (int i = 0; i < ap_ammo_count; ++i)
+			ap_state.player_state.max_ammo[i] = max_ammos[i] * 2;
 	}
+
+	// Weapon?
+	const auto& weapons_map = get_weapons_map();
+	auto weapon_it = weapons_map.find(item.doom_type);
+	if (weapon_it != weapons_map.end())
+		ap_state.player_state.weapon_owned[weapon_it->second] = 1;
+
+	// Ignore inventory items, the game will add them up
+
 
 	// Is it a level?
 	if (item.doom_type == -1)

@@ -1716,6 +1716,11 @@ void set_ap_player_states()
         p->ammo[i] = ap_state.player_state.ammo[i];
     for (int i = 0; i < NUMAMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
+    for (int i = 0; i <NUMINVENTORYSLOTS; ++i)
+    {
+        p->inventory[i].type = ap_state.player_state.inventory[i].type;
+        p->inventory[i].count = ap_state.player_state.inventory[i].count;
+    }
 
     // Cards
     ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
@@ -1848,6 +1853,11 @@ void cache_ap_player_state(void)
         ap_state.player_state.ammo[i] = p->ammo[i];
     for (int i = 0; i < NUMAMMO; ++i)
         ap_state.player_state.max_ammo[i] = p->maxammo[i];
+    for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
+    {
+        ap_state.player_state.inventory[i].type = p->inventory[i].type;
+        ap_state.player_state.inventory[i].count = p->inventory[i].count;
+    }
 }
 
 void G_DoCompleted(void)
