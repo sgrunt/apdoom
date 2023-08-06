@@ -1552,6 +1552,7 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
 
     // Geometry
     int i = 0;
+    bool is_heretic = game->codename == "heretic";
     for (const auto& line : map->linedefs)
     {
         Color color = bound_color;
@@ -1559,21 +1560,42 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
 
         if (draw_tools)
         {
-            if (line.special_type == LT_DR_DOOR_RED_OPEN_WAIT_CLOSE ||
-                line.special_type == LT_D1_DOOR_RED_OPEN_STAY ||
-                line.special_type == LT_SR_DOOR_RED_OPEN_STAY_FAST ||
-                line.special_type == LT_S1_DOOR_RED_OPEN_STAY_FAST)
-                color = game->key_colors[2];// Color(1, 0, 0);
-            else if (line.special_type == LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE ||
-                line.special_type == LT_D1_DOOR_YELLOW_OPEN_STAY ||
-                line.special_type == LT_SR_DOOR_YELLOW_OPEN_STAY_FAST ||
-                line.special_type == LT_S1_DOOR_YELLOW_OPEN_STAY_FAST)
-                color = game->key_colors[1];
-            else if (line.special_type == LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE ||
-                line.special_type == LT_D1_DOOR_BLUE_OPEN_STAY ||
-                line.special_type == LT_SR_DOOR_BLUE_OPEN_STAY_FAST ||
-                line.special_type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
-                color = game->key_colors[0];
+            if (is_heretic)
+            {
+                if (line.special_type == LT_DR_DOOR_RED_OPEN_WAIT_CLOSE ||
+                    line.special_type == LT_D1_DOOR_RED_OPEN_STAY ||
+                    line.special_type == LT_SR_DOOR_RED_OPEN_STAY_FAST ||
+                    line.special_type == LT_S1_DOOR_RED_OPEN_STAY_FAST)
+                    color = game->key_colors[1];
+                else if (line.special_type == LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE ||
+                    line.special_type == LT_D1_DOOR_YELLOW_OPEN_STAY ||
+                    line.special_type == LT_SR_DOOR_YELLOW_OPEN_STAY_FAST ||
+                    line.special_type == LT_S1_DOOR_YELLOW_OPEN_STAY_FAST)
+                    color = game->key_colors[0];
+                else if (line.special_type == LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE ||
+                    line.special_type == LT_D1_DOOR_BLUE_OPEN_STAY ||
+                    line.special_type == LT_SR_DOOR_BLUE_OPEN_STAY_FAST ||
+                    line.special_type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
+                    color = game->key_colors[2];
+            }
+            else
+            {
+                if (line.special_type == LT_DR_DOOR_RED_OPEN_WAIT_CLOSE ||
+                    line.special_type == LT_D1_DOOR_RED_OPEN_STAY ||
+                    line.special_type == LT_SR_DOOR_RED_OPEN_STAY_FAST ||
+                    line.special_type == LT_S1_DOOR_RED_OPEN_STAY_FAST)
+                    color = game->key_colors[2];
+                else if (line.special_type == LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE ||
+                    line.special_type == LT_D1_DOOR_YELLOW_OPEN_STAY ||
+                    line.special_type == LT_SR_DOOR_YELLOW_OPEN_STAY_FAST ||
+                    line.special_type == LT_S1_DOOR_YELLOW_OPEN_STAY_FAST)
+                    color = game->key_colors[1];
+                else if (line.special_type == LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE ||
+                    line.special_type == LT_D1_DOOR_BLUE_OPEN_STAY ||
+                    line.special_type == LT_SR_DOOR_BLUE_OPEN_STAY_FAST ||
+                    line.special_type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
+                    color = game->key_colors[0];
+            }
         }
 
         if (draw_tools && tool == tool_t::region)

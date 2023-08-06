@@ -334,6 +334,7 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.ammo = new int[ap_ammo_count];
 	ap_state.player_state.max_ammo = new int[ap_ammo_count];
 	ap_state.player_state.inventory = ap_inventory_count ? new ap_inventory_slot_t[ap_inventory_count] : nullptr;
+	ap_state.player_state.wings_timeout = 0;
 
 	memset(ap_state.level_states, 0, sizeof(ap_level_state_t) * ap_episode_count * ap_map_count);
 	memset(ap_state.episodes, 0, sizeof(int) * ap_episode_count);
@@ -539,6 +540,7 @@ void load_state()
 		json_get_int(inventory_slot["type"], ap_state.player_state.inventory[i].type);
 		json_get_int(inventory_slot["count"], ap_state.player_state.inventory[i].count);
 	}
+	json_get_int(json["player"]["wings_timeout"], ap_state.player_state.wings_timeout);
 	
 	if (ap_state.player_state.backpack)
 	{
@@ -681,6 +683,8 @@ void save_state()
 		json_inventory.append(json_inventory_slot);
 	}
 	json_player["inventory"] = json_inventory;
+
+	json_player["wings_timeout"] = ap_state.player_state.wings_timeout;
 
 	json["player"] = json_player;
 

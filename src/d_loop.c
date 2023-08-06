@@ -40,6 +40,8 @@
 
 #include "crispy.h"
 
+#include "apdoom.h"
+
 // The complete set of data for a particular tic.
 
 typedef struct
@@ -823,6 +825,11 @@ void TryRunTics (void)
             TicdupSquash(set);
 
             tick_sticky_msgs();
+
+            
+	    // Wings usage timeout
+	    if (ap_state.player_state.wings_timeout > 0)
+		    --ap_state.player_state.wings_timeout;
 	}
 
 	NetUpdate ();	// check for new console commands

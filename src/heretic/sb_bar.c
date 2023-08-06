@@ -27,6 +27,8 @@
 #include "s_sound.h"
 #include "v_video.h"
 #include "am_map.h"
+#include "apdoom.h"
+#include "i_timer.h"
 
 // Types
 
@@ -416,14 +418,14 @@ static void DrSmallNumber(int val, int x, int y)
     {
         return;
     }
-    if (val > 9)
+
+    while (val)
     {
-        patch = PatchSmNumbers[val / 10];
-        V_DrawPatch(x, y, patch);
+        patch = PatchSmNumbers[val % 10];
+        V_DrawPatch(x + 4, y, patch);
+        val /= 10;
+        x -= 4;
     }
-    val = val % 10;
-    patch = PatchSmNumbers[val];
-    V_DrawPatch(x + 4, y, patch);
 }
 
 //---------------------------------------------------------------------------
@@ -906,10 +908,18 @@ void DrawMainBar(void)
         V_DrawPatch(180, 161, PatchBLACKSQ);
         if (CPlayer->readyArtifact > 0)
         {
-            V_DrawPatch(179, 160,
-                        W_CacheLumpName(DEH_String(patcharti[CPlayer->readyArtifact]),
-                                        PU_CACHE));
-            DrSmallNumber(CPlayer->inventory[inv_ptr].count, 201, 182);
+            if (CPlayer->readyArtifact == arti_fly && ap_state.player_state.wings_timeout > 0)
+            {
+                V_DrawPatch(179, 160, W_CacheLumpName("ARTISOFF", PU_CACHE));
+                DrSmallNumber(ap_state.player_state.wings_timeout / TICRATE + 1, 201, 182);
+            }
+            else
+            {
+                V_DrawPatch(179, 160,
+                            W_CacheLumpName(DEH_String(patcharti[CPlayer->readyArtifact]),
+                                            PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[inv_ptr].count, 201, 182);
+            }
         }
         oldarti = CPlayer->readyArtifact;
         oldartiCount = CPlayer->inventory[inv_ptr].count;
@@ -1020,8 +1030,16 @@ void DrawInventoryBar(void)
         {
             patch = DEH_String(patcharti[CPlayer->inventory[x + i].type]);
 
-            V_DrawPatch(50 + i * 31, 160, W_CacheLumpName(patch, PU_CACHE));
-            DrSmallNumber(CPlayer->inventory[x + i].count, 69 + i * 31, 182);
+            if (CPlayer->inventory[x + i].type == arti_fly && ap_state.player_state.wings_timeout > 0)
+            {
+                V_DrawPatch(50 + i * 31, 160, W_CacheLumpName("ARTISOFF", PU_CACHE));
+                DrSmallNumber(ap_state.player_state.wings_timeout / TICRATE + 1, 69 + i * 31, 182);
+            }
+            else
+            {
+                V_DrawPatch(50 + i * 31, 160, W_CacheLumpName(patch, PU_CACHE));
+                DrSmallNumber(CPlayer->inventory[x + i].count, 69 + i * 31, 182);
+            }
         }
     }
     V_DrawPatch(50 + curpos * 31, 189, PatchSELECTBOX);

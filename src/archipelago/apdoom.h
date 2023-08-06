@@ -92,6 +92,7 @@ typedef struct
     int* ammo;
     int* max_ammo; // Could be deduced by checking backpack
     ap_inventory_slot_t* inventory;
+    int wings_timeout;
 
 } ap_player_state_t;
 

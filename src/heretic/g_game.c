@@ -1720,13 +1720,15 @@ void set_ap_player_states()
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
     p->artifactCount = 0;
     p->inventorySlotNum = 0;
-    for (int i = 0; i <NUMINVENTORYSLOTS; ++i)
+    for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
     {
         p->inventory[i].type = ap_state.player_state.inventory[i].type;
         p->inventory[i].count = ap_state.player_state.inventory[i].count;
         p->artifactCount += p->inventory[i].count;
         if (p->inventory[i].count)
             p->inventorySlotNum = i + 1;
+        else
+            break;
     }
     p->artifactCount = 0;
 
@@ -1863,8 +1865,8 @@ void cache_ap_player_state(void)
         ap_state.player_state.max_ammo[i] = p->maxammo[i];
     for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
     {
-        ap_state.player_state.inventory[i].type = p->inventory[i].type;
-        ap_state.player_state.inventory[i].count = p->inventory[i].count;
+        ap_state.player_state.inventory[i].type = i < p->inventorySlotNum ? p->inventory[i].type : 0;
+        ap_state.player_state.inventory[i].count = i < p->inventorySlotNum ? p->inventory[i].count : 0;
     }
 }
 
