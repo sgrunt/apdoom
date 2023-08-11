@@ -1,0 +1,7 @@
+# Credits
+
+Daivuk - David St-Louis - Creator of APDOOM
+
+## Extra help
+
+The community on discord for helping testing, helping with design question, coding questions, reviewing, etc.

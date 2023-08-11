@@ -193,6 +193,10 @@ P_TeleportMove
     thing->interp = false;
 
     P_SetThingPosition (thing);
+
+    // If it's the player, make sure to reset hub timer by like 5sec so we don't accidentally retrigger it
+    if (thing == players[consoleplayer].mo)
+        leveltimesinceload = min(leveltimesinceload, 175);
 	
     return true;
 }
