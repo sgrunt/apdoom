@@ -242,7 +242,7 @@ void play_level(int ep, int lvl)
         G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
     }
 
-    apdoom_check_victory(); // In case we had pending victory
+    //apdoom_check_victory(); // In case we had pending victory
 
     HU_ClearAPMessages();
 }
@@ -359,6 +359,7 @@ void ShowLevelSelect()
 
     ap_state.ep = 0;
     ap_state.map = 0;
+    players[consoleplayer].centerMessage = NULL;
 
     if (gamemode == commercial)
     {

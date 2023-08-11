@@ -145,8 +145,8 @@ void F_TextWrite(void)
 //
 // erase the entire screen to a tiled background
 //
-#if 0
-    src = W_CacheLumpName(finaleflat, PU_CACHE);
+#if 1
+    src = W_CacheLumpName("AP_FLAT"/*finaleflat*/, PU_CACHE);
     dest = I_VideoBuffer;
     for (y = 0; y < SCREENHEIGHT; y++)
     {

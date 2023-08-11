@@ -353,15 +353,9 @@ int apdoom_init(ap_settings_t* settings)
 	for (int i = 0; i < ap_ammo_count; ++i)
 		ap_state.player_state.max_ammo[i] = max_ammos[i];
 	for (int ep = 0; ep < ap_episode_count; ++ep)
-	{
 		for (int map = 0; map < ap_map_count; ++map)
-		{
 			for (int k = 0; k < AP_CHECK_MAX; ++k)
-			{
 				ap_state.level_states[ep * ap_map_count + map].checks[k] = -1;
-			}
-		}
-	}
 
 	ap_settings = *settings;
 
@@ -557,16 +551,16 @@ void load_state()
 			json_get_bool_or(json["episodes"][i][j]["keys0"], level_state->keys[0]);
 			json_get_bool_or(json["episodes"][i][j]["keys1"], level_state->keys[1]);
 			json_get_bool_or(json["episodes"][i][j]["keys2"], level_state->keys[2]);
-			json_get_bool_or(json["episodes"][i][j]["check_count"], level_state->check_count);
+			//json_get_bool_or(json["episodes"][i][j]["check_count"], level_state->check_count);
 			json_get_bool_or(json["episodes"][i][j]["has_map"], level_state->has_map);
 			json_get_bool_or(json["episodes"][i][j]["unlocked"], level_state->unlocked);
 			json_get_bool_or(json["episodes"][i][j]["special"], level_state->special);
 
-			int k = 0;
-			for (const auto& json_check : json["episodes"][i][j]["checks"])
-			{
-				json_get_bool_or(json_check, level_state->checks[k++]);
-			}
+			//int k = 0;
+			//for (const auto& json_check : json["episodes"][i][j]["checks"])
+			//{
+			//	json_get_bool_or(json_check, level_state->checks[k++]);
+			//}
 		}
 	}
 
@@ -812,12 +806,13 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 
 	// Ignore inventory items, the game will add them up
 
-
 	// Is it a level?
 	if (item.doom_type == -1)
-	{
 		level_state->unlocked = 1;
-	}
+
+	// Level complete?
+	if (item.doom_type == -2)
+		level_state->completed = 1;
 
 
 	if (!notify_player) return;
@@ -971,10 +966,10 @@ void apdoom_check_location(int ep, int map, int index)
 			printf("APDOOM: Location already checked\n");
 		}
 		else
-		{
-			auto level_state = ap_get_level_state(ep, map);
-			level_state->checks[level_state->check_count] = index;
-			level_state->check_count++;
+		{ // We get back from AP
+			//auto level_state = ap_get_level_state(ep, map);
+			//level_state->checks[level_state->check_count] = index;
+			//level_state->check_count++;
 		}
 	}
 	AP_SendItem(id);
