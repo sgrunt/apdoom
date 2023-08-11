@@ -1310,6 +1310,7 @@ void P_LoadSideDefs (int lump)
         else if (gamemap == 12)
         {
             memcpy(msd[366].bottomtexture, "SUPPORT2", 8);
+            memcpy(msd[316].bottomtexture, "SUPPORT2", 8);
         }
     }
 
