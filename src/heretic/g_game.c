@@ -1457,6 +1457,7 @@ void G_PlayerFinishLevel(int player)
     p->artifactCount = p->inventorySlotNum;
 #endif
 
+#if 0 // [AP] What's that for? To get rid of wings? This screws up our wing timer :)
     if (!deathmatch)
     {
         for (i = 0; i < 16; i++)
@@ -1464,6 +1465,7 @@ void G_PlayerFinishLevel(int player)
             P_PlayerUseArtifact(p, arti_fly);
         }
     }
+#endif
     memset(p->powers, 0, sizeof(p->powers));
     memset(p->keys, 0, sizeof(p->keys));
     playerkeys = 0;
@@ -1735,7 +1737,6 @@ void set_ap_player_states()
             break;
         ++inv_slot;
     }
-    p->artifactCount = 0;
 
     // Cards
     ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);

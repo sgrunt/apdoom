@@ -370,7 +370,7 @@ void DrawCenterMessage(void)
     }
     // Place message above quit game message position so they don't overlap
     dp_translation = cr[CR_GOLD];
-    MN_DrTextA(player->centerMessage, 160 - MN_TextAWidth(player->centerMessage) / 2, 70);
+    MN_DrTextA(player->centerMessage, 160 - MN_TextAWidth(player->centerMessage) / 2, 120);
     dp_translation = NULL;
 }
 

@@ -903,8 +903,8 @@ void DrawMainBar(void)
         oldarti = -1;           // so that the correct artifact fills in after the flash
         UpdateState |= I_STATBAR;
     }
-    else if (oldarti != CPlayer->readyArtifact
-             || oldartiCount != CPlayer->inventory[inv_ptr].count)
+    else/* if (oldarti != CPlayer->readyArtifact
+             || oldartiCount != CPlayer->inventory[inv_ptr].count)*/
     {
         V_DrawPatch(180, 161, PatchBLACKSQ);
         if (CPlayer->readyArtifact > 0)
