@@ -1092,29 +1092,30 @@ void apdoom_update()
 
 		std::string colored_msg;
 
-		if (msg->messageParts.empty())
+		switch (msg->type)
 		{
-			colored_msg = "~2" + msg->text;
-		}
-		else
-		{
-			for (const auto& message_part : msg->messageParts)
+			case AP_MessageType::ItemSend:
 			{
-				switch (message_part.type)
-				{
-					case AP_NormalText:
-						colored_msg += "~2" + message_part.text;
-						break;
-					case AP_LocationText:
-						colored_msg += "~3" + message_part.text;
-						break;
-					case AP_ItemText:
-						colored_msg += "~9" + message_part.text;
-						break;
-					case AP_PlayerText:
-						colored_msg += "~4" + message_part.text;
-						break;
-				}
+				AP_ItemSendMessage* o_msg = static_cast<AP_ItemSendMessage*>(msg);
+				colored_msg = "~9" + o_msg->item + "~2 was sent to ~4" + o_msg->recvPlayer;
+				break;
+			}
+			case AP_MessageType::ItemRecv:
+			{
+				AP_ItemRecvMessage* o_msg = static_cast<AP_ItemRecvMessage*>(msg);
+				colored_msg = "~2Received ~9" + o_msg->item + "~2 from ~4" + o_msg->sendPlayer;
+				break;
+			}
+			case AP_MessageType::Hint:
+			{
+				AP_HintMessage* o_msg = static_cast<AP_HintMessage*>(msg);
+				colored_msg = "~9" + o_msg->item + "~2 from ~4" + o_msg->sendPlayer + "~2 to ~4" + o_msg->recvPlayer + "~2 at ~3" + o_msg->location + (o_msg->checked ? " (Checked)" : " (Unchecked)");
+				break;
+			}
+			default:
+			{
+				colored_msg = "~2" + msg->text;
+				break;
 			}
 		}
 
