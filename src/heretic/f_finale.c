@@ -84,6 +84,7 @@ boolean F_Responder(event_t * event)
                 case KEY_ENTER:
                 case 'e':
                 case ' ':
+                    finalecount = 0;
                     ShowLevelSelect();
                     return true;
             }
