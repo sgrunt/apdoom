@@ -608,6 +608,7 @@ Events are operations triggered by using, crossing, or shooting special lines, o
 void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
 {
     line_t *line;
+    int i;
 
     line = &lines[linenum];
     if (!thing->player)
@@ -725,6 +726,12 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
             line->special = 0;
             break;
         case 52:               // EXIT!
+		    // make sure there is a player alive for victory
+		    for (i = 0; i < MAXPLAYERS; i++)
+			    if (playeringame[i] && players[i].health > 0)
+				    break;
+		    if (i == MAXPLAYERS) return;
+
             G_ExitLevel();
             line->special = 0;
             break;

@@ -1,5 +1,6 @@
 Release/apdoom-launcher.exe
 Release/crispy-apdoom.exe
+Release/crispy-apheretic.exe
 Release/crispy-setup.exe
 Release/APCpp.dll
 Release/intl.dll
@@ -11,5 +12,7 @@ Release/samplerate.dll
 Release/SDL2.dll
 Release/SDL2_mixer.dll
 Release/APDOOM.WAD
+Release/APHERETIC.WAD
 Release/credits-doom-1993.txt
 Release/credits-doom-ii.txt
+Release/credits-heretic.txt
