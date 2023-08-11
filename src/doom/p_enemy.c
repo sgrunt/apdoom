@@ -2007,6 +2007,14 @@ void A_BrainExplode (mobj_t* mo)
 
 void A_BrainDie (mobj_t*	mo)
 {
+    int i;
+
+    // make sure there is a player alive for victory
+    for (i = 0; i < MAXPLAYERS; i++)
+        if (playeringame[i] && players[i].health > 0)
+            break;
+    if (i == MAXPLAYERS) return;
+
     G_ExitLevel ();
 }
 

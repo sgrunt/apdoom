@@ -598,6 +598,7 @@ P_CrossSpecialLinePtr
 {
 //  line_t*	line;
     int		ok;
+	int i;
 
 //  line = &lines[linenum];
     
@@ -788,10 +789,18 @@ P_CrossSpecialLinePtr
 	line->special = 0;
 	break;
 	
-      case 52:
-	// EXIT!
-	G_ExitLevel ();
-	break;
+	case 52:
+	{
+		// make sure there is a player alive for victory
+		for (i = 0; i < MAXPLAYERS; i++)
+			if (playeringame[i] && players[i].health > 0)
+				break;
+		if (i == MAXPLAYERS) return;
+
+		// EXIT!
+		G_ExitLevel ();
+		break;
+	}
 	
       case 53:
 	// Perpetual Platform Raise

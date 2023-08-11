@@ -92,7 +92,6 @@ static int localplayer;
 // Used for original sync code.
 
 static int      skiptics = 0;
-extern int wings_timeout;
 
 // Reduce the bandwidth needed by sampling game input less and transmitting
 // less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
@@ -826,11 +825,6 @@ void TryRunTics (void)
             TicdupSquash(set);
 
             tick_sticky_msgs();
-
-            
-	    // Wings usage timeout
-	    if (wings_timeout > 0)
-		    --wings_timeout;
 	}
 
 	NetUpdate ();	// check for new console commands
