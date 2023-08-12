@@ -178,6 +178,7 @@ HUlib_keyInIText
   unsigned char ch );
 
 void HUlib_drawIText(hu_itext_t* it);
+void HUlib_drawText(const char* text, int x, int y);
 
 // erases all itext lines
 void HUlib_eraseIText(hu_itext_t* it); 

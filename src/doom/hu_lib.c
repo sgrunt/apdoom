@@ -196,6 +196,64 @@ HUlib_drawTextLine
     dp_translation = NULL;
 }
 
+void HUlib_drawText(const char* text, int x, int y)
+{
+    int			i;
+    int			w;
+    unsigned char	c;
+	int len = strlen(text);
+
+	int og_x = x;
+
+    // draw the new stuff
+    for (i=0;i<len;i++)
+    {
+	c = toupper(text[i]);
+	// [crispy] support multi-colored text lines
+	if (c == cr_esc)
+	{
+		if (text[i+1] >= '0' && text[i+1] <= '0' + CRMAX - 1)
+		{
+		    i++;
+		    dp_translation = (crispy->coloredhud & COLOREDHUD_TEXT) ? cr[(int) (text[i] - '0')] : NULL;
+		}
+	}
+	else
+	// [crispy] support line breaks
+	if (c == '\n')
+	{
+	    x = og_x;
+	    y += 9;
+	}
+	// [crispy] support tab stops
+	else if (c == '\t')
+	{
+	    x = x - (x - og_x)%12 + 12;
+	    if (x >= ORIGWIDTH + WIDESCREENDELTA)
+		break;
+	}
+	else
+	if (c != ' '
+	    && c >= HU_FONTSTART
+	    && c <= '_')
+	{
+	    w = SHORT(hu_font[c - HU_FONTSTART]->width);
+	    if (x+w > ORIGWIDTH + WIDESCREENDELTA)
+		break;
+	    V_DrawPatchDirect(x, y, hu_font[c - HU_FONTSTART]);
+	    x += w;
+	}
+	else
+	{
+	    x += 4;
+	    if (x >= ORIGWIDTH + WIDESCREENDELTA)
+		break;
+	}
+    }
+
+    dp_translation = NULL;
+}
+
 
 // sorta called by HU_Erase and just better darn get things straight
 void HUlib_eraseTextLine(hu_textline_t* l)

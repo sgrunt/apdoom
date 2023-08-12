@@ -84,6 +84,7 @@
 #include "level_select.h" // [ap]
 #include "apdoom.h"
 #include "deh_misc.h"
+#include "ap_notif.h"
 
 //
 // D-DoomLoop()
@@ -584,7 +585,7 @@ boolean D_Display (void)
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
-
+    ap_notif_draw();
     HU_DrawAPMessages();   // ^ no, Sticky messages on top of everything :)
     NetUpdate ();         // send out any new accumulation
 
@@ -769,8 +770,6 @@ void D_RunFrame()
     int tics;
     static int wipestart;
     static boolean wipe;
-
-    apdoom_update();
 
     if (wipe)
     {

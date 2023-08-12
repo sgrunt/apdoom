@@ -801,6 +801,17 @@ const std::map<int, int>& get_weapons_map()
 }
 
 
+const std::map<int, std::string>& get_sprites()
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom: return ap_doom_type_sprites;
+		case ap_game_t::doom2: return ap_doom2_type_sprites;
+		case ap_game_t::heretic: return ap_heretic_type_sprites;
+	}
+}
+
+
 void f_itemrecv(int64_t item_id, bool notify_player)
 {
 	const auto& item_type_table = get_item_type_table();
@@ -870,8 +881,9 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	ap_settings.give_item_callback(item.doom_type, item.ep, item.map);
 
 	// Add notification icon
-	auto sprite_it = ap_heretic_type_sprites.find(item.doom_type);
-	if (sprite_it != ap_heretic_type_sprites.end())
+	const auto& sprite_map = get_sprites();
+	auto sprite_it = sprite_map.find(item.doom_type);
+	if (sprite_it != sprite_map.end())
 	{
 		ap_notification_icon_t notif;
 		snprintf(notif.sprite, 9, "%s", sprite_it->second.c_str());
@@ -1223,7 +1235,7 @@ void apdoom_update()
 	{
 		auto& notification_icon = *it;
 
-		if (notification_icon.state == AP_NOTIF_STATE_PENDING && previous_y > -160.0f)
+		if (notification_icon.state == AP_NOTIF_STATE_PENDING && previous_y > -130.0f)
 		{
 			notification_icon.state = AP_NOTIF_STATE_DROPPING;
 		}
