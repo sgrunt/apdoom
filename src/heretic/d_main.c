@@ -53,6 +53,7 @@
 
 #include "level_select.h" // [ap]
 #include "ap_msg.h"
+#include "ap_notif.h"
 
 #define CT_KEY_GREEN    'g'
 #define CT_KEY_YELLOW   'y'
@@ -544,6 +545,7 @@ void D_Display(void)
     if (MenuActive || askforquit)
         V_DrawFullscreenRawOrPatch(W_GetNumForName("TITLE"));
     MN_Drawer();
+    ap_notif_draw();
     HU_DrawAPMessages();   // [AP] Sticky messages on top of everything
 
     // Send out any new accumulation
@@ -622,8 +624,6 @@ void D_DoomLoop(void)
 
     while (1)
     {
-        apdoom_update();
-
         // Frame syncronous IO operations
         I_StartFrame();
 

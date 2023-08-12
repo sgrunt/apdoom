@@ -776,6 +776,7 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "#include \"apdoom.h\"\n");
         fprintf(fout, "#include \"apdoom_def_types.h\"\n");
         fprintf(fout, "#include <map>\n\n\n");
+        fprintf(fout, "#include <string>\n\n\n");
 
         std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table;
         for (const auto& loc : ap_locations)
@@ -831,7 +832,8 @@ class LocationDict(TypedDict, total=False): \n\
                         }
                     }
                 }
-                fprintf(fout, "        {{%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
+                fprintf(fout, "        {\"%s\", {%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
+                        level->name.c_str(),
                         level->keys[0] ? "true" : "false", 
                         level->keys[1] ? "true" : "false", 
                         level->keys[2] ? "true" : "false", 
@@ -850,6 +852,20 @@ class LocationDict(TypedDict, total=False): \n\
             }
             fprintf(fout, "    },\n");
         }
+        fprintf(fout, "};\n\n\n");
+
+        // Item sprites (Used by notification icons)
+        fprintf(fout, "const std::map<int, std::string> ap_%s_type_sprites = {\n", game->codename.c_str());
+        for (const auto& item : game->progressions)
+            fprintf(fout, "    {%i, \"%s\"},\n", item.doom_type, item.sprite.c_str());
+        for (const auto& item : game->fillers)
+            fprintf(fout, "    {%i, \"%s\"},\n", item.doom_type, item.sprite.c_str());
+        for (const auto& item : game->unique_progressions)
+            fprintf(fout, "    {%i, \"%s\"},\n", item.doom_type, item.sprite.c_str());
+        for (const auto& item : game->unique_fillers)
+            fprintf(fout, "    {%i, \"%s\"},\n", item.doom_type, item.sprite.c_str());
+        for (const auto& item : game->keys)
+            fprintf(fout, "    {%i, \"%s\"},\n", item.item.doom_type, item.item.sprite.c_str());
         fprintf(fout, "};\n");
 
         fclose(fout);

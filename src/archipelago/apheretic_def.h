@@ -6,6 +6,9 @@
 #include <map>
 
 
+#include <string>
+
+
 const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_heretic_location_table = {
     {1, {
         {1, {
@@ -1398,7 +1401,7 @@ const std::map<int64_t, ap_item_t> ap_heretic_item_table = {
 ap_level_info_t ap_heretic_level_infos[5][9] = 
 {
     {
-        {{true, false, false}, {0, 0, 0}, 6, 242, {
+        {"The Docks (E1M1)", {true, false, false}, {0, 0, 0}, 6, 242, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -1642,7 +1645,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {20, 240},
             {20, 241},
         }},
-        {{true, true, true}, {0, 0, 0}, 15, 458, {
+        {"The Dungeons (E1M2)", {true, true, true}, {0, 0, 0}, 15, 458, {
             {1, 0},
             {53, 1},
             {54, 2},
@@ -2102,7 +2105,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {22, 456},
             {22, 457},
         }},
-        {{true, true, false}, {0, 0, 0}, 14, 402, {
+        {"The Gatehouse (E1M3)", {true, true, false}, {0, 0, 0}, 14, 402, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -2506,7 +2509,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {22, 400},
             {22, 401},
         }},
-        {{true, true, false}, {0, 0, 0}, 14, 358, {
+        {"The Guard Tower (E1M4)", {true, true, false}, {0, 0, 0}, 14, 358, {
             {2005, 0},
             {68, 1},
             {53, 2},
@@ -2866,7 +2869,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 356},
             {2002, 357},
         }},
-        {{true, true, true}, {0, 0, 0}, 20, 420, {
+        {"The Citadel (E1M5)", {true, true, true}, {0, 0, 0}, 20, 420, {
             {1, 0},
             {73, 1},
             {2, 2},
@@ -3288,7 +3291,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {20, 418},
             {20, 419},
         }},
-        {{true, true, false}, {0, 0, 0}, 21, 503, {
+        {"The Cathedral (E1M6)", {true, true, false}, {0, 0, 0}, 21, 503, {
             {1, 0},
             {14, 1},
             {14, 2},
@@ -3793,7 +3796,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {31, 501},
             {32, 502},
         }},
-        {{true, true, true}, {0, 0, 0}, 17, 511, {
+        {"The Crypts (E1M7)", {true, true, true}, {0, 0, 0}, 17, 511, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -4306,7 +4309,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {22, 509},
             {22, 510},
         }},
-        {{false, false, false}, {0, 0, 0}, 13, 349, {
+        {"Hell's Maw (E1M8)", {false, false, false}, {0, 0, 0}, 13, 349, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -4657,7 +4660,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {23, 347},
             {21, 348},
         }},
-        {{true, true, true}, {0, 0, 0}, 17, 531, {
+        {"The Graveyard (E1M9)", {true, true, true}, {0, 0, 0}, 17, 531, {
             {11, 0},
             {11, 1},
             {80, 2},
@@ -5192,7 +5195,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
         }},
     },
     {
-        {{true, true, false}, {0, 0, 0}, 11, 254, {
+        {"The Crater (E2M1)", {true, true, false}, {0, 0, 0}, 11, 254, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5448,7 +5451,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {18, 252},
             {54, 253},
         }},
-        {{true, true, false}, {0, 0, 0}, 20, 371, {
+        {"The Lava Pits (E2M2)", {true, true, false}, {0, 0, 0}, 20, 371, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5821,7 +5824,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {10, 369},
             {18, 370},
         }},
-        {{true, true, true}, {0, 0, 0}, 21, 449, {
+        {"The River of Fire (E2M3)", {true, true, true}, {0, 0, 0}, 21, 449, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6272,7 +6275,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {13, 447},
             {2002, 448},
         }},
-        {{true, true, true}, {0, 0, 0}, 22, 465, {
+        {"The Ice Grotto (E2M4)", {true, true, true}, {0, 0, 0}, 22, 465, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6739,7 +6742,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 463},
             {2002, 464},
         }},
-        {{true, true, true}, {0, 0, 0}, 21, 458, {
+        {"The Catacombs (E2M5)", {true, true, true}, {0, 0, 0}, 21, 458, {
             {1, 0},
             {14, 1},
             {76, 2},
@@ -7199,7 +7202,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 456},
             {2002, 457},
         }},
-        {{true, true, true}, {0, 0, 0}, 24, 459, {
+        {"The Labyrinth (E2M6)", {true, true, true}, {0, 0, 0}, 24, 459, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -7660,7 +7663,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 457},
             {2002, 458},
         }},
-        {{true, true, true}, {0, 0, 0}, 20, 531, {
+        {"The Great Hall (E2M7)", {true, true, true}, {0, 0, 0}, 20, 531, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -8193,7 +8196,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 529},
             {2002, 530},
         }},
-        {{false, false, false}, {0, 0, 0}, 15, 313, {
+        {"The Portals of Chaos (E2M8)", {false, false, false}, {0, 0, 0}, 15, 313, {
             {1, 0},
             {3, 1},
             {4, 2},
@@ -8508,7 +8511,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 311},
             {2002, 312},
         }},
-        {{true, true, true}, {0, 0, 0}, 27, 504, {
+        {"The Glacier (E2M9)", {true, true, true}, {0, 0, 0}, 27, 504, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -9016,7 +9019,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
         }},
     },
     {
-        {{true, true, false}, {0, 0, 0}, 13, 355, {
+        {"The Storehouse (E3M1)", {true, true, false}, {0, 0, 0}, 13, 355, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -9373,7 +9376,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {18, 353},
             {18, 354},
         }},
-        {{true, true, true}, {0, 0, 0}, 29, 565, {
+        {"The Cesspool (E3M2)", {true, true, true}, {0, 0, 0}, 29, 565, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -9940,7 +9943,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {13, 563},
             {16, 564},
         }},
-        {{true, true, true}, {0, 0, 0}, 32, 635, {
+        {"The Confluence (E3M3)", {true, true, true}, {0, 0, 0}, 32, 635, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -10577,7 +10580,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {13, 633},
             {13, 634},
         }},
-        {{true, true, false}, {0, 0, 0}, 27, 639, {
+        {"The Azure Fortress (E3M4)", {true, true, false}, {0, 0, 0}, 27, 639, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -11218,7 +11221,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {13, 637},
             {13, 638},
         }},
-        {{true, true, false}, {0, 0, 0}, 21, 541, {
+        {"The Ophidian Lair (E3M5)", {true, true, false}, {0, 0, 0}, 21, 541, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -11761,7 +11764,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 539},
             {2002, 540},
         }},
-        {{true, true, true}, {0, 0, 0}, 30, 511, {
+        {"The Halls of Fear (E3M6)", {true, true, true}, {0, 0, 0}, 30, 511, {
             {14, 0},
             {74, 1},
             {1, 2},
@@ -12274,7 +12277,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 509},
             {2002, 510},
         }},
-        {{true, true, true}, {0, 0, 0}, 24, 706, {
+        {"The Chasm (E3M7)", {true, true, true}, {0, 0, 0}, 24, 706, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -12982,7 +12985,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {90, 704},
             {90, 705},
         }},
-        {{false, false, false}, {0, 0, 0}, 15, 297, {
+        {"D'Sparil'S Keep (E3M8)", {false, false, false}, {0, 0, 0}, 15, 297, {
             {11, 0},
             {1, 1},
             {2, 2},
@@ -13281,7 +13284,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {2002, 295},
             {2002, 296},
         }},
-        {{true, true, true}, {0, 0, 0}, 25, 529, {
+        {"The Aquifier (E3M9)", {true, true, true}, {0, 0, 0}, 25, 529, {
             {52, 0},
             {1, 1},
             {2, 2},
@@ -13814,7 +13817,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
         }},
     },
     {
-        {{true, true, false}, {0, 0, 0}, 16, 411, {
+        {"Catafalque (E4M1)", {true, true, false}, {0, 0, 0}, 16, 411, {
             {1, 0},
             {96, 1},
             {96, 2},
@@ -14227,7 +14230,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {92, 409},
             {92, 410},
         }},
-        {{true, true, true}, {0, 0, 0}, 20, 407, {
+        {"Blockhouse (E4M2)", {true, true, true}, {0, 0, 0}, 20, 407, {
             {1, 0},
             {74, 1},
             {74, 2},
@@ -14636,7 +14639,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {27, 405},
             {27, 406},
         }},
-        {{true, true, true}, {0, 0, 0}, 28, 712, {
+        {"Ambulatory (E4M3)", {true, true, true}, {0, 0, 0}, 28, 712, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -15350,7 +15353,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {68, 710},
             {68, 711},
         }},
-        {{false, false, false}, {0, 0, 0}, 26, 430, {
+        {"Sepulcher (E4M4)", {false, false, false}, {0, 0, 0}, 26, 430, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -15782,7 +15785,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {44, 428},
             {52, 429},
         }},
-        {{true, true, true}, {0, 0, 0}, 28, 522, {
+        {"Great Stair (E4M5)", {true, true, true}, {0, 0, 0}, 28, 522, {
             {1, 0},
             {14, 1},
             {74, 2},
@@ -16306,7 +16309,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {92, 520},
             {92, 521},
         }},
-        {{true, true, true}, {0, 0, 0}, 21, 428, {
+        {"Halls of the Apostate (E4M6)", {true, true, true}, {0, 0, 0}, 21, 428, {
             {1, 0},
             {74, 1},
             {74, 2},
@@ -16736,7 +16739,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {90, 426},
             {90, 427},
         }},
-        {{true, true, true}, {0, 0, 0}, 35, 670, {
+        {"Ramparts of Perdition (E4M7)", {true, true, true}, {0, 0, 0}, 35, 670, {
             {1, 0},
             {51, 1},
             {51, 2},
@@ -17408,7 +17411,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {22, 668},
             {95, 669},
         }},
-        {{true, false, false}, {0, 0, 0}, 18, 368, {
+        {"Shattered Bridge (E4M8)", {true, false, false}, {0, 0, 0}, 18, 368, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -17778,7 +17781,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {6, 366},
             {6, 367},
         }},
-        {{true, false, false}, {0, 0, 0}, 28, 831, {
+        {"Mausoleum (E4M9)", {true, false, false}, {0, 0, 0}, 28, 831, {
             {74, 0},
             {76, 1},
             {76, 2},
@@ -18613,7 +18616,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
         }},
     },
     {
-        {{true, true, true}, {0, 0, 0}, 26, 424, {
+        {"Ochre Cliffs (E5M1)", {true, true, true}, {0, 0, 0}, 26, 424, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -19039,7 +19042,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {6, 422},
             {6, 423},
         }},
-        {{true, true, false}, {0, 0, 0}, 29, 600, {
+        {"Rapids (E5M2)", {true, true, false}, {0, 0, 0}, 29, 600, {
             {95, 0},
             {95, 1},
             {73, 2},
@@ -19641,7 +19644,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {66, 598},
             {5, 599},
         }},
-        {{true, true, true}, {0, 0, 0}, 29, 607, {
+        {"Quay (E5M3)", {true, true, true}, {0, 0, 0}, 29, 607, {
             {1, 0},
             {14, 1},
             {74, 2},
@@ -20250,7 +20253,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {83, 605},
             {83, 606},
         }},
-        {{true, true, true}, {0, 0, 0}, 24, 530, {
+        {"Courtyard (E5M4)", {true, true, true}, {0, 0, 0}, 24, 530, {
             {1, 0},
             {94, 1},
             {94, 2},
@@ -20782,7 +20785,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {10, 528},
             {10, 529},
         }},
-        {{true, true, true}, {0, 0, 0}, 27, 644, {
+        {"Hydratyr (E5M5)", {true, true, true}, {0, 0, 0}, 27, 644, {
             {1, 0},
             {94, 1},
             {94, 2},
@@ -21428,7 +21431,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {76, 642},
             {76, 643},
         }},
-        {{true, true, true}, {0, 0, 0}, 28, 858, {
+        {"Colonnade (E5M6)", {true, true, true}, {0, 0, 0}, 28, 858, {
             {1, 0},
             {14, 1},
             {74, 2},
@@ -22288,7 +22291,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {1204, 856},
             {1202, 857},
         }},
-        {{true, true, true}, {0, 0, 0}, 21, 711, {
+        {"Foetid Manse (E5M7)", {true, true, true}, {0, 0, 0}, 21, 711, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -23001,7 +23004,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {15, 709},
             {15, 710},
         }},
-        {{false, false, false}, {0, 0, 0}, 13, 134, {
+        {"Field of Judgement (E5M8)", {false, false, false}, {0, 0, 0}, 13, 134, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -23137,7 +23140,7 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {1208, 132},
             {1204, 133},
         }},
-        {{true, true, true}, {0, 0, 0}, 21, 809, {
+        {"Skein of D'Sparil (E5M9)", {true, true, true}, {0, 0, 0}, 21, 809, {
             {79, 0},
             {73, 1},
             {6, 2},
@@ -23949,4 +23952,36 @@ ap_level_info_t ap_heretic_level_infos[5][9] =
             {1207, 808},
         }},
     },
+};
+
+
+const std::map<int, std::string> ap_heretic_type_sprites = {
+    {2005, "WGNTA0"},
+    {2001, "WBOWA0"},
+    {53, "WBLSA0"},
+    {2003, "WPHXA0"},
+    {2002, "WMCEA0"},
+    {2004, "WSKLA0"},
+    {8, "BAGHA0"},
+    {36, "ARTIATLP"},
+    {30, "ARTIEGGC"},
+    {32, "ARTISPHL"},
+    {82, "ARTIPTN2"},
+    {84, "ARTIINVU"},
+    {75, "ARTIINVS"},
+    {34, "ARTIFBMB"},
+    {86, "ARTIPWBK"},
+    {33, "ARTITRCH"},
+    {85, "SHLDA0"},
+    {31, "SHD2A0"},
+    {12, "AMG2A0"},
+    {55, "AMB2C0"},
+    {21, "AMS2A0"},
+    {23, "AMP2B0"},
+    {16, "AMM2A0"},
+    {19, "AMC2B0"},
+    {35, "SPMPA0"},
+    {80, "CKYYA0"},
+    {73, "AKYYA0"},
+    {79, "BKYYA0"},
 };

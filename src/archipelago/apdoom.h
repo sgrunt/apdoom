@@ -49,6 +49,7 @@ typedef struct
 
 typedef struct
 {
+    const char* name;
     int keys[3];
     int use_skull[3];
     int check_count;
@@ -127,6 +128,25 @@ typedef struct
 } ap_settings_t;
 
 
+#define AP_NOTIF_STATE_PENDING 0
+#define AP_NOTIF_STATE_DROPPING 1
+#define AP_NOTIF_STATE_HIDING 2
+#define AP_NOTIF_SIZE 30
+#define AP_NOTIF_PADDING 2
+
+
+typedef struct
+{
+    char sprite[9];
+    int x, y;
+    float xf, yf;
+    float velx, vely;
+    char text[260];
+    int t;
+    int state;
+} ap_notification_icon_t;
+
+
 extern ap_state_t ap_state;
 extern int ap_is_in_game; // Don't give items when in menu (Or when dead on the ground).
 extern int ap_episode_count;
@@ -146,6 +166,7 @@ void apdoom_send_message(const char* msg);
 void apdoom_complete_level(int ep, int map);
 ap_level_state_t* ap_get_level_state(int ep, int map); // 1-based
 ap_level_info_t* ap_get_level_info(int ep, int map); // 1-based
+const ap_notification_icon_t* ap_get_notification_icons(int* count);
 
 // Deathlink stuff
 void apdoom_on_death();

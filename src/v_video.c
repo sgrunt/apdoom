@@ -769,6 +769,41 @@ void V_DrawScaledBlock(int x, int y, int width, int height, pixel_t *src)
     }
 }
 
+// [crispy] scaled version of V_DrawBlock()
+void V_DrawScaledBlockTransparency(int x, int y, int width, int height, pixel_t *src)
+{
+    pixel_t *dest;
+    int i, j;
+    byte src_pixel;
+
+    x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
+
+#ifdef RANGECHECK
+    if (x < 0
+     || x + width > SCREENWIDTH
+     || y < 0
+     || y + height > SCREENWIDTH)
+    {
+        return; // [AP] We don't mind, just dont render it
+	//I_Error ("Bad V_DrawScaledBlock");
+    }
+#endif
+
+    V_MarkRect (x, y, width, height);
+
+    dest = dest_screen + (y << crispy->hires) * SCREENWIDTH + (x << crispy->hires);
+
+    for (i = 0; i < (height << crispy->hires); i++)
+    {
+        for (j = 0; j < (width << crispy->hires); j++)
+        {
+            src_pixel = *(src + (i >> crispy->hires) * width + (j >> crispy->hires));
+            if (!src_pixel) continue;
+            *(dest + i * SCREENWIDTH + j) = src_pixel;
+        }
+    }
+}
+
 void V_DrawFilledBox(int x, int y, int w, int h, int c)
 {
     pixel_t *buf, *buf1;

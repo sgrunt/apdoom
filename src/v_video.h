@@ -71,6 +71,7 @@ void V_DrawPatchFullScreen(patch_t *patch, boolean flipped);
 
 void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
 void V_DrawScaledBlock(int x, int y, int width, int height, pixel_t *src);
+void V_DrawScaledBlockTransparency(int x, int y, int width, int height, pixel_t *src);
 
 void V_MarkRect(int x, int y, int width, int height);
 

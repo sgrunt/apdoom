@@ -584,6 +584,7 @@ boolean D_Display (void)
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
+
     HU_DrawAPMessages();   // ^ no, Sticky messages on top of everything :)
     NetUpdate ();         // send out any new accumulation
 

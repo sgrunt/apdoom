@@ -807,7 +807,7 @@ void P_LoadThings(int lump)
             // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
             if (!validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
             {
-                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD or DOOM2.WAD from the steam releases.");
+                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get HERETIC.WAD from the steam releases.");
             }
             if (apdoom_is_location_progression(gameepisode, gamemap, i))
                 spawnthing.type = 20001;

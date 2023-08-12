@@ -565,7 +565,6 @@ void DrawNonEpisodicLevelSelectStats()
         }
     }
 
-    ap_level_info = ap_get_level_info(selected_ep + 1, selected_level[selected_ep] + 1);
     ap_level_state = ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1);
     level_line = &level_lines[selected_level[selected_ep]][ap_level_state->completed ? 2 : ap_level_state->unlocked];
 

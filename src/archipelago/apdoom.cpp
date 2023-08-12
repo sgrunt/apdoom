@@ -195,6 +195,7 @@ static std::set<int64_t> ap_progressive_locations;
 static bool ap_initialized = false;
 static std::vector<std::string> ap_cached_messages;
 static std::string ap_save_dir_name;
+static std::vector<ap_notification_icon_t> ap_notification_icons;
 
 
 void f_itemclr();
@@ -808,17 +809,25 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		return; // Skip
 	ap_item_t item = it->second;
 
+	const char* notif_text = 0;
+
 	auto level_state = ap_get_level_state(item.ep, item.map);
 
 	// Key?
 	const auto& keys_map = get_keys_map();
 	auto key_it = keys_map.find(item.doom_type);
 	if (key_it != keys_map.end())
+	{
 		level_state->keys[key_it->second] = 1;
+		notif_text = ap_get_level_info(item.ep, item.map)->name;
+	}
 
 	// Map?
 	if (item.doom_type == get_map_doom_type())
+	{
 		level_state->has_map = 1;
+		notif_text = ap_get_level_info(item.ep, item.map)->name;
+	}
 
 	// Backpack?
 	if (item.doom_type == 8)
@@ -839,7 +848,10 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 
 	// Is it a level?
 	if (item.doom_type == -1)
+	{
 		level_state->unlocked = 1;
+		notif_text = ap_get_level_info(item.ep, item.map)->name;
+	}
 
 	// Level complete?
 	if (item.doom_type == -2)
@@ -856,6 +868,28 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 
 	// Give item to player
 	ap_settings.give_item_callback(item.doom_type, item.ep, item.map);
+
+	// Add notification icon
+	auto sprite_it = ap_heretic_type_sprites.find(item.doom_type);
+	if (sprite_it != ap_heretic_type_sprites.end())
+	{
+		ap_notification_icon_t notif;
+		snprintf(notif.sprite, 9, "%s", sprite_it->second.c_str());
+		notif.t = 0;
+		notif.text[0] = '\0'; // For now
+		if (notif_text)
+		{
+			sprintf(notif.text, "%s", notif_text);
+		}
+		notif.xf = AP_NOTIF_SIZE / 2 + AP_NOTIF_PADDING;
+		notif.yf = -200.0f + AP_NOTIF_SIZE / 2;
+		notif.state = AP_NOTIF_STATE_PENDING;
+		notif.velx = 0.0f;
+		notif.vely = 0.0f;
+		notif.x = (int)notif.xf;
+		notif.y = (int)notif.yf;
+		ap_notification_icons.push_back(notif);
+	}
 }
 
 
@@ -1088,6 +1122,12 @@ int apdoom_should_die()
 }
 
 
+const ap_notification_icon_t* ap_get_notification_icons(int* count)
+{
+	*count = (int)ap_notification_icons.size();
+	return ap_notification_icons.data();
+}
+
 /*
     black: "000000"
     red: "EE0000"
@@ -1175,5 +1215,57 @@ void apdoom_update()
 			ap_item_queue.erase(ap_item_queue.begin());
 			f_itemrecv(item_id, true);
 		}
+	}
+
+	// Update notification icons
+	float previous_y = 2.0f;
+	for (auto it = ap_notification_icons.begin(); it != ap_notification_icons.end();)
+	{
+		auto& notification_icon = *it;
+
+		if (notification_icon.state == AP_NOTIF_STATE_PENDING && previous_y > -160.0f)
+		{
+			notification_icon.state = AP_NOTIF_STATE_DROPPING;
+		}
+		if (notification_icon.state == AP_NOTIF_STATE_PENDING)
+		{
+			++it;
+			continue;
+		}
+
+		if (notification_icon.state == AP_NOTIF_STATE_DROPPING)
+		{
+			notification_icon.vely += 0.15f;
+			if (notification_icon.vely > 8.0f) notification_icon.vely = 8.0f;
+			notification_icon.yf += notification_icon.vely;
+			if (notification_icon.yf >= previous_y - AP_NOTIF_SIZE - AP_NOTIF_PADDING)
+			{
+				notification_icon.yf = previous_y - AP_NOTIF_SIZE - AP_NOTIF_PADDING;
+				notification_icon.vely *= -0.3f;
+
+				notification_icon.t++;
+				if (notification_icon.t > 350) // 10sec
+				{
+					notification_icon.state = AP_NOTIF_STATE_HIDING;
+				}
+			}
+		}
+
+		if (notification_icon.state == AP_NOTIF_STATE_HIDING)
+		{
+			notification_icon.vely -= 0.14f;
+			notification_icon.xf += notification_icon.vely;
+			if (notification_icon.xf < -AP_NOTIF_SIZE / 2)
+			{
+				it = ap_notification_icons.erase(it);
+				continue;
+			}
+		}
+
+		notification_icon.x = (int)notification_icon.xf;
+		notification_icon.y = (int)notification_icon.yf;
+		previous_y = notification_icon.yf;
+
+		++it;
 	}
 }

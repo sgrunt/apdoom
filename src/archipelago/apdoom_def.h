@@ -6,6 +6,9 @@
 #include <map>
 
 
+#include <string>
+
+
 const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_doom_location_table = {
     {1, {
         {1, {
@@ -763,7 +766,7 @@ const std::map<int64_t, ap_item_t> ap_doom_item_table = {
 ap_level_info_t ap_doom_level_infos[4][9] = 
 {
     {
-        {{false, false, false}, {0, 0, 0}, 3, 143, {
+        {"Hangar (E1M1)", {false, false, false}, {0, 0, 0}, 3, 143, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -908,7 +911,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2035, 141},
             {2001, 142},
         }},
-        {{false, false, true}, {0, 0, 0}, 11, 262, {
+        {"Nuclear Plant (E1M2)", {false, false, true}, {0, 0, 0}, 11, 262, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -1172,7 +1175,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {10, 260},
             {10, 261},
         }},
-        {{true, true, false}, {0, 0, 0}, 15, 380, {
+        {"Toxin Refinery (E1M3)", {true, true, false}, {0, 0, 0}, 15, 380, {
             {1, 0},
             {3, 1},
             {2, 2},
@@ -1554,7 +1557,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {24, 378},
             {2046, 379},
         }},
-        {{true, true, false}, {0, 0, 0}, 9, 254, {
+        {"Command Control (E1M4)", {true, true, false}, {0, 0, 0}, 9, 254, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -1810,7 +1813,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {12, 252},
             {15, 253},
         }},
-        {{true, true, false}, {0, 0, 0}, 16, 293, {
+        {"Phobos Lab (E1M5)", {true, true, false}, {0, 0, 0}, 16, 293, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -2105,7 +2108,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2014, 291},
             {2049, 292},
         }},
-        {{true, true, true}, {0, 0, 0}, 19, 463, {
+        {"Central Processing (E1M6)", {true, true, true}, {0, 0, 0}, 19, 463, {
             {2, 0},
             {3, 1},
             {4, 2},
@@ -2570,7 +2573,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 461},
             {11, 462},
         }},
-        {{true, true, true}, {0, 0, 0}, 15, 358, {
+        {"Computer Station (E1M7)", {true, true, true}, {0, 0, 0}, 15, 358, {
             {3, 0},
             {2, 1},
             {4, 2},
@@ -2930,7 +2933,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 356},
             {11, 357},
         }},
-        {{false, false, false}, {0, 0, 0}, 7, 126, {
+        {"Phobos Anomaly (E1M8)", {false, false, false}, {0, 0, 0}, 7, 126, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -3058,7 +3061,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {9, 124},
             {9, 125},
         }},
-        {{true, true, true}, {0, 0, 0}, 9, 237, {
+        {"Military Base (E1M9)", {true, true, true}, {0, 0, 0}, 9, 237, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -3299,7 +3302,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
         }},
     },
     {
-        {{true, false, true}, {0, 0, 0}, 8, 127, {
+        {"Deimos Anomaly (E2M1)", {true, false, true}, {0, 0, 0}, 8, 127, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -3428,7 +3431,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {3005, 125},
             {58, 126},
         }},
-        {{true, true, true}, {0, 0, 0}, 19, 311, {
+        {"Containment Area (E2M2)", {true, true, true}, {0, 0, 0}, 19, 311, {
             {2012, 0},
             {2014, 1},
             {1, 2},
@@ -3741,7 +3744,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {3001, 309},
             {2004, 310},
         }},
-        {{true, false, false}, {0, 0, 0}, 11, 229, {
+        {"Refinery (E2M3)", {true, false, false}, {0, 0, 0}, 11, 229, {
             {2, 0},
             {3, 1},
             {4, 2},
@@ -3972,7 +3975,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {3005, 227},
             {3005, 228},
         }},
-        {{true, true, false}, {0, 0, 0}, 16, 265, {
+        {"Deimos Lab (E2M4)", {true, true, false}, {0, 0, 0}, 16, 265, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -4239,7 +4242,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {8, 263},
             {2013, 264},
         }},
-        {{false, false, false}, {0, 0, 0}, 10, 326, {
+        {"Command Center (E2M5)", {false, false, false}, {0, 0, 0}, 10, 326, {
             {3, 0},
             {2, 1},
             {1, 2},
@@ -4567,7 +4570,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 324},
             {3003, 325},
         }},
-        {{true, true, true}, {1, 1, 1}, 17, 326, {
+        {"Halls of the Damned (E2M6)", {true, true, true}, {1, 1, 1}, 17, 326, {
             {1, 0},
             {3, 1},
             {2, 2},
@@ -4895,7 +4898,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {3001, 324},
             {3001, 325},
         }},
-        {{true, true, true}, {0, 0, 0}, 16, 235, {
+        {"Spawning Vats (E2M7)", {true, true, true}, {0, 0, 0}, 16, 235, {
             {3001, 0},
             {3002, 1},
             {3001, 2},
@@ -5132,7 +5135,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2004, 233},
             {2003, 234},
         }},
-        {{false, false, false}, {0, 0, 0}, 4, 66, {
+        {"Tower of Babel (E2M8)", {false, false, false}, {0, 0, 0}, 4, 66, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5200,7 +5203,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 64},
             {11, 65},
         }},
-        {{true, true, true}, {1, 1, 1}, 12, 53, {
+        {"Fortress of Mystery (E2M9)", {true, true, true}, {1, 1, 1}, 12, 53, {
             {2, 0},
             {1, 1},
             {3, 2},
@@ -5257,7 +5260,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
         }},
     },
     {
-        {{false, false, false}, {0, 0, 0}, 2, 92, {
+        {"Hell Keep (E3M1)", {false, false, false}, {0, 0, 0}, 2, 92, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5351,7 +5354,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {3001, 90},
             {2008, 91},
         }},
-        {{true, false, false}, {1, 0, 0}, 9, 208, {
+        {"Slough of Despair (E3M2)", {true, false, false}, {1, 0, 0}, 9, 208, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5561,7 +5564,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2003, 206},
             {11, 207},
         }},
-        {{true, false, false}, {1, 0, 0}, 14, 209, {
+        {"Pandemonium (E3M3)", {true, false, false}, {1, 0, 0}, 14, 209, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5772,7 +5775,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {55, 207},
             {55, 208},
         }},
-        {{true, true, true}, {1, 1, 1}, 18, 374, {
+        {"House of Pain (E3M4)", {true, true, true}, {1, 1, 1}, 18, 374, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6148,7 +6151,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {42, 372},
             {42, 373},
         }},
-        {{true, true, false}, {1, 1, 0}, 14, 291, {
+        {"Unholy Cathedral (E3M5)", {true, true, false}, {1, 1, 0}, 14, 291, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6441,7 +6444,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 289},
             {11, 290},
         }},
-        {{true, false, false}, {1, 0, 0}, 17, 335, {
+        {"Mt. Erebus (E3M6)", {true, false, false}, {1, 0, 0}, 17, 335, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6778,7 +6781,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 333},
             {2006, 334},
         }},
-        {{true, true, true}, {1, 1, 1}, 11, 154, {
+        {"Limbo (E3M7)", {true, true, true}, {1, 1, 1}, 11, 154, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6934,7 +6937,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2046, 152},
             {2001, 153},
         }},
-        {{false, false, false}, {0, 0, 0}, 3, 58, {
+        {"Dis (E3M8)", {false, false, false}, {0, 0, 0}, 3, 58, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6994,7 +6997,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {11, 56},
             {11, 57},
         }},
-        {{true, false, true}, {1, 0, 1}, 16, 197, {
+        {"Warrens (E3M9)", {true, false, true}, {1, 0, 1}, 16, 197, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -7195,7 +7198,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
         }},
     },
     {
-        {{true, false, true}, {1, 0, 1}, 6, 141, {
+        {"Hell Beneath (E4M1)", {true, false, true}, {1, 0, 1}, 6, 141, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -7338,7 +7341,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2014, 139},
             {2025, 140},
         }},
-        {{true, true, false}, {1, 1, 0}, 12, 227, {
+        {"Perfect Hatred (E4M2)", {true, true, false}, {1, 1, 0}, 12, 227, {
             {1, 0},
             {57, 1},
             {57, 2},
@@ -7567,7 +7570,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {3, 225},
             {4, 226},
         }},
-        {{true, false, true}, {1, 0, 1}, 16, 384, {
+        {"Sever the Wicked (E4M3)", {true, false, true}, {1, 0, 1}, 16, 384, {
             {11, 0},
             {3, 1},
             {4, 2},
@@ -7953,7 +7956,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2046, 382},
             {2046, 383},
         }},
-        {{false, false, true}, {0, 0, 1}, 8, 153, {
+        {"Unruly Evil (E4M4)", {false, false, true}, {0, 0, 1}, 8, 153, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -8108,7 +8111,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2014, 151},
             {2014, 152},
         }},
-        {{true, true, true}, {1, 1, 1}, 11, 267, {
+        {"They Will Repent (E4M5)", {true, true, true}, {1, 1, 1}, 11, 267, {
             {1, 0},
             {14, 1},
             {14, 2},
@@ -8377,7 +8380,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2008, 265},
             {2008, 266},
         }},
-        {{true, true, true}, {1, 1, 1}, 16, 295, {
+        {"Against Thee Wickedly (E4M6)", {true, true, true}, {1, 1, 1}, 16, 295, {
             {1, 0},
             {54, 1},
             {43, 2},
@@ -8674,7 +8677,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2019, 293},
             {2001, 294},
         }},
-        {{true, true, true}, {1, 1, 1}, 22, 258, {
+        {"And Hell Followed (E4M7)", {true, true, true}, {1, 1, 1}, 22, 258, {
             {1, 0},
             {2001, 1},
             {28, 2},
@@ -8934,7 +8937,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {41, 256},
             {41, 257},
         }},
-        {{false, true, true}, {0, 1, 1}, 17, 315, {
+        {"Unto the Cruel (E4M8)", {false, true, true}, {0, 1, 1}, 17, 315, {
             {2, 0},
             {3, 1},
             {4, 2},
@@ -9251,7 +9254,7 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2025, 313},
             {2025, 314},
         }},
-        {{false, true, false}, {0, 1, 0}, 9, 247, {
+        {"Fear (E4M9)", {false, true, false}, {0, 1, 0}, 9, 247, {
             {1, 0},
             {31, 1},
             {14, 2},
@@ -9501,4 +9504,33 @@ ap_level_info_t ap_doom_level_infos[4][9] =
             {2023, 246},
         }},
     },
+};
+
+
+const std::map<int, std::string> ap_doom_type_sprites = {
+    {2001, "SHOTA0"},
+    {2003, "LAUNA0"},
+    {2004, "PLASA0"},
+    {2005, "CSAWA0"},
+    {2002, "MGUNA0"},
+    {2006, "BFUGA0"},
+    {8, "BPAKA0"},
+    {2018, "ARM1A0"},
+    {2019, "ARM2A0"},
+    {2023, "PSTRA0"},
+    {2022, "PINVA0"},
+    {2024, "PINSA0"},
+    {2013, "SOULA0"},
+    {2012, "MEDIA0"},
+    {2048, "AMMOA0"},
+    {2046, "BROKA0"},
+    {2049, "SBOXA0"},
+    {17, "CELPA0"},
+    {2026, "PMAPA0"},
+    {5, "BKEYB0"},
+    {40, "BSKUB0"},
+    {6, "YKEYB0"},
+    {39, "YSKUB0"},
+    {13, "RKEYB0"},
+    {38, "RSKUB0"},
 };

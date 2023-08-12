@@ -6,6 +6,9 @@
 #include <map>
 
 
+#include <string>
+
+
 const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_doom2_location_table = {
     {1, {
         {1, {
@@ -737,7 +740,7 @@ const std::map<int64_t, ap_item_t> ap_doom2_item_table = {
 ap_level_info_t ap_doom2_level_infos[1][32] = 
 {
     {
-        {{false, false, false}, {0, 0, 0}, 4, 69, {
+        {"Entryway (MAP01)", {false, false, false}, {0, 0, 0}, 4, 69, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -808,7 +811,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {82, 67},
             {2005, 68},
         }},
-        {{true, false, true}, {0, 0, 0}, 4, 173, {
+        {"Underhalls (MAP02)", {true, false, true}, {0, 0, 0}, 4, 173, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -983,7 +986,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2014, 171},
             {2014, 172},
         }},
-        {{true, false, true}, {0, 0, 0}, 10, 148, {
+        {"The Gantlet (MAP03)", {true, false, true}, {0, 0, 0}, 10, 148, {
             {1, 0},
             {45, 1},
             {45, 2},
@@ -1133,7 +1136,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {8, 146},
             {14, 147},
         }},
-        {{true, true, true}, {0, 0, 0}, 4, 138, {
+        {"The Focus (MAP04)", {true, true, true}, {0, 0, 0}, 4, 138, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -1273,7 +1276,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {86, 136},
             {86, 137},
         }},
-        {{true, true, true}, {0, 0, 0}, 12, 217, {
+        {"The Waste Tunnels (MAP05)", {true, true, true}, {0, 0, 0}, 12, 217, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -1492,7 +1495,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2023, 215},
             {2012, 216},
         }},
-        {{true, true, true}, {0, 0, 0}, 14, 247, {
+        {"The Crusher (MAP06)", {true, true, true}, {0, 0, 0}, 14, 247, {
             {13, 0},
             {6, 1},
             {2002, 2},
@@ -1741,7 +1744,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {3002, 245},
             {83, 246},
         }},
-        {{false, false, false}, {0, 0, 0}, 11, 98, {
+        {"Dead Simple (MAP07)", {false, false, false}, {0, 0, 0}, 11, 98, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -1841,7 +1844,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {8, 96},
             {8, 97},
         }},
-        {{false, true, true}, {0, 1, 1}, 23, 242, {
+        {"Tricks and Traps (MAP08)", {false, true, true}, {0, 1, 1}, 23, 242, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -2085,7 +2088,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2007, 240},
             {2008, 241},
         }},
-        {{true, true, false}, {0, 0, 0}, 15, 392, {
+        {"The Pit (MAP09)", {true, true, false}, {0, 0, 0}, 15, 392, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -2479,7 +2482,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2014, 390},
             {2014, 391},
         }},
-        {{true, true, false}, {0, 0, 0}, 20, 509, {
+        {"Refueling Base (MAP10)", {true, true, false}, {0, 0, 0}, 20, 509, {
             {2, 0},
             {3, 1},
             {4, 2},
@@ -2990,7 +2993,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {83, 507},
             {3003, 508},
         }},
-        {{true, false, true}, {0, 0, 0}, 14, 238, {
+        {"Circle of Death (MAP11)", {true, false, true}, {0, 0, 0}, 14, 238, {
             {1, 0},
             {13, 1},
             {2012, 2},
@@ -3230,7 +3233,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {17, 236},
             {16, 237},
         }},
-        {{true, true, false}, {0, 0, 0}, 15, 195, {
+        {"The Factory (MAP12)", {true, true, false}, {0, 0, 0}, 15, 195, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -3427,7 +3430,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {17, 193},
             {7, 194},
         }},
-        {{true, true, true}, {0, 0, 0}, 21, 312, {
+        {"Downtown (MAP13)", {true, true, true}, {0, 0, 0}, 21, 312, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -3741,7 +3744,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2048, 310},
             {16, 311},
         }},
-        {{true, false, true}, {1, 0, 1}, 10, 173, {
+        {"The Inmost Dens (MAP14)", {true, false, true}, {1, 0, 1}, 10, 173, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -3916,7 +3919,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {9, 171},
             {65, 172},
         }},
-        {{true, true, true}, {0, 0, 0}, 22, 376, {
+        {"Industrial Zone (MAP15)", {true, true, true}, {0, 0, 0}, 22, 376, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -4294,7 +4297,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {14, 374},
             {82, 375},
         }},
-        {{true, false, true}, {1, 0, 1}, 17, 249, {
+        {"Suburbs (MAP16)", {true, false, true}, {1, 0, 1}, 17, 249, {
             {56, 0},
             {56, 1},
             {1, 2},
@@ -4545,7 +4548,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {11, 247},
             {2012, 248},
         }},
-        {{true, true, true}, {0, 1, 0}, 17, 421, {
+        {"Tenements (MAP17)", {true, true, true}, {0, 1, 0}, 17, 421, {
             {1, 0},
             {2018, 1},
             {2012, 2},
@@ -4968,7 +4971,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {83, 419},
             {16, 420},
         }},
-        {{true, true, false}, {1, 1, 0}, 17, 498, {
+        {"The Courtyard (MAP18)", {true, true, false}, {1, 1, 0}, 17, 498, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5468,7 +5471,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {3001, 496},
             {2014, 497},
         }},
-        {{true, true, true}, {1, 1, 1}, 15, 437, {
+        {"The Citadel (MAP19)", {true, true, true}, {1, 1, 1}, 15, 437, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -5907,7 +5910,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {17, 435},
             {16, 436},
         }},
-        {{false, false, false}, {0, 0, 0}, 14, 256, {
+        {"Gotcha! (MAP20)", {false, false, false}, {0, 0, 0}, 14, 256, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6165,7 +6168,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2046, 254},
             {2046, 255},
         }},
-        {{true, true, true}, {1, 1, 1}, 8, 217, {
+        {"Nirvana (MAP21)", {true, true, true}, {1, 1, 1}, 8, 217, {
             {11, 0},
             {11, 1},
             {11, 2},
@@ -6384,7 +6387,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {38, 215},
             {2010, 216},
         }},
-        {{true, false, true}, {1, 0, 1}, 8, 121, {
+        {"The Catacombs (MAP22)", {true, false, true}, {1, 0, 1}, 8, 121, {
             {2, 0},
             {3, 1},
             {4, 2},
@@ -6507,7 +6510,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2018, 119},
             {17, 120},
         }},
-        {{false, true, false}, {0, 1, 0}, 11, 431, {
+        {"Barrels o Fun (MAP23)", {false, true, false}, {0, 1, 0}, 11, 431, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -6940,7 +6943,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2035, 429},
             {14, 430},
         }},
-        {{true, false, true}, {0, 0, 0}, 14, 364, {
+        {"The Chasm (MAP24)", {true, false, true}, {0, 0, 0}, 14, 364, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -7306,7 +7309,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {83, 362},
             {2014, 363},
         }},
-        {{true, false, false}, {1, 0, 0}, 11, 276, {
+        {"Bloodfalls (MAP25)", {true, false, false}, {1, 0, 0}, 11, 276, {
             {46, 0},
             {46, 1},
             {46, 2},
@@ -7584,7 +7587,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2047, 274},
             {2047, 275},
         }},
-        {{true, true, true}, {0, 0, 0}, 12, 296, {
+        {"The Abandoned Mines (MAP26)", {true, true, true}, {0, 0, 0}, 12, 296, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -7882,7 +7885,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {14, 294},
             {16, 295},
         }},
-        {{true, true, true}, {1, 1, 1}, 30, 490, {
+        {"Monster Condo (MAP27)", {true, true, true}, {1, 1, 1}, 30, 490, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -8374,7 +8377,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {71, 488},
             {71, 489},
         }},
-        {{false, true, true}, {0, 1, 1}, 22, 266, {
+        {"The Spirit World (MAP28)", {false, true, true}, {0, 1, 1}, 22, 266, {
             {1, 0},
             {2, 1},
             {3, 2},
@@ -8642,7 +8645,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {11, 264},
             {11, 265},
         }},
-        {{false, false, false}, {0, 0, 0}, 10, 276, {
+        {"The Living End (MAP29)", {false, false, false}, {0, 0, 0}, 10, 276, {
             {1, 0},
             {2012, 1},
             {57, 2},
@@ -8920,7 +8923,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {3, 274},
             {4, 275},
         }},
-        {{false, false, false}, {0, 0, 0}, 18, 95, {
+        {"Icon of Sin (MAP30)", {false, false, false}, {0, 0, 0}, 18, 95, {
             {88, 0},
             {89, 1},
             {87, 2},
@@ -9017,7 +9020,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2025, 93},
             {2023, 94},
         }},
-        {{false, false, false}, {0, 0, 0}, 14, 317, {
+        {"Wolfenstein2 (MAP31)", {false, false, false}, {0, 0, 0}, 14, 317, {
             {15, 0},
             {12, 1},
             {10, 2},
@@ -9336,7 +9339,7 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {2006, 315},
             {2004, 316},
         }},
-        {{false, false, false}, {0, 0, 0}, 10, 111, {
+        {"Grosse2 (MAP32)", {false, false, false}, {0, 0, 0}, 10, 111, {
             {54, 0},
             {54, 1},
             {44, 2},
@@ -9450,4 +9453,35 @@ ap_level_info_t ap_doom2_level_infos[1][32] =
             {84, 110},
         }},
     },
+};
+
+
+const std::map<int, std::string> ap_doom2_type_sprites = {
+    {2001, "SHOTA0"},
+    {2003, "LAUNA0"},
+    {2004, "PLASA0"},
+    {2005, "CSAWA0"},
+    {2002, "MGUNA0"},
+    {2006, "BFUGA0"},
+    {82, "SGN2A0"},
+    {8, "BPAKA0"},
+    {2018, "ARM1A0"},
+    {2019, "ARM2A0"},
+    {2023, "PSTRA0"},
+    {2022, "PINVA0"},
+    {2024, "PINSA0"},
+    {2013, "SOULA0"},
+    {83, "MEGAD0"},
+    {2012, "MEDIA0"},
+    {2048, "AMMOA0"},
+    {2046, "BROKA0"},
+    {2049, "SBOXA0"},
+    {17, "CELPA0"},
+    {2026, "PMAPA0"},
+    {5, "BKEYB0"},
+    {40, "BSKUB0"},
+    {6, "YKEYB0"},
+    {39, "YSKUB0"},
+    {13, "RKEYB0"},
+    {38, "RSKUB0"},
 };

@@ -796,6 +796,8 @@ void TryRunTics (void)
     // run the count * ticdup dics
     while (counts--)
     {
+        apdoom_update();
+
         ticcmd_set_t *set;
 
         if (!PlayersInGame())
