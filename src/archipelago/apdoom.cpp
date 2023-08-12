@@ -204,6 +204,7 @@ void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
+void f_flip_levels(int);
 void f_episode1(int);
 void f_episode2(int);
 void f_episode3(int);
@@ -274,6 +275,18 @@ std::string string_to_hex(const char* str)
 static const int doom_max_ammos[] = {200, 50, 300, 50};
 static const int doom2_max_ammos[] = {200, 50, 300, 50};
 static const int heretic_max_ammos[] = {100, 50, 200, 200, 20, 150};
+
+
+static unsigned long long hash_seed(const char *str)
+{
+    unsigned long long hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
+}
 
 
 const int* get_max_ammos()
@@ -370,6 +383,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
+	AP_RegisterSlotDataIntCallback("flip_levels", f_flip_levels);
 	AP_RegisterSlotDataIntCallback("episode1", f_episode1);
 	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
@@ -420,6 +434,23 @@ int apdoom_init(ap_settings_t* settings)
 			ep_count++;
 	if (!ep_count)
 		ap_state.episodes[0] = 1;
+
+	// Randomly flip levels based on the seed
+	if (ap_state.flip_levels == 1)
+	{
+		for (int ep = 0; ep < ap_episode_count; ++ep)
+			for (int map = 0; map < ap_map_count; ++map)
+				ap_state.level_states[ep * ap_map_count + map].flipped = 1;
+	}
+	else if (ap_state.flip_levels == 2)
+	{
+		auto ap_seed = apdoom_get_seed();
+		unsigned long long seed = hash_seed(ap_seed);
+		srand(seed);
+		for (int ep = 0; ep < ap_episode_count; ++ep)
+			for (int map = 0; map < ap_map_count; ++map)
+				ap_state.level_states[ep * ap_map_count + map].flipped = rand() % 2;
+	}
 
 	// Scout locations to see which are progressive
 	if (ap_progressive_locations.empty())
@@ -904,6 +935,12 @@ void f_random_monsters(int random_monsters)
 void f_random_items(int random_items)
 {
 	ap_state.random_items = random_items;
+}
+
+
+void f_flip_levels(int flip_levels)
+{
+	ap_state.flip_levels = flip_levels;
 }
 
 

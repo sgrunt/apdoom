@@ -508,7 +508,7 @@ boolean validate_doom_location(int ep, int map, int doom_type, int index)
 }
 
 
-unsigned long long hash_seed(unsigned char *str)
+static unsigned long long hash_seed(unsigned char *str)
 {
     unsigned long long hash = 5381;
     int c;

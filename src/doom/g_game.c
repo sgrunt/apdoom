@@ -810,12 +810,16 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 } 
  
 
+
 //
 // G_DoLoadLevel 
 //
 void G_DoLoadLevel (void) 
 { 
     int             i; 
+
+    crispy->fliplevels = ap_get_level_state(gameepisode, gamemap)->flipped ? true : false;
+    setsizeneeded = true;
 
     // Set the sky map.
     // First thing, we have a dummy sky texture name,

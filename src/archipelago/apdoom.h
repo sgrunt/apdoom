@@ -67,6 +67,7 @@ typedef struct
     int unlocked;
     int checks[AP_CHECK_MAX];
     int special; // Berzerk or Wings
+    int flipped;
 
 } ap_level_state_t;
 
@@ -109,6 +110,7 @@ typedef struct
     int two_ways_keydoors;
     int* episodes;
     int victory;
+    int flip_levels;
     
 } ap_state_t;
 

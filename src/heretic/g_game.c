@@ -855,6 +855,10 @@ void G_DoLoadLevel(void)
 {
     int i;
 
+    // [Ap] This is not supported in crispy-heretic :(
+    //crispy->fliplevels = ap_get_level_state(gameepisode, gamemap)->flipped ? true : false;
+    //setsizeneeded = true;
+
     levelstarttic = gametic;    // for time calculation
     gamestate = GS_LEVEL;
     for (i = 0; i < MAXPLAYERS; i++)

@@ -861,7 +861,7 @@ void D_DoomLoop (void)
     {
         wipegamestate = gamestate;
     }
-
+    
     while (1)
     {
         D_RunFrame();
@@ -895,7 +895,7 @@ void D_PageTicker (void)
 //
 void D_PageDrawer (void)
 {
-    V_DrawPatchFullScreen (W_CacheLumpName(pagename, PU_CACHE), crispy->fliplevels);
+    V_DrawPatchFullScreen (W_CacheLumpName(pagename, PU_CACHE), false); // [AP] We randomly flip levels, so don't flip the menu backgrounds...
 }
 
 
@@ -2607,6 +2607,7 @@ void D_DoomMain (void)
     }
 #endif
 
+#if 0 // [AP] This will be set by AP for each level as a random option
     p = M_CheckParm("-fliplevels");
 
     if (p > 0)
@@ -2614,6 +2615,7 @@ void D_DoomMain (void)
         crispy->fliplevels = !crispy->fliplevels;
         crispy->flipweapons = !crispy->flipweapons;
     }
+#endif
 
     p = M_CheckParm("-flipweapons");
 
