@@ -812,6 +812,14 @@ const std::map<int, std::string>& get_sprites()
 }
 
 
+std::string get_exmx_name(const std::string& name)
+{
+	auto pos = name.find_first_of('(');
+	if (pos == std::string::npos) return name;
+	return name.substr(pos);
+}
+
+
 void f_itemrecv(int64_t item_id, bool notify_player)
 {
 	const auto& item_type_table = get_item_type_table();
@@ -820,7 +828,7 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		return; // Skip
 	ap_item_t item = it->second;
 
-	const char* notif_text = 0;
+	std::string notif_text;
 
 	auto level_state = ap_get_level_state(item.ep, item.map);
 
@@ -830,14 +838,14 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	if (key_it != keys_map.end())
 	{
 		level_state->keys[key_it->second] = 1;
-		notif_text = ap_get_level_info(item.ep, item.map)->name;
+		notif_text = get_exmx_name(ap_get_level_info(item.ep, item.map)->name);
 	}
 
 	// Map?
 	if (item.doom_type == get_map_doom_type())
 	{
 		level_state->has_map = 1;
-		notif_text = ap_get_level_info(item.ep, item.map)->name;
+		notif_text = get_exmx_name(ap_get_level_info(item.ep, item.map)->name);
 	}
 
 	// Backpack?
@@ -861,7 +869,7 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	if (item.doom_type == -1)
 	{
 		level_state->unlocked = 1;
-		notif_text = ap_get_level_info(item.ep, item.map)->name;
+		notif_text = get_exmx_name(ap_get_level_info(item.ep, item.map)->name);
 	}
 
 	// Level complete?
@@ -889,9 +897,9 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		snprintf(notif.sprite, 9, "%s", sprite_it->second.c_str());
 		notif.t = 0;
 		notif.text[0] = '\0'; // For now
-		if (notif_text)
+		if (notif_text != "")
 		{
-			sprintf(notif.text, "%s", notif_text);
+			sprintf(notif.text, "%s", notif_text.c_str());
 		}
 		notif.xf = AP_NOTIF_SIZE / 2 + AP_NOTIF_PADDING;
 		notif.yf = -200.0f + AP_NOTIF_SIZE / 2;
@@ -1235,7 +1243,7 @@ void apdoom_update()
 	{
 		auto& notification_icon = *it;
 
-		if (notification_icon.state == AP_NOTIF_STATE_PENDING && previous_y > -130.0f)
+		if (notification_icon.state == AP_NOTIF_STATE_PENDING && previous_y > -100.0f)
 		{
 			notification_icon.state = AP_NOTIF_STATE_DROPPING;
 		}
@@ -1247,16 +1255,16 @@ void apdoom_update()
 
 		if (notification_icon.state == AP_NOTIF_STATE_DROPPING)
 		{
-			notification_icon.vely += 0.15f;
+			notification_icon.vely += 0.15f + (float)(ap_notification_icons.size() / 4) * 0.25f;
 			if (notification_icon.vely > 8.0f) notification_icon.vely = 8.0f;
 			notification_icon.yf += notification_icon.vely;
 			if (notification_icon.yf >= previous_y - AP_NOTIF_SIZE - AP_NOTIF_PADDING)
 			{
 				notification_icon.yf = previous_y - AP_NOTIF_SIZE - AP_NOTIF_PADDING;
-				notification_icon.vely *= -0.3f;
+				notification_icon.vely *= -0.3f / ((float)(ap_notification_icons.size() / 4) * 0.05f + 1.0f);
 
-				notification_icon.t++;
-				if (notification_icon.t > 350) // 10sec
+				notification_icon.t += ap_notification_icons.size() / 4 + 1; // Faster the more we have queued (4 can display on screen)
+				if (notification_icon.t > 350 * 3 / 4) // ~7.5sec
 				{
 					notification_icon.state = AP_NOTIF_STATE_HIDING;
 				}
@@ -1265,8 +1273,8 @@ void apdoom_update()
 
 		if (notification_icon.state == AP_NOTIF_STATE_HIDING)
 		{
-			notification_icon.vely -= 0.14f;
-			notification_icon.xf += notification_icon.vely;
+			notification_icon.velx -= 0.14f + (float)(ap_notification_icons.size() / 4) * 0.1f;
+			notification_icon.xf += notification_icon.velx;
 			if (notification_icon.xf < -AP_NOTIF_SIZE / 2)
 			{
 				it = ap_notification_icons.erase(it);

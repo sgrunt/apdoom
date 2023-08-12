@@ -779,7 +779,7 @@ void V_DrawScaledBlockTransparency(int x, int y, int width, int height, pixel_t 
     x += WIDESCREENDELTA; // [crispy] horizontal widescreen offset
 
 #ifdef RANGECHECK
-    if (x < 0
+    if (x < -width
      || x + width > SCREENWIDTH
      || y < 0
      || y + height > SCREENWIDTH)
@@ -789,17 +789,21 @@ void V_DrawScaledBlockTransparency(int x, int y, int width, int height, pixel_t 
     }
 #endif
 
-    V_MarkRect (x, y, width, height);
+    int offscreen_x = 0;
+    if (x < 0) offscreen_x = -x;
 
-    dest = dest_screen + (y << crispy->hires) * SCREENWIDTH + (x << crispy->hires);
+    V_MarkRect (x + offscreen_x, y, width - offscreen_x, height);
+
+    dest = dest_screen + (y << crispy->hires) * SCREENWIDTH + ((x + offscreen_x) << crispy->hires);
 
     for (i = 0; i < (height << crispy->hires); i++)
     {
         for (j = 0; j < (width << crispy->hires); j++)
         {
+            if (j < (offscreen_x << crispy->hires)) continue;
             src_pixel = *(src + (i >> crispy->hires) * width + (j >> crispy->hires));
             if (!src_pixel) continue;
-            *(dest + i * SCREENWIDTH + j) = src_pixel;
+            *(dest + i * SCREENWIDTH + (j - (offscreen_x << crispy->hires))) = src_pixel;
         }
     }
 }
