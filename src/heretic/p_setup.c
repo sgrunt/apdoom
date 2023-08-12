@@ -404,8 +404,7 @@ void P_LoadThings(int lump)
         things_type_remap[i] = mt->type;
     }
 
-    
-#if 0
+   
     if (ap_state.random_monsters > 0)
     {
         // Make sure at the right difficulty level
@@ -430,34 +429,28 @@ void P_LoadThings(int lump)
                 if (!(mt->options & bit))
                     continue;
 
-                if (gameepisode == 1 && gamemap == 8)
-                    if (mt->y > E1M8_CUTOFF_OFFSET)
-                        continue;
+                // Similar level in Heretic? I don't think so
+                //if (gameepisode == 1 && gamemap == 8)
+                //    if (mt->y > E1M8_CUTOFF_OFFSET)
+                //        continue;
 
                 switch (mt->type)
                 {
-                    case 3004: // Former Human
-                    case 9: // Former Human Sergeant
-                    case 3001: // Imp
-                    case 3002: // Demon
-                    case 58: // SPECTRE
-                    case 3006: // Lost soul
-                    case 3005: // Cacodemon
-                    case 3003: // Baron of hell
-
-                    case 68:	// Arachnotron
-                    case 64:	// Archvile
-                    case 69:	// Hell Knight
-                    case 67:	// Mancubus
-                    case 71:	// Pain Elemental
-                    case 65:	// Former Human Commando
-                    case 66:	// Revenant
-                    case 84:	// Wolf SS
-
-                    //case 16: // Cyberdemon [Too big, keep them there]
-                    //case 7: // Spiderdemon [Too big, keep them there]
-                    //case 88:	// Boss Brain
-                    //case 89:	// Boss Shooter
+                    //case 7: // D'Sparil 28x100 [Boss, keep them there]
+                    case 15: // Disciple of D'Sparil 16x68
+                    case 5: // Fire gargoyle 16x36
+                    case 66: // Gargoyle 16x36
+                    case 68: // Golem 22x62
+                    case 69: // Golem ghost 22x62
+                    //case 6: // Iron lich 40x72 [Boss, keep them there]
+                    case 9: // Maulotaur 28x100
+                    case 45: // Nitrogolem 22x62
+                    case 46: // Nitrogolem ghost 22x62
+                    case 92: // Ophidian 22x70
+                    case 90: // Sabreclaw 20x64
+                    case 64: // Undead Warrior 24x78
+                    case 65: // Undead Warrior ghost 24x78
+                    case 70: // Weredragon 32x74
                     {
                         monsters[monster_count++] = mt->type;
                         indices[index_count++] = i;
@@ -497,45 +490,46 @@ void P_LoadThings(int lump)
                 if (!(mt->options & bit))
                     continue;
 
-                if (gameepisode == 1 && gamemap == 8)
-                    if (mt->y > E1M8_CUTOFF_OFFSET)
-                        continue;
+                // Similar level in Heretic? I don't think so
+                //if (gameepisode == 1 && gamemap == 8)
+                //    if (mt->y > E1M8_CUTOFF_OFFSET)
+                //        continue;
+
+                //case 7: // D'Sparil 28x100 [Boss, keep them there]
+                //case 6: // Iron lich 40x72 [Boss, keep them there]
 
                 switch (mt->type)
                 {
-                    case 3004: // Former Human
-                    case 9: // Former Human Sergeant
-                    case 3001: // Imp
-                    case 65:	// Former Human Commando
-                    case 84:	// Wolf SS
+                    // Whimpy
+                    case 66: // Gargoyle 16x36
+                    case 5: // Fire gargoyle 16x36
+                    case 68: // Golem 22x62
+                    case 69: // Golem ghost 22x62
                         ratios[0]++;
                         total++;
                         indices[index_count++] = i;
                         break;
 
-                    case 3002: // Demon
-                    case 58: // SPECTRE
-                    case 3006: // Lost soul
-                    case 3005: // Cacodemon
-                    case 67:	// Mancubus
-                    case 71:	// Pain Elemental
-                    case 64:	// Archvile
-                    case 68:	// Arachnotron
-                    case 66:	// Revenant
+                    // Normal
+                    case 45: // Nitrogolem 22x62
+                    case 46: // Nitrogolem ghost 22x62
+                    case 90: // Sabreclaw 20x64
+                    case 64: // Undead Warrior 24x78
+                    case 65: // Undead Warrior ghost 24x78
+                    case 15: // Disciple of D'Sparil 16x68
                         ratios[1]++;
                         total++;
                         indices[index_count++] = i;
                         break;
 
-                    case 3003: // Baron of hell
-                    case 69:	// Hell Knight
+                    // Big
+                    case 92: // Ophidian 22x70 280
+                    case 9: // Maulotaur 28x100 3000
+                    case 70: // Weredragon 32x74 220
                         ratios[2]++;
                         total++;
                         indices[index_count++] = i;
                         break;
-
-
-
                 }
             }
 
@@ -553,137 +547,69 @@ void P_LoadThings(int lump)
                         continue;
                     }
                 }
-                if (gamemode == commercial)
+
+                switch (mt->type)
                 {
-                    switch (mt->type)
+                    //case 7: // D'Sparil 28x100 [Boss, keep them there]
+                    case 15: // Disciple of D'Sparil 16x68
+                    case 5: // Fire gargoyle 16x36
+                    case 66: // Gargoyle 16x36
+                    case 68: // Golem 22x62
+                    case 69: // Golem ghost 22x62
+                    //case 6: // Iron lich 40x72 [Boss, keep them there]
+                    case 9: // Maulotaur 28x100
+                    case 45: // Nitrogolem 22x62
+                    case 46: // Nitrogolem ghost 22x62
+                    case 92: // Ophidian 22x70
+                    case 90: // Sabreclaw 20x64
+                    case 64: // Undead Warrior 24x78
+                    case 65: // Undead Warrior ghost 24x78
+                    case 70: // Weredragon 32x74
                     {
-                        case 3004: // Former Human
-                        case 9: // Former Human Sergeant
-                        case 3001: // Imp
-                        case 3002: // Demon
-                        case 58: // SPECTRE
-                        case 3006: // Lost soul
-                        case 3005: // Cacodemon
-                        case 3003: // Baron of hell
-
-                        case 68:	// Arachnotron
-                        case 64:	// Archvile
-                        case 69:	// Hell Knight
-                        case 67:	// Mancubus
-                        case 71:	// Pain Elemental
-
-                        case 66:	// Revenant
-                        case 65:	// Former Human Commando
-                        case 84:	// Wolf SS
+                        int rnd = rand() % total;
+                        if (rnd < ratios[0])
                         {
-                            int rnd = rand() % total;
-                            if (rnd < ratios[0])
+                            switch (rand()%7)
                             {
-                                switch (rand()%4)
-                                {
-                                    case 0:
-                                        if (rand()%3) things_type_remap[indices[i]] = 3004; // Former Human
-                                        else things_type_remap[indices[i]] = 65; // Former Human Commando
-                                        break;
-                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
-                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
-                                    case 3: things_type_remap[indices[i]] = 84; break; // Wolf SS
-                                }
+                                case 0: things_type_remap[indices[i]] = 66; break; // Gargoyle
+                                case 1: things_type_remap[indices[i]] = 66; break; // Gargoyle
+                                case 2: things_type_remap[indices[i]] = 5; break; // Fire gargoyle
+                                case 3: things_type_remap[indices[i]] = 5; break; // Fire gargoyle
+                                case 4: things_type_remap[indices[i]] = 68; break; // Golem
+                                case 5: things_type_remap[indices[i]] = 68; break; // Golem
+                                case 6: things_type_remap[indices[i]] = 69; break; // Golem ghost
                             }
-                            else if (rnd < ratios[0] + ratios[1])
-                            {
-                                switch (rand()%18)
-                                {
-                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 3: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 4: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 5: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 6: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 7: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 8: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 9: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 10: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 11: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 12: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 13:
-                                        if (rand()%2) things_type_remap[indices[i]] = 3005; // Cacodemon
-                                        else things_type_remap[indices[i]] = 71; // Pain Elemental
-                                        break;
-                                    case 14: things_type_remap[indices[i]] = 3006; break; // Lost soul
-                                    case 15:
-                                        if (rand()%5) things_type_remap[indices[i]] = 3006; // Lost soul
-                                        else things_type_remap[indices[i]] = 64; // Archvile
-                                        break;
-
-                                    case 16: things_type_remap[indices[i]] = 68; break; // Arachnotron
-                                    case 17: things_type_remap[indices[i]] = 67; break; // Mancubus
-                                }
-                            }
-                            else
-                            {
-                                if (rand()%3) things_type_remap[indices[i]] = 69; // Hell Knight
-                                else things_type_remap[indices[i]] = 3003; // Baron of hell
-                            }
-                            break;
                         }
-                        case 16: // Cyberdemon
-                        case 7: // Spiderdemon
-                            if (rand()%2) things_type_remap[indices[i]] = 16;
-                            else things_type_remap[indices[i]] = 7;
-                            break;
-                    }
-                }
-                else
-                {
-                    switch (mt->type)
-                    {
-                        case 3004: // Former Human
-                        case 9: // Former Human Sergeant
-                        case 3001: // Imp
-                        case 3002: // Demon
-                        case 58: // SPECTRE
-                        case 3006: // Lost soul
-                        case 3005: // Cacodemon
-                        case 3003: // Baron of hell
+                        else if (rnd < ratios[0] + ratios[1])
                         {
-                            int rnd = rand() % total;
-                            if (rnd < ratios[0])
+                            switch (rand()%12)
                             {
-                                switch (rand()%3)
-                                {
-                                    case 0: things_type_remap[indices[i]] = 3004; break; // Former Human
-                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
-                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
-                                }
+                                case 0: things_type_remap[indices[i]] = 45; break; // Nitrogolem
+                                case 1: things_type_remap[indices[i]] = 45; break; // Nitrogolem
+                                case 2: things_type_remap[indices[i]] = 45; break; // Nitrogolem
+                                case 3: things_type_remap[indices[i]] = 46; break; // Nitrogolem ghost
+                                case 4: things_type_remap[indices[i]] = 90; break; // Sabreclaw
+                                case 5: things_type_remap[indices[i]] = 90; break; // Sabreclaw
+                                case 6: things_type_remap[indices[i]] = 64; break; // Undead Warrior
+                                case 7: things_type_remap[indices[i]] = 64; break; // Undead Warrior
+                                case 8: things_type_remap[indices[i]] = 64; break; // Undead Warrior
+                                case 9: things_type_remap[indices[i]] = 65; break; // Undead Warrior ghost
+                                case 10: things_type_remap[indices[i]] = 15; break; // Disciple of D'Sparil
+                                case 11: things_type_remap[indices[i]] = 15; break; // Disciple of D'Sparil
                             }
-                            else if (rnd < ratios[0] + ratios[1])
-                            {
-                                switch (rand()%8)
-                                {
-                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 3: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 4: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 5: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 6: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 7: things_type_remap[indices[i]] = 3006; break; // Lost soul
-                                }
-                            }
-                            else
-                            {
-                                barron_count++;
-                                things_type_remap[indices[i]] = 3003; // Baron of hell
-                            }
-                            break;
                         }
-                        case 16: // Cyberdemon
-                        case 7: // Spiderdemon
-                            if (rand()%2) things_type_remap[indices[i]] = 16;
-                            else things_type_remap[indices[i]] = 7;
-                            break;
+                        else
+                        {
+                            if (rand()%20)
+                            {
+                                if (rand()%2)
+                                    things_type_remap[indices[i]] = 92; // Ophidian
+                                else
+                                    things_type_remap[indices[i]] = 70; // Weredragon
+                            }
+                            else things_type_remap[indices[i]] = 9; // Maulotaur
+                        }
+                        break;
                     }
                 }
             }
@@ -718,18 +644,20 @@ void P_LoadThings(int lump)
 
                 switch (mt->type)
                 {
-                    case 2008: // 4 shotgun shells
-                    case 2048: // box of bullets
-                    case 2046: // box of rockets
-                    case 2049: // box of shotgun shells
-                    case 2007: // clip
-                    case 2047: // energy cell
-                    case 17: // energy cell pack
-                    case 2010: // rocket
-                    case 2015: // armor bonus
-                    case 2014: // health bonus
-                    case 2012: // medikit
-                    case 2011: // Stimpack
+                    case 54: // Claw Orb
+                    case 12: // Crystal Geode
+                    case 55: // Energy Orb
+                    case 18: // Ethereal Arrows
+                    case 22: // Flame Orb
+                    case 21: // Greater Runes
+                    case 23: // Inferno Orb
+                    case 20: // Lesser Runes
+                    case 13: // Mace Spheres
+                    case 16: // Pile of Mace Spheres
+                    case 19: // Quiver of Ethereal Arrows
+                    case 10: // Wand Crystal
+                    case 81: // Crystal Vial
+                    case 82: // Quartz Flask
                     {
                         items[item_count++] = mt->type;
                         indices[index_count++] = i;
@@ -770,26 +698,31 @@ void P_LoadThings(int lump)
 
                 switch (mt->type)
                 {
-                    case 2015: // armor bonus
-                    case 2014: // health bonus
+                    // Tiny
+                    case 81: // Crystal Vial
+                    case 10: // Wand Crystal
+                    case 18: // Ethereal Arrows
                         ratios[0]++;
                         total++;
                         break;
 
-                    case 2011: // Stimpack
-                    case 2008: // 4 shotgun shells
-                    case 2007: // clip
-                    case 2047: // energy cell
-                    case 2010: // rocket
+                    // Small
+                    case 54: // Claw Orb
+                    case 22: // Flame Orb
+                    case 20: // Lesser Runes
+                    case 13: // Mace Spheres
                         ratios[1]++;
                         total++;
                         break;
 
-                    case 2048: // box of bullets
-                    case 2046: // box of rockets
-                    case 2049: // box of shotgun shells
-                    case 17: // energy cell pack
-                    case 2012: // medikit
+                    // Big
+                    case 12: // Crystal Geode
+                    case 55: // Energy Orb
+                    case 21: // Greater Runes
+                    case 23: // Inferno Orb
+                    case 16: // Pile of Mace Spheres
+                    case 19: // Quiver of Ethereal Arrows
+                    case 82: // Quartz Flask
                         ratios[2]++;
                         total++;
                         break;
@@ -802,48 +735,51 @@ void P_LoadThings(int lump)
             {
                 switch (mt->type)
                 {
-                    case 2008: // 4 shotgun shells
-                    case 2048: // box of bullets
-                    case 2046: // box of rockets
-                    case 2049: // box of shotgun shells
-                    case 2007: // clip
-                    case 2047: // energy cell
-                    case 17: // energy cell pack
-                    case 2010: // rocket
-                    case 2015: // armor bonus
-                    case 2014: // health bonus
-                    case 2012: // medikit
-                    case 2011: // Stimpack
+                    case 54: // Claw Orb
+                    case 12: // Crystal Geode
+                    case 55: // Energy Orb
+                    case 18: // Ethereal Arrows
+                    case 22: // Flame Orb
+                    case 21: // Greater Runes
+                    case 23: // Inferno Orb
+                    case 20: // Lesser Runes
+                    case 13: // Mace Spheres
+                    case 16: // Pile of Mace Spheres
+                    case 19: // Quiver of Ethereal Arrows
+                    case 10: // Wand Crystal
+                    case 81: // Crystal Vial
                     {
                         int rnd = rand() % total;
                         if (rnd < ratios[0])
                         {
                             switch (rand()%2)
                             {
-                                case 0: things_type_remap[i] = 2015; break; // armor bonus
-                                case 1: things_type_remap[i] = 2014; break; // health bonus
+                                case 0: things_type_remap[i] = 81; break; // Crystal Vial
+                                case 1: things_type_remap[i] = 10; break; // Wand Crystal
+                                case 2: things_type_remap[i] = 18; break; // Ethereal Arrows
                             }
                         }
                         else if (rnd < ratios[0] + ratios[1])
                         {
-                            switch (rand()%5)
+                            switch (rand()%4)
                             {
-                                case 0: things_type_remap[i] = 2011; break; // Stimpack
-                                case 1: things_type_remap[i] = 2008; break; // 4 shotgun shells
-                                case 2: things_type_remap[i] = 2007; break; // clip
-                                case 3: things_type_remap[i] = 2047; break; // energy cell
-                                case 4: things_type_remap[i] = 2010; break; // rocket
+                                case 0: things_type_remap[i] = 54; break; // Claw Orb
+                                case 1: things_type_remap[i] = 22; break; // Flame Orb
+                                case 2: things_type_remap[i] = 20; break; // Lesser Runes
+                                case 3: things_type_remap[i] = 13; break; // Mace Spheres
                             }
                         }
                         else
                         {
-                            switch (rand()%5)
+                            switch (rand()%6)
                             {
-                                case 0: things_type_remap[i] = 2048; break; // box of bullets
-                                case 1: things_type_remap[i] = 2046; break; // box of rockets
-                                case 2: things_type_remap[i] = 2049; break; // box of shotgun shells
-                                case 3: things_type_remap[i] = 17; break; // energy cell pack
-                                case 4: things_type_remap[i] = 2012; break; // medikit
+                                case 0: things_type_remap[i] = 12; break; // Crystal Geode
+                                case 1: things_type_remap[i] = 55; break; // Energy Orb
+                                case 2: things_type_remap[i] = 21; break; // Greater Runes
+                                case 3: things_type_remap[i] = 23; break; // Inferno Orb
+                                case 4: things_type_remap[i] = 16; break; // Pile of Mace Spheres
+                                case 5: things_type_remap[i] = 19; break; // Quiver of Ethereal Arrows
+                                case 6: things_type_remap[i] = 82; break; // Quartz Flask
                             }
                         }
                         break;
@@ -852,7 +788,6 @@ void P_LoadThings(int lump)
             }
         }
     }
-#endif
 
 
     mt = (mapthing_t *) data;
