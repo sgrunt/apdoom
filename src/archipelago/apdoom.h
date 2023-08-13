@@ -167,6 +167,7 @@ void apdoom_complete_level(int ep, int map);
 ap_level_state_t* ap_get_level_state(int ep, int map); // 1-based
 ap_level_info_t* ap_get_level_info(int ep, int map); // 1-based
 const ap_notification_icon_t* ap_get_notification_icons(int* count);
+int ap_get_highest_episode();
 
 // Deathlink stuff
 void apdoom_on_death();

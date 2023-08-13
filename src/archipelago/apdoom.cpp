@@ -210,6 +210,7 @@ void f_episode1(int);
 void f_episode2(int);
 void f_episode3(int);
 void f_episode4(int);
+void f_episode5(int);
 void f_two_ways_keydoors(int);
 void load_state();
 void save_state();
@@ -390,6 +391,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
 	AP_RegisterSlotDataIntCallback("episode4", f_episode4);
+	AP_RegisterSlotDataIntCallback("episode5", f_episode5);
 	AP_RegisterSlotDataIntCallback("two_ways_keydoors", f_two_ways_keydoors);
     AP_Start();
 
@@ -1023,6 +1025,12 @@ void f_episode4(int ep)
 }
 
 
+void f_episode5(int ep)
+{
+	ap_state.episodes[4] = ep;
+}
+
+
 void f_two_ways_keydoors(int two_ways_keydoors)
 {
 	ap_state.two_ways_keydoors = two_ways_keydoors;
@@ -1097,16 +1105,16 @@ void apdoom_complete_level(int ep, int map)
 
 void apdoom_check_victory()
 {
-	if (ap_state.victory) return;
+	//if (ap_state.victory) return;
 
-	for (int ep = 0; ep < ap_episode_count; ++ep)
-	{
-		if (!ap_state.episodes[ep]) continue;
-		for (int map = 0; map < ap_map_count; ++map)
-		{
-			if (!ap_get_level_state(ep + 1, map + 1)->completed) return;
-		}
-	}
+	//for (int ep = 0; ep < ap_episode_count; ++ep)
+	//{
+	//	if (!ap_state.episodes[ep]) continue;
+	//	for (int map = 0; map < ap_map_count; ++map)
+	//	{
+	//		if (!ap_get_level_state(ep + 1, map + 1)->completed) return;
+	//	}
+	//}
 
 	ap_state.victory = 1;
 
@@ -1147,6 +1155,16 @@ const ap_notification_icon_t* ap_get_notification_icons(int* count)
 {
 	*count = (int)ap_notification_icons.size();
 	return ap_notification_icons.data();
+}
+
+
+int ap_get_highest_episode()
+{
+	int highest = 0;
+	for (int i = 0; i < ap_episode_count; ++i)
+		if (ap_state.episodes[i])
+			highest = i;
+	return highest;
 }
 
 /*
