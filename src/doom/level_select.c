@@ -226,6 +226,7 @@ boolean LevelSelectResponder(event_t* ev)
             {
 #ifndef FIRST_EP_ONLY
                 case KEY_LEFTARROW:
+                case 'a':
                     if (gamemode == commercial)
                     {
                         selected_level[selected_ep] -= 16;
@@ -252,6 +253,7 @@ boolean LevelSelectResponder(event_t* ev)
                     }
                     break;
                 case KEY_RIGHTARROW:
+                case 'd':
                     if (gamemode == commercial)
                     {
                         selected_level[selected_ep] += 16;
@@ -277,6 +279,7 @@ boolean LevelSelectResponder(event_t* ev)
                     break;
 #endif
                 case KEY_UPARROW:
+                case 'w':
                     if (gamemode == commercial)
                     {
                         if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
@@ -295,6 +298,7 @@ boolean LevelSelectResponder(event_t* ev)
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_DOWNARROW:
+                case 's':
                     if (gamemode == commercial)
                     {
                         if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
@@ -313,6 +317,7 @@ boolean LevelSelectResponder(event_t* ev)
                     S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     break;
                 case KEY_ENTER:
+                case 'e':
                     if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
                     {
                         S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
