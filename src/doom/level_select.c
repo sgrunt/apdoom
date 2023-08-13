@@ -202,9 +202,9 @@ void play_level(int ep, int lvl)
         G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
     }
 
-    apdoom_check_victory(); // In case we had pending victory
-
     HU_ClearAPMessages();
+
+    apdoom_check_victory(); // In case we had pending victory
 }
 
 

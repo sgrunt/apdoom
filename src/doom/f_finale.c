@@ -43,6 +43,8 @@
 
 #include "doomkeys.h"
 #include "level_select.h"
+#include "apdoom.h"
+#include "hu_stuff.h"
 
 typedef enum
 {
@@ -108,8 +110,8 @@ static textscreen_t textscreens[] =
 
 const char *finaletext;
 const char *finaleflat;
-boolean finalfullscreenbg = false;
 static char *finaletext_rw;
+static int map_idx;
 
 void	F_StartCast (void);
 void	F_CastTicker (void);
@@ -140,26 +142,27 @@ void F_StartFinale (void)
     }
 
     // Find the right screen and set the text and background
-    if (!finalfullscreenbg)
+
+    map_idx = 8;
+    if (gamemode == commercial) map_idx = 32;
+
+    for (i=0; i<arrlen(textscreens); ++i)
     {
-        for (i=0; i<arrlen(textscreens); ++i)
+        textscreen_t *screen = &textscreens[i];
+
+        // Hack for Chex Quest
+
+        if (gameversion == exe_chex && screen->mission == doom)
         {
-            textscreen_t *screen = &textscreens[i];
+            screen->level = 5;
+        }
 
-            // Hack for Chex Quest
-
-            if (gameversion == exe_chex && screen->mission == doom)
-            {
-                screen->level = 5;
-            }
-
-            if (logical_gamemission == screen->mission
-             && (logical_gamemission != doom || gameepisode == screen->episode)
-             && gamemap == screen->level)
-            {
-                finaletext = screen->text;
-                finaleflat = screen->background;
-            }
+        if (logical_gamemission == screen->mission
+         && (logical_gamemission != doom || (ap_get_highest_episode() + 1) == screen->episode)
+         && map_idx == screen->level)
+        {
+            finaletext = screen->text;
+            finaleflat = screen->background;
         }
     }
 
@@ -177,7 +180,6 @@ void F_StartFinale (void)
     
     finalestage = F_STAGE_TEXT;
     finalecount = 0;
-	
 }
 
 
@@ -204,7 +206,7 @@ boolean F_Responder (event_t *event)
             }
         }
     }
-
+	
     return false;
 }
 
@@ -216,7 +218,6 @@ void F_Ticker (void)
 {
     size_t		i;
     
-#if 0 // [AP]
     // check for skipping
     if ( (gamemode == commercial)
       && ( finalecount > 50) )
@@ -228,24 +229,22 @@ void F_Ticker (void)
 				
       if (i < MAXPLAYERS)
       {	
-	if (gamemission == pack_nerve && gamemap == 8)
+	if (gamemission == pack_nerve && map_idx == 8)
 	  F_StartCast ();
 	else
-	if (gamemission == pack_master && (gamemap == 20 || gamemap == 21))
+	if (gamemission == pack_master && (map_idx == 20 || map_idx == 21))
 	  F_StartCast ();
 	else
-	if (gamemap == 30)
+	if (map_idx == 30)
 	  F_StartCast ();
 	else
 	  gameaction = ga_worlddone;
       }
     }
-#endif
     
     // advance animation
     finalecount++;
 	
-#if 0 // [AP]
     if (finalestage == F_STAGE_CAST)
     {
 	F_CastTicker ();
@@ -261,10 +260,9 @@ void F_Ticker (void)
 	finalecount = 0;
 	finalestage = F_STAGE_ARTSCREEN;
 	wipegamestate = -1;		// force a wipe
-	if (gameepisode == 3)
+	if ((ap_get_highest_episode() + 1) == 3)
 	    S_StartMusic (mus_bunny);
     }
-#endif
 }
 
 
@@ -307,43 +305,36 @@ void F_TextWrite (void)
     int		cx;
     int		cy;
     
-    if (finalfullscreenbg)
-    {
-        V_DrawPatchFullScreen (W_CacheLumpName(finaleflat, PU_CACHE), false);
-    }
-    else
-    {
-        // erase the entire screen to a tiled background
-        src = W_CacheLumpName ( finaleflat , PU_CACHE);
-        dest = I_VideoBuffer;
+    // erase the entire screen to a tiled background
+    src = W_CacheLumpName ( finaleflat , PU_CACHE);
+    dest = I_VideoBuffer;
 	
-        for (y=0 ; y<SCREENHEIGHT ; y++)
-        {
-    #ifndef CRISPY_TRUECOLOR
-	    for (x=0 ; x<SCREENWIDTH/64 ; x++)
-	    {
-	        memcpy (dest, src+((y&63)<<6), 64);
-	        dest += 64;
-	    }
-	    if (SCREENWIDTH&63)
-	    {
-	        memcpy (dest, src+((y&63)<<6), SCREENWIDTH&63);
-	        dest += (SCREENWIDTH&63);
-	    }
-    #else
-	    for (x=0 ; x<SCREENWIDTH ; x++)
-	    {
-		    *dest++ = colormaps[src[((y&63)<<6) + (x&63)]];
-	    }
-    #endif
-        }
+    for (y=0 ; y<SCREENHEIGHT ; y++)
+    {
+#ifndef CRISPY_TRUECOLOR
+	for (x=0 ; x<SCREENWIDTH/64 ; x++)
+	{
+	    memcpy (dest, src+((y&63)<<6), 64);
+	    dest += 64;
+	}
+	if (SCREENWIDTH&63)
+	{
+	    memcpy (dest, src+((y&63)<<6), SCREENWIDTH&63);
+	    dest += (SCREENWIDTH&63);
+	}
+#else
+	for (x=0 ; x<SCREENWIDTH ; x++)
+	{
+		*dest++ = colormaps[src[((y&63)<<6) + (x&63)]];
+	}
+#endif
     }
 
     V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
     
     // draw some of the text onto the screen
     cx = 10;
-    cy = 8 * 8; // 10; [AP] Center it a bit much, so we can still see AP messages at the top
+    cy = 10;
     ch = finaletext_rw;
 	
     count = ((signed int) finalecount - 10) / TEXTSPEED;
@@ -1039,13 +1030,13 @@ static void F_ArtScreenDrawer(void)
 {
     const char *lumpname;
     
-    if (gameepisode == 3)
+    if ((ap_get_highest_episode() + 1) == 3)
     {
         F_BunnyScroll();
     }
     else
     {
-        switch (gameepisode)
+        switch ((ap_get_highest_episode() + 1))
         {
             case 1:
                 if (gameversion >= exe_ultimate)

@@ -545,8 +545,11 @@ void D_Display(void)
     if (MenuActive || askforquit)
         V_DrawFullscreenRawOrPatch(W_GetNumForName("TITLE"));
     MN_Drawer();
-    ap_notif_draw();
-    HU_DrawAPMessages();   // [AP] Sticky messages on top of everything
+    if (gamestate != GS_FINALE)
+    {
+        ap_notif_draw();
+        HU_DrawAPMessages();   // [AP] Sticky messages on top of everything
+    }
 
     // Send out any new accumulation
     NetUpdate();
