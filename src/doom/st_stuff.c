@@ -1388,6 +1388,14 @@ int ST_calcPainOffset(void)
     return lastcalc;
 }
 
+static int faceindex;
+
+void do_evil_grin(void)
+{
+	st_facecount = ST_EVILGRINCOUNT;
+	faceindex = ST_EVILGRINOFFSET;
+}
+
 
 //
 // This is a not-very-pretty routine which handles
@@ -1396,7 +1404,6 @@ int ST_calcPainOffset(void)
 //  dead > evil grin > turned head > straight ahead
 //
 // [crispy] fix status bar face hysteresis
-static int faceindex;
 void ST_updateFaceWidget(void)
 {
     int		i;

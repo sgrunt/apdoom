@@ -271,6 +271,7 @@ P_GiveBody
     return true;
 }
 
+void do_evil_grin(void);
 
 
 //
@@ -719,6 +720,7 @@ P_TouchSpecialThing
 	case SPR_APJI:
 	case SPR_APPI:
 		apdoom_check_location(gameepisode, gamemap, special->index);
+		do_evil_grin();
 		break;
 
 	case SPR_LVST:
