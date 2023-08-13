@@ -133,7 +133,8 @@ int spinflylump;
 cheatseq_t CheatGodSeq = CHEAT("quicken", 0);
 
 // Toggle no clipping mode
-cheatseq_t CheatNoClipSeq = CHEAT("kitty", 0);
+//cheatseq_t CheatNoClipSeq = CHEAT("kitty", 0);
+cheatseq_t CheatNoClipSeq = CHEAT("idclip", 0); // [AP] kitty doesn't work because it triggers chat...
 
 // Get all weapons and ammo
 cheatseq_t CheatWeaponsSeq = CHEAT("rambo", 0);
