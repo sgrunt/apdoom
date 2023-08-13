@@ -248,6 +248,61 @@ void play_level(int ep, int lvl)
 }
 
 
+void select_map_dir(int dir)
+{
+    int from = selected_level[selected_ep];
+    float fromx = (float)level_pos_infos[selected_ep][from].x;
+    float fromy = (float)level_pos_infos[selected_ep][from].y;
+
+    int best = from;
+    float best_score = 0.0f;
+
+    for (int i = 0; i < ap_map_count; ++i)
+    {
+        if (i == from) continue;
+
+        float tox = (float)level_pos_infos[selected_ep][i].x;
+        float toy = (float)level_pos_infos[selected_ep][i].y;
+        float score = 0.0f;
+        float dist = 10000.0f;
+
+        switch (dir)
+        {
+            case 0: // Left
+                if (tox >= fromx) continue;
+                dist = fromx - tox;
+                break;
+            case 1: // Right
+                if (tox <= fromx) continue;
+                dist = tox - fromx;
+                break;
+            case 2: // Up
+                if (toy >= fromy) continue;
+                dist = fromy - toy;
+                break;
+            case 3: // Down
+                if (toy <= fromy) continue;
+                dist = toy - fromy;
+                break;
+        }
+        score = 1.0f / dist;
+
+        if (score > best_score)
+        {
+            best_score = score;
+            best = i;
+        }
+    }
+
+    if (best != from)
+    {
+        urh_anim = 0;
+        S_StartSound(NULL, sfx_keyup);
+        selected_level[selected_ep] = best;
+    }
+}
+
+
 boolean LevelSelectResponder(event_t* ev)
 {
     if (ep_anim) return true;
@@ -264,66 +319,24 @@ boolean LevelSelectResponder(event_t* ev)
         {
             switch (ev->data1)
             {
-#ifndef FIRST_EP_ONLY
                 case KEY_LEFTARROW:
-                    if (ep_count > 1)
-                    {
-                        prev_ep = selected_ep;
-                        ep_anim = -10;
-                        selected_ep--;
-                        if (selected_ep < 0) selected_ep = ap_episode_count - 1;
-                        while (!ap_state.episodes[selected_ep])
-                        {
-                            selected_ep--;
-                            if (selected_ep < 0) selected_ep = ap_episode_count - 1;
-                            if (selected_ep == prev_ep) // oops;
-                                break;
-                        }
-                        //restart_wi_anims();
-                        urh_anim = 0;
-                        S_StartSound(NULL, sfx_keyup);
-                    }
+                case 'a':
+                    select_map_dir(0);
                     break;
                 case KEY_RIGHTARROW:
-                    if (ep_count > 1)
-                    {
-                        prev_ep = selected_ep;
-                        ep_anim = 10;
-                        selected_ep = (selected_ep + 1) % ap_episode_count;
-                        while (!ap_state.episodes[selected_ep])
-                        {
-                            selected_ep = (selected_ep + 1) % ap_episode_count;
-                            if (selected_ep == prev_ep) // oops;
-                                break;
-                        }
-                        urh_anim = 0;
-                        S_StartSound(NULL, sfx_keyup);
-                    }
+                case 'd':
+                    select_map_dir(1);
                     break;
-#endif
                 case KEY_UPARROW:
-                    if (selected_ep == 1)
-                    {
-                        selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = ap_map_count - 1;
-                    }
-                    else
-                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % ap_map_count;
-                    urh_anim = 0;
-                    S_StartSound(NULL, sfx_keyup);
+                case 'w':
+                    select_map_dir(2);
                     break;
                 case KEY_DOWNARROW:
-                    if (selected_ep == 1)
-                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % ap_map_count;
-                    else
-                    {
-                        selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = ap_map_count - 1;
-                    }
-                    urh_anim = 0;
-                    S_StartSound(NULL, sfx_keyup);
+                case 's':
+                    select_map_dir(3);
                     break;
                 case KEY_ENTER:
+                case 'e':
                     if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
                     {
                         S_StartSound(NULL, sfx_dorcls);

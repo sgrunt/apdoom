@@ -279,7 +279,6 @@ boolean LevelSelectResponder(event_t* ev)
         {
             switch (ev->data1)
             {
-#ifndef FIRST_EP_ONLY
                 case KEY_LEFTARROW:
                 case 'a':
                     if (gamemode == commercial)
@@ -372,7 +371,6 @@ boolean LevelSelectResponder(event_t* ev)
                         S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
                     }
                     break;
-#endif
                 case KEY_ENTER:
                 case 'e':
                     if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
