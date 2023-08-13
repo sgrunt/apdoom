@@ -538,15 +538,6 @@ void P_LoadThings(int lump)
             for (i = 0; i < index_count; i++)
             {
                 mt = &((mapthing_t*)data)[indices[i]];
-                if (gameepisode == 1 && gamemap == 8)
-                {
-                    if (index_count - i <= 2 - barron_count)
-                    {
-                        barron_count++;
-                        things_type_remap[indices[i]] = 3003; // Baron of hell
-                        continue;
-                    }
-                }
 
                 switch (mt->type)
                 {
