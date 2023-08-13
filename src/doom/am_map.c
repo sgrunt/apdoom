@@ -307,6 +307,7 @@ static fixed_t scale_ftom;
 static player_t *plr; // the player represented by an arrow
 
 static patch_t *marknums[10]; // numbers used for marking by the automap
+static patch_t *amap;
 static mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
 static int markpointnum = 0; // next point to be assigned
 
@@ -590,6 +591,7 @@ void AM_loadPics(void)
 	marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
     }
 
+    amap = W_CacheLumpName("AMAP", PU_STATIC);
 }
 
 void AM_unloadPics(void)
@@ -2067,6 +2069,48 @@ void AM_drawMarks(void)
 
 }
 
+
+void AM_drawLocations(void)
+{
+    int		i, fx, fy;
+    int w = 6;
+    int h = 6;
+    mobj_t*	t;
+    mpoint_t	pt;
+
+    for (i=0;i<numsectors;i++)
+    {
+	    t = sectors[i].thinglist;
+        while (t)
+	    {
+
+            // [crispy] skull keys and key cards
+            switch (t->info->doomednum)
+            {
+                case 20000:
+                case 20001:
+                {
+	                pt.x = t->x >> FRACTOMAPBITS;
+	                pt.y = t->y >> FRACTOMAPBITS;
+
+	                if (crispy->automaprotate)
+	                {
+		                AM_rotatePoint(&pt);
+	                }
+
+	                fx = (flipscreenwidth[CXMTOF(pt.x)] >> crispy->hires) - 1 - WIDESCREENDELTA;
+	                fy = (CYMTOF(pt.y) >> crispy->hires) - 2;
+	                if (fx >= f_x && fx <= (f_w >> crispy->hires) - w && fy >= f_y && fy <= (f_h >> crispy->hires) - h)
+                        V_DrawPatch(fx, fy, amap);
+
+	                break;
+                }
+            }
+	        t = t->snext;
+        }
+    }
+}
+
 static void AM_drawCrosshair(int color, boolean force)
 {
     // [crispy] draw an actual crosshair
@@ -2137,6 +2181,8 @@ void AM_Drawer (void)
     AM_drawPlayers();
     if (cheating==2)
 	AM_drawThings(THINGCOLORS, THINGRANGE);
+    if (plr->powers[pw_allmap])
+        AM_drawLocations();
     AM_drawCrosshair(XHAIRCOLORS, false);
 
     AM_drawMarks();
