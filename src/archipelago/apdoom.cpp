@@ -1110,6 +1110,7 @@ void apdoom_check_victory()
 	for (int ep = 0; ep < ap_episode_count; ++ep)
 	{
 		if (!ap_state.episodes[ep]) continue;
+
 		for (int map = 0; map < ap_map_count; ++map)
 		{
 			if (!ap_get_level_state(ep + 1, map + 1)->completed) return;

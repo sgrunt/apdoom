@@ -30,6 +30,7 @@
 #include "m_misc.h"
 #include "hu_lib.h"
 #include "hu_stuff.h"
+#include <math.h>
 
 
 void WI_initAnimatedBack(void);
@@ -47,7 +48,6 @@ typedef struct
     char* urhere_lump_name;
     int urhere_x_offset;
     int urhere_y_offset;
-
 } level_pos_t;
 
 
@@ -59,15 +59,15 @@ static level_pos_t level_pos_infos[4][9] =
 {
     // Episode 1
     {
-        { 185, 164 + 10, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
-	    { 148, 143, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
-	    { 69, 122, 18, "WIURH1", 0, 0 },	// location of level 2 (CJ)
-	    { 209 + 20, 102, 22, "WIURH0", 0, 0 },	// location of level 3 (CJ)
-	    { 116, 89, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
-	    { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0 },	// location of level 5 (CJ)
-	    { 71, 56, 18, "WIURH1", 0, 0 },	// location of level 6 (CJ)
-	    { 135, 29, 18, "WIURH0", -2, 4 },	// location of level 7 (CJ)
-	    { 71, 24, 22, "WIURH1", 0, 0 }	// location of level 8 (CJ)
+        { 185, 164 + 10, 22, "WIURH0", 0, 0 },
+        { 148, 143, 18, "WIURH0", 0, 0 },
+        { 69, 122, 18, "WIURH1", 0, 0 },
+        { 209 + 20, 102, 22, "WIURH0", 0, 0 },
+        { 116, 89, 26, "WIURH2", 0, 0 },
+        { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0 },
+        { 71, 56, 18, "WIURH1", 0, 0 },
+        { 135, 29, 18, "WIURH0", -2, 4 },
+        { 70, 24, 22, "WIURH1", 0, 0 }
     },
 
 #ifndef FIRST_EP_ONLY
@@ -76,12 +76,12 @@ static level_pos_t level_pos_infos[4][9] =
 	    { 254, 25, 18, "WIURH2", 0, 0 },	// location of level 0 (CJ)
 	    { 97, 50, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
 	    { 188, 64, 18, "WIURH0", 0, 0 },	// location of level 2 (CJ)
-	    { 128, 78 + 5, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
+	    { 128, 83, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
 	    { 214, 92, 22, "WIURH0", 0, 0 },	// location of level 4 (CJ)
 	    { 133, 130, 20, "WIURH0", 0, 0 },	// location of level 5 (CJ)
-	    { 208, 136 - 1, 18, "WIURH0", 0, 0 },	// location of level 6 (CJ)
-	    { 148, 140 + 20, 22, "WIURH2", 0, 0 },	// location of level 7 (CJ)
-	    { 235, 158 + 10, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
+	    { 208, 135, 18, "WIURH0", 0, 0 },	// location of level 6 (CJ)
+	    { 148, 160, 22, "WIURH2", 0, 0 },	// location of level 7 (CJ)
+	    { 235, 168, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
     },
 
     // Episode 3
@@ -90,7 +90,7 @@ static level_pos_t level_pos_infos[4][9] =
 	    { 48, 154, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
 	    { 174, 95, -26, "WIURH0", 0, 0 },	// location of level 2 (CJ)
 	    { 265, 75, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
-	    { 130, 48 + 4, -24, "WIURH3", 0, 0 },	// location of level 4 (CJ)
+	    { 130, 52, -24, "WIURH3", 0, 0 },	// location of level 4 (CJ)
 	    { 279, 23, -26, "WIURH1", 8, 0 },	// location of level 5 (CJ)
 	    { 198, 48, 18, "WIURH3", 0, 0 },	// location of level 6 (CJ)
 	    { 140, 25, 22, "WIURH1", 0, 0 },	// location of level 7 (CJ)
@@ -102,11 +102,11 @@ static level_pos_t level_pos_infos[4][9] =
         { 101, 177, 22, "WIURH1", 0, 0 },	// location of level 0 (CJ)
 	    { 183, 148, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
 	    { 172, 97, 18, "WIURH2", 0, 0 },	// location of level 2 (CJ)
-	    { 78, 85, 22, "WIURH2", 0, 0 },	// location of level 3 (CJ)
+	    { 78, 86, 22, "WIURH2", 0, 0 },	// location of level 3 (CJ)
 	    { 251, 85, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
-	    { 33 + 4, 24, -24, "WIURH2", 3, -20 },	// location of level 5 (CJ)
+	    { 37, 24, -24, "WIURH2", 3, -20 },	// location of level 5 (CJ)
 	    { 260, 47, 18, "WIURH0", -5, -4 },	// location of level 6 (CJ)
-	    { 191, 24, 28, "WIURH3", 0, 0 },	// location of level 7 (CJ)
+	    { 194, 25, 24, "WIURH3", 0, 0 },	// location of level 7 (CJ)
 	    { 88, 58, 17, "WIURH0", 0, 0 }	// location of level 8 (CJ)
     }
 #endif
@@ -208,6 +208,61 @@ void play_level(int ep, int lvl)
 }
 
 
+void select_map_dir(int dir)
+{
+    int from = selected_level[selected_ep];
+    float fromx = (float)level_pos_infos[selected_ep][from].x;
+    float fromy = (float)level_pos_infos[selected_ep][from].y;
+
+    int best = from;
+    float best_score = 0.0f;
+
+    for (int i = 0; i < ap_map_count; ++i)
+    {
+        if (i == from) continue;
+
+        float tox = (float)level_pos_infos[selected_ep][i].x;
+        float toy = (float)level_pos_infos[selected_ep][i].y;
+        float score = 0.0f;
+        float dist = 10000.0f;
+
+        switch (dir)
+        {
+            case 0: // Left
+                if (tox >= fromx) continue;
+                dist = fromx - tox;
+                break;
+            case 1: // Right
+                if (tox <= fromx) continue;
+                dist = tox - fromx;
+                break;
+            case 2: // Up
+                if (toy >= fromy) continue;
+                dist = fromy - toy;
+                break;
+            case 3: // Down
+                if (toy <= fromy) continue;
+                dist = toy - fromy;
+                break;
+        }
+        score = 1.0f / dist;
+
+        if (score > best_score)
+        {
+            best_score = score;
+            best = i;
+        }
+    }
+
+    if (best != from)
+    {
+        urh_anim = 0;
+        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
+        selected_level[selected_ep] = best;
+    }
+}
+
+
 boolean LevelSelectResponder(event_t* ev)
 {
     if (ep_anim) return true;
@@ -234,7 +289,55 @@ boolean LevelSelectResponder(event_t* ev)
                         urh_anim = 0;
                         S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
                     }
-                    else if (gamemode != shareware && ep_count > 1)
+                    else
+                    {
+                        select_map_dir(0);
+                    }
+                    break;
+                case KEY_RIGHTARROW:
+                case 'd':
+                    if (gamemode == commercial)
+                    {
+                        selected_level[selected_ep] += 16;
+                        if (selected_level[selected_ep] >= ap_map_count) selected_level[selected_ep] -= 32;
+                        urh_anim = 0;
+                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
+                    }
+                    else
+                    {
+                        select_map_dir(1);
+                    }
+                    break;
+                case KEY_UPARROW:
+                case 'w':
+                    if (gamemode == commercial)
+                    {
+                        if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
+                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
+                        else
+                            selected_level[selected_ep]--;
+                    }
+                    else
+                    {
+                        select_map_dir(2);
+                    }
+                    break;
+                case KEY_DOWNARROW:
+                case 's':
+                    if (gamemode == commercial)
+                    {
+                        if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
+                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
+                        else
+                            selected_level[selected_ep]++;
+                    }
+                    else
+                    {
+                        select_map_dir(3);
+                    }
+                    break;
+                case '[':
+                    if (gamemode != shareware && ep_count > 1)
                     {
                         prev_ep = selected_ep;
                         ep_anim = -10;
@@ -252,16 +355,8 @@ boolean LevelSelectResponder(event_t* ev)
                         S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
                     }
                     break;
-                case KEY_RIGHTARROW:
-                case 'd':
-                    if (gamemode == commercial)
-                    {
-                        selected_level[selected_ep] += 16;
-                        if (selected_level[selected_ep] >= ap_map_count) selected_level[selected_ep] -= 32;
-                        urh_anim = 0;
-                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-                    }
-                    else if (gamemode != shareware && ep_count > 1)
+                case ']':
+                    if (gamemode != shareware && ep_count > 1)
                     {
                         prev_ep = selected_ep;
                         ep_anim = 10;
@@ -278,44 +373,6 @@ boolean LevelSelectResponder(event_t* ev)
                     }
                     break;
 #endif
-                case KEY_UPARROW:
-                case 'w':
-                    if (gamemode == commercial)
-                    {
-                        if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
-                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
-                        else
-                            selected_level[selected_ep]--;
-                    }
-                    else if (selected_ep == 1)
-                    {
-                        selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = ap_map_count - 1;
-                    }
-                    else
-                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % ap_map_count;
-                    urh_anim = 0;
-                    S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-                    break;
-                case KEY_DOWNARROW:
-                case 's':
-                    if (gamemode == commercial)
-                    {
-                        if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
-                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
-                        else
-                            selected_level[selected_ep]++;
-                    }
-                    else if (selected_ep == 1)
-                        selected_level[selected_ep] = (selected_level[selected_ep] + 1) % ap_map_count;
-                    else
-                    {
-                        selected_level[selected_ep]--;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] = ap_map_count - 1;
-                    }
-                    urh_anim = 0;
-                    S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-                    break;
                 case KEY_ENTER:
                 case 'e':
                     if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
