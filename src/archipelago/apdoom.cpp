@@ -303,6 +303,7 @@ const int* get_max_ammos()
 
 int apdoom_init(ap_settings_t* settings)
 {
+	ap_notification_icons.reserve(4096); // 1MB. A bit exessive, but I got a crash with invalid strings and I cannot figure out why. Let's not take any chances...
 	memset(&ap_state, 0, sizeof(ap_state));
 
 	if (strcmp(settings->game, "DOOM 1993") == 0)
@@ -899,7 +900,7 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 		notif.text[0] = '\0'; // For now
 		if (notif_text != "")
 		{
-			sprintf(notif.text, "%s", notif_text.c_str());
+			snprintf(notif.text, 260, "%s", notif_text.c_str());
 		}
 		notif.xf = AP_NOTIF_SIZE / 2 + AP_NOTIF_PADDING;
 		notif.yf = -200.0f + AP_NOTIF_SIZE / 2;

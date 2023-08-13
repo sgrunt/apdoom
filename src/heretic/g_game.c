@@ -1716,7 +1716,10 @@ void set_ap_player_states()
     //p->itemcount = ap_state.player_state.item_count;
     //p->secretcount = ap_state.player_state.secret_count;
     for (int i = 0; i < NUMPOWERS; ++i)
+    {
+        if (i == pw_flight || i == pw_allmap) continue;
         p->powers[i] = ap_state.player_state.powers[i];
+    }
     p->powers[pw_allmap] = ap_get_level_state(gameepisode, gamemap)->has_map;
     for (int i = 0; i < NUMWEAPONS; ++i)
         p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
