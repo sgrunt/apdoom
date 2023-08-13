@@ -108,6 +108,9 @@ boolean F_Responder(event_t * event)
         return true;
     }
 
+    if (gamestate != GS_FINALE)
+        return false;
+
     if (finalecount < 35 * 3)
         return false;
 
