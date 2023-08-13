@@ -2181,7 +2181,7 @@ void AM_Drawer (void)
     AM_drawPlayers();
     if (cheating==2)
 	AM_drawThings(THINGCOLORS, THINGRANGE);
-    if (plr->powers[pw_allmap])
+    if (plr->powers[pw_allmap] && !crispy->automapoverlay)
         AM_drawLocations();
     AM_drawCrosshair(XHAIRCOLORS, false);
 
