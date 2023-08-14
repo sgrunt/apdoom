@@ -1929,6 +1929,8 @@ boolean MN_Responder(event_t * event)
         return true;
     }
 
+    key = 0;
+
     // Allow the menu to be activated from a joystick button if a button
     // is bound for joybmenu.
     if (event->type == ev_joystick)
@@ -1938,15 +1940,55 @@ boolean MN_Responder(event_t * event)
             MN_ActivateMenu();
             return true;
         }
-    }
 
-    if (event->type != ev_keydown)
+        if (MenuActive)
+        {
+            if (event->data3 < 0)
+            {
+                key = key_menu_up;
+                joywait = I_GetTime() + 5;
+            }
+            else if (event->data3 > 0)
+            {
+                key = key_menu_down;
+                joywait = I_GetTime() + 5;
+            }
+            if (event->data2 < 0)
+            {
+                key = key_menu_left;
+                joywait = I_GetTime() + 2;
+            }
+            else if (event->data2 > 0)
+            {
+                key = key_menu_right;
+                joywait = I_GetTime() + 2;
+            }
+
+#define JOY_BUTTON_MAPPED(x) ((x) >= 0)
+#define JOY_BUTTON_PRESSED(x) (JOY_BUTTON_MAPPED(x) && (event->data1 & (1 << (x))) != 0)
+
+            if (JOY_BUTTON_PRESSED(joybfire))
+            {
+                key = key_menu_forward;
+                joywait = I_GetTime() + 5;
+            }
+            if (JOY_BUTTON_PRESSED(joybuse))
+            {
+                key = key_menu_back;
+                joywait = I_GetTime() + 5;
+            }
+        }
+    }
+    if (key == 0)
     {
-        return false;
-    }
+        if (event->type != ev_keydown)
+        {
+            return false;
+        }
 
-    key = event->data1;
-    charTyped = event->data2;
+        key = event->data1;
+        charTyped = event->data2;
+    }
 
     if (InfoType)
     {

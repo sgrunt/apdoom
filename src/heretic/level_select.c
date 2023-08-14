@@ -25,6 +25,8 @@
 #include "i_video.h"
 #include "m_misc.h"
 #include "ap_msg.h"
+#include "m_controls.h"
+#include "i_timer.h"
 
 extern boolean automapactive;
 
@@ -264,6 +266,57 @@ void play_level(int ep, int lvl)
 }
 
 
+static int get_episode_count()
+{
+    int ep_count = 0;
+    if (gamemode != commercial)
+        for (int i = 0; i < ap_episode_count; ++i)
+            if (ap_state.episodes[i])
+                ep_count++;
+    return ep_count;
+}
+
+
+static void level_select_prev_episode()
+{
+    if (gamemode != shareware && get_episode_count() > 1)
+    {
+        prev_ep = selected_ep;
+        ep_anim = -10;
+        selected_ep--;
+        if (selected_ep < 0) selected_ep = ap_episode_count - 1;
+        while (!ap_state.episodes[selected_ep])
+        {
+            selected_ep--;
+            if (selected_ep < 0) selected_ep = ap_episode_count - 1;
+            if (selected_ep == prev_ep) // oops;
+                break;
+        }
+        urh_anim = 0;
+        S_StartSound(NULL, sfx_keyup);
+    }
+}
+
+
+static void level_select_next_episode()
+{
+    if (gamemode != shareware && get_episode_count() > 1)
+    {
+        prev_ep = selected_ep;
+        ep_anim = 10;
+        selected_ep = (selected_ep + 1) % ap_episode_count;
+        while (!ap_state.episodes[selected_ep])
+        {
+            selected_ep = (selected_ep + 1) % ap_episode_count;
+            if (selected_ep == prev_ep) // oops;
+                break;
+        }
+        urh_anim = 0;
+        S_StartSound(NULL, sfx_keyup);
+    }
+}
+
+
 void select_map_dir(int dir)
 {
     int from = selected_level[selected_ep];
@@ -319,6 +372,20 @@ void select_map_dir(int dir)
 }
 
 
+static void level_select_nav_enter()
+{
+    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
+    {
+        S_StartSound(NULL, sfx_dorcls);
+        play_level(selected_ep, selected_level[selected_ep]);
+    }
+    else
+    {
+        S_StartSound(NULL, sfx_artiuse);
+    }
+}
+
+
 boolean LevelSelectResponder(event_t* ev)
 {
     if (ep_anim) return true;
@@ -331,6 +398,39 @@ boolean LevelSelectResponder(event_t* ev)
 
     switch (ev->type)
     {
+        case ev_joystick:
+        {
+            if (ev->data4 < 0 || ev->data2 < 0)
+            {
+                select_map_dir(0);
+                joywait = I_GetTime() + 5;
+            }
+            else if (ev->data4 > 0 || ev->data2 > 0)
+            {
+                select_map_dir(1);
+                joywait = I_GetTime() + 5;
+            }
+            else if (ev->data3 < 0)
+            {
+                select_map_dir(2);
+                joywait = I_GetTime() + 5;
+            }
+            else if (ev->data3 > 0)
+            {
+                select_map_dir(3);
+                joywait = I_GetTime() + 5;
+            }
+
+#define JOY_BUTTON_MAPPED(x) ((x) >= 0)
+#define JOY_BUTTON_PRESSED(x) (JOY_BUTTON_MAPPED(x) && (ev->data1 & (1 << (x))) != 0)
+
+            if (JOY_BUTTON_PRESSED(joybfire)) level_select_nav_enter();
+
+            if (JOY_BUTTON_PRESSED(joybprevweapon)) level_select_prev_episode();
+            else if (JOY_BUTTON_PRESSED(joybnextweapon)) level_select_next_episode();
+
+            break;
+        }
         case ev_keydown:
         {
             switch (ev->data1)
@@ -351,17 +451,15 @@ boolean LevelSelectResponder(event_t* ev)
                 case 's':
                     select_map_dir(3);
                     break;
+                case '[':
+                    level_select_prev_episode();
+                    break;
+                case ']':
+                    level_select_next_episode();
+                    break;
                 case KEY_ENTER:
                 case 'e':
-                    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
-                    {
-                        S_StartSound(NULL, sfx_dorcls);
-                        play_level(selected_ep, selected_level[selected_ep]);
-                    }
-                    else
-                    {
-                        S_StartSound(NULL, sfx_artiuse);
-                    }
+                    level_select_nav_enter();
                     break;
             }
             break;

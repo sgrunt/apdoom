@@ -31,6 +31,7 @@
 #include "hu_lib.h"
 #include "hu_stuff.h"
 #include <math.h>
+#include "m_controls.h"
 
 
 void WI_initAnimatedBack(void);
@@ -278,6 +279,137 @@ void select_map_dir(int dir)
 }
 
 
+static void level_select_nav_left()
+{
+    if (gamemode == commercial)
+    {
+        selected_level[selected_ep] -= 16;
+        if (selected_level[selected_ep] < 0) selected_level[selected_ep] += ap_map_count;
+        urh_anim = 0;
+        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
+    }
+    else
+    {
+        select_map_dir(0);
+    }
+}
+
+
+static void level_select_nav_right()
+{
+    if (gamemode == commercial)
+    {
+        selected_level[selected_ep] += 16;
+        if (selected_level[selected_ep] >= ap_map_count) selected_level[selected_ep] -= 32;
+        urh_anim = 0;
+        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
+    }
+    else
+    {
+        select_map_dir(1);
+    }
+}
+
+
+static void level_select_nav_up()
+{
+    if (gamemode == commercial)
+    {
+        if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
+            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
+        else
+            selected_level[selected_ep]--;
+    }
+    else
+    {
+        select_map_dir(2);
+    }
+}
+
+
+static void level_select_nav_down()
+{
+    if (gamemode == commercial)
+    {
+        if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
+            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
+        else
+            selected_level[selected_ep]++;
+    }
+    else
+    {
+        select_map_dir(3);
+    }
+}
+
+
+static int get_episode_count()
+{
+    int ep_count = 0;
+    if (gamemode != commercial)
+        for (int i = 0; i < ap_episode_count; ++i)
+            if (ap_state.episodes[i])
+                ep_count++;
+    return ep_count;
+}
+
+
+static void level_select_prev_episode()
+{
+    if (gamemode != shareware && get_episode_count() > 1)
+    {
+        prev_ep = selected_ep;
+        ep_anim = -10;
+        selected_ep--;
+        if (selected_ep < 0) selected_ep = ap_episode_count - 1;
+        while (!ap_state.episodes[selected_ep])
+        {
+            selected_ep--;
+            if (selected_ep < 0) selected_ep = ap_episode_count - 1;
+            if (selected_ep == prev_ep) // oops;
+                break;
+        }
+        restart_wi_anims();
+        urh_anim = 0;
+        S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
+    }
+}
+
+
+static void level_select_next_episode()
+{
+    if (gamemode != shareware && get_episode_count() > 1)
+    {
+        prev_ep = selected_ep;
+        ep_anim = 10;
+        selected_ep = (selected_ep + 1) % ap_episode_count;
+        while (!ap_state.episodes[selected_ep])
+        {
+            selected_ep = (selected_ep + 1) % ap_episode_count;
+            if (selected_ep == prev_ep) // oops;
+                break;
+        }
+        restart_wi_anims();
+        urh_anim = 0;
+        S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
+    }
+}
+
+
+static void level_select_nav_enter()
+{
+    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
+    {
+        S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
+        play_level(selected_ep, selected_level[selected_ep]);
+    }
+    else
+    {
+        S_StartSoundOptional(NULL, sfx_mnusli, sfx_noway);
+    }
+}
+
+
 boolean LevelSelectResponder(event_t* ev)
 {
     if (ep_anim) return true;
@@ -290,113 +422,68 @@ boolean LevelSelectResponder(event_t* ev)
 
     switch (ev->type)
     {
+        case ev_joystick:
+        {
+            if (ev->data4 < 0 || ev->data2 < 0)
+            {
+                level_select_nav_left();
+                joywait = I_GetTime() + 5;
+            }
+            else if (ev->data4 > 0 || ev->data2 > 0)
+            {
+                level_select_nav_right();
+                joywait = I_GetTime() + 5;
+            }
+            else if (ev->data3 < 0)
+            {
+                level_select_nav_up();
+                joywait = I_GetTime() + 5;
+            }
+            else if (ev->data3 > 0)
+            {
+                level_select_nav_down();
+                joywait = I_GetTime() + 5;
+            }
+
+#define JOY_BUTTON_MAPPED(x) ((x) >= 0)
+#define JOY_BUTTON_PRESSED(x) (JOY_BUTTON_MAPPED(x) && (ev->data1 & (1 << (x))) != 0)
+
+            if (JOY_BUTTON_PRESSED(joybfire)) level_select_nav_enter();
+
+            if (JOY_BUTTON_PRESSED(joybprevweapon)) level_select_prev_episode();
+            else if (JOY_BUTTON_PRESSED(joybnextweapon)) level_select_next_episode();
+
+            break;
+        }
         case ev_keydown:
         {
             switch (ev->data1)
             {
                 case KEY_LEFTARROW:
                 case 'a':
-                    if (gamemode == commercial)
-                    {
-                        selected_level[selected_ep] -= 16;
-                        if (selected_level[selected_ep] < 0) selected_level[selected_ep] += ap_map_count;
-                        urh_anim = 0;
-                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-                    }
-                    else
-                    {
-                        select_map_dir(0);
-                    }
+                    level_select_nav_left();
                     break;
                 case KEY_RIGHTARROW:
                 case 'd':
-                    if (gamemode == commercial)
-                    {
-                        selected_level[selected_ep] += 16;
-                        if (selected_level[selected_ep] >= ap_map_count) selected_level[selected_ep] -= 32;
-                        urh_anim = 0;
-                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-                    }
-                    else
-                    {
-                        select_map_dir(1);
-                    }
+                    level_select_nav_right();
                     break;
                 case KEY_UPARROW:
                 case 'w':
-                    if (gamemode == commercial)
-                    {
-                        if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
-                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
-                        else
-                            selected_level[selected_ep]--;
-                    }
-                    else
-                    {
-                        select_map_dir(2);
-                    }
+                    level_select_nav_up();
                     break;
                 case KEY_DOWNARROW:
                 case 's':
-                    if (gamemode == commercial)
-                    {
-                        if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
-                            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
-                        else
-                            selected_level[selected_ep]++;
-                    }
-                    else
-                    {
-                        select_map_dir(3);
-                    }
+                    level_select_nav_down();
                     break;
                 case '[':
-                    if (gamemode != shareware && ep_count > 1)
-                    {
-                        prev_ep = selected_ep;
-                        ep_anim = -10;
-                        selected_ep--;
-                        if (selected_ep < 0) selected_ep = ap_episode_count - 1;
-                        while (!ap_state.episodes[selected_ep])
-                        {
-                            selected_ep--;
-                            if (selected_ep < 0) selected_ep = ap_episode_count - 1;
-                            if (selected_ep == prev_ep) // oops;
-                                break;
-                        }
-                        restart_wi_anims();
-                        urh_anim = 0;
-                        S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
-                    }
+                    level_select_prev_episode();
                     break;
                 case ']':
-                    if (gamemode != shareware && ep_count > 1)
-                    {
-                        prev_ep = selected_ep;
-                        ep_anim = 10;
-                        selected_ep = (selected_ep + 1) % ap_episode_count;
-                        while (!ap_state.episodes[selected_ep])
-                        {
-                            selected_ep = (selected_ep + 1) % ap_episode_count;
-                            if (selected_ep == prev_ep) // oops;
-                                break;
-                        }
-                        restart_wi_anims();
-                        urh_anim = 0;
-                        S_StartSoundOptional(NULL, sfx_mnucls, sfx_swtchx);
-                    }
+                    level_select_next_episode();
                     break;
                 case KEY_ENTER:
                 case 'e':
-                    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
-                    {
-                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
-                        play_level(selected_ep, selected_level[selected_ep]);
-                    }
-                    else
-                    {
-                        S_StartSoundOptional(NULL, sfx_mnusli, sfx_noway);
-                    }
+                    level_select_nav_enter();
                     break;
             }
             break;
