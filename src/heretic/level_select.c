@@ -39,6 +39,22 @@ typedef struct
 } level_pos_t;
 
 
+typedef struct
+{
+    int x, y;
+    int right_align;
+} legende_t;
+
+
+static legende_t legendes[5] = {
+    {320, 40, 1},
+    {0, 200 - 8 * 3, 0},
+    {0, 200 - 8 * 3, 0},
+    {0, 200 - 8 * 3, 0},
+    {0, 200 - 8 * 3, 0}
+};
+
+
 
 const char* level_names[5][9] = {
     {
@@ -400,6 +416,19 @@ void TickLevelSelect()
 }
 
 
+void draw_legend_line_right_aligned(const char* text, int x, int y)
+{
+    int w = MN_TextAWidth_len(text, strlen(text));
+    MN_DrTextA(text, x - w, y);
+}
+
+
+void draw_legend_line(const char* text, int x, int y)
+{
+    MN_DrTextA(text, x, y);
+}
+
+
 void DrawEpisodicLevelSelectStats()
 {
     int x, y;
@@ -467,6 +496,17 @@ void DrawEpisodicLevelSelectStats()
     int text_x = 160 - MN_TextBWidth(level_name) / 2;
     int text_y = 200 - 20;
     MN_DrTextB(level_name, text_x, text_y);
+
+    // Legend
+    int lx = legendes[selected_ep].x;
+    int ly = legendes[selected_ep].y;
+
+    typedef void (*draw_legend_line_fn_t)(const char* text, int x, int y);
+    draw_legend_line_fn_t draw_legend_line_fn = draw_legend_line;
+    if (legendes[selected_ep].right_align) draw_legend_line_fn = draw_legend_line_right_aligned;
+    draw_legend_line_fn("~2Change map: ~3Arrows", lx, ly);
+    draw_legend_line_fn("~2Change episode: ~3(~2, ~3)", lx, ly + 8);
+    draw_legend_line_fn("~2Enter map: ~3Enter", lx, ly + 16);
 }
 
 

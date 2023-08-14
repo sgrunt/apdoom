@@ -55,6 +55,21 @@ extern int cursor_x;
 extern int cursor_y;
 
 
+typedef struct
+{
+    int x, y;
+    int right_align;
+} legende_t;
+
+
+static legende_t legendes[4] = {
+    {0, 200 - 8 * 3, 0},
+    {0, 200 - 8 * 3, 0},
+    {0, 200 - 8 * 3, 0},
+    {320, 200 - 8 * 3, 1}
+};
+
+
 static level_pos_t level_pos_infos[4][9] =
 {
     // Episode 1
@@ -479,6 +494,19 @@ void TickLevelSelect()
 }
 
 
+void draw_legend_line_right_aligned(const char* text, int x, int y)
+{
+    int w = HULib_measureText(text, strlen(text));
+    HUlib_drawText(text, x - w, y);
+}
+
+
+void draw_legend_line(const char* text, int x, int y)
+{
+    HUlib_drawText(text, x, y);
+}
+
+
 void DrawEpisodicLevelSelectStats()
 {
     int x, y;
@@ -579,6 +607,17 @@ void DrawEpisodicLevelSelectStats()
 
     // Mouse Cursor
     //V_DrawPatch(cursor_x, cursor_y, W_CacheLumpName("CURSOR", PU_STATIC));
+
+    // Legend
+    int lx = legendes[selected_ep].x;
+    int ly = legendes[selected_ep].y;
+
+    typedef void (*draw_legend_line_fn_t)(const char* text, int x, int y);
+    draw_legend_line_fn_t draw_legend_line_fn = draw_legend_line;
+    if (legendes[selected_ep].right_align) draw_legend_line_fn = draw_legend_line_right_aligned;
+    draw_legend_line_fn("~2Change map: ~3Arrows", lx, ly);
+    draw_legend_line_fn("~2Change episode: ~3[~2, ~3]", lx, ly + 8);
+    draw_legend_line_fn("~2Enter map: ~3Enter", lx, ly + 16);
 }
 
 
