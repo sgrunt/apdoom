@@ -91,10 +91,12 @@ static OTextureRef ap_unreachable_icon;
 static int mouse_hover_bb = -1;
 static int mouse_hover_sector = -1;
 static int moving_edge = -1;
+#if defined(WIN32)
 static HCURSOR arrow_cursor = 0;
 static HCURSOR we_cursor = 0;
 static HCURSOR ns_cursor = 0;
 static HCURSOR nswe_cursor = 0;
+#endif
 //static bool generating = true;
 //static map_state_t* flat_levels[EP_COUNT * MAP_COUNT]; // For DOOM1 open world
 //static int gen_step_count = 0;
@@ -476,10 +478,12 @@ void init()
 {
     oGenerateMipmaps = false;
 
+#if defined(WIN32)
     arrow_cursor = LoadCursor(nullptr, IDC_ARROW);
     nswe_cursor = LoadCursor(nullptr, IDC_SIZEALL);
     we_cursor = LoadCursor(nullptr, IDC_SIZEWE);
     ns_cursor = LoadCursor(nullptr, IDC_SIZENS);
+#endif
     
     ap_icon = OGetTexture("ap.png");
     ap_deathlogic_icon = OGetTexture("deathlogic.png");
@@ -975,7 +979,7 @@ void update()
         {
             if (!ImGui::GetIO().WantCaptureMouse)
             {
-                if (OInputJustPressed(OMouse3))
+                if (OInputJustPressed(OMouse3) || OInputJustPressed(OKeySpaceBar))
                 {
                     state = state_t::panning;
                     mouse_pos_on_down = OGetMousePos();
@@ -996,6 +1000,7 @@ void update()
                 else if (tool == tool_t::bb)
                 {
                     mouse_hover_bb = get_bb_at(mouse_pos, map_view->cam_zoom, moving_edge);
+#if defined(WIN32)
                     if (mouse_hover_bb != -1)
                     {
                         switch (moving_edge)
@@ -1011,6 +1016,7 @@ void update()
                     {
                         SetCursor(arrow_cursor);
                     }
+#endif
 
                     for (int i = 0; i < 9; ++i)
                         if (OInputJustPressed((onut::Input::State)((int)OKey1 + i)) && map_state->selected_bb != -1)
@@ -1156,7 +1162,7 @@ void update()
             ImGui::GetIO().WantCaptureKeyboard = false;
             auto diff = OGetMousePos() - mouse_pos_on_down;
             map_view->cam_pos = cam_pos_on_down - diff / map_view->cam_zoom;
-            if (OInputJustReleased(OMouse3))
+            if (OInputJustReleased(OMouse3) || OInputJustReleased(OKeySpaceBar))
                 state = state_t::idle;
             break;
         }
@@ -1614,6 +1620,13 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
         pb->draw(Vector2(map->vertexes[line.end_vertex].x, -map->vertexes[line.end_vertex].y), color);
 
         ++i;
+    }
+
+    // Arrows
+    for (const auto& arrow : map->arrows)
+    {
+        pb->draw(arrow.from, arrow.color);
+        pb->draw(arrow.to, arrow.color);
     }
 
     // Bounding boxes

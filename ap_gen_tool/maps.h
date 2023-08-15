@@ -2,6 +2,8 @@
 
 #include <cinttypes>
 #include <vector>
+#include <onut/Color.h>
+#include <onut/Vector2.h>
 
 
 struct map_thing_t
@@ -123,6 +125,14 @@ struct subsector_t
 };
 
 
+struct arrow_t
+{
+    Vector2 from;
+    Vector2 to;
+    Color color;
+};
+
+
 struct map_t
 {
     std::vector<map_thing_t>        things;
@@ -138,6 +148,7 @@ struct map_t
     std::vector<node_t>             nodes;
     std::vector<sector_t>           sectors;
     int16_t bb[4];
+    std::vector<arrow_t>            arrows;
 };
 
 

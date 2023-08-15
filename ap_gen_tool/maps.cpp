@@ -505,6 +505,49 @@ void init_wad(const char* filename, game_t& game)
             {
                 triangulate_sector(map_walls, map, j);
             }
+
+            // Create arrows
+            for (int j = 0; j < (int)map->linedefs.size(); ++j)
+            {
+                const auto& line_def = map->linedefs[j];
+                if (line_def.special_type != 0 && line_def.sector_tag != 0)
+                {
+                    arrow_t arrow;
+                    arrow.color = {1, 0, 1};
+                    const auto& v1 = map->vertexes[line_def.start_vertex];
+                    const auto& v2 = map->vertexes[line_def.end_vertex];
+                    arrow.from = {
+                        (float)(v1.x + v2.x) * 0.5f,
+                        (float)(v1.y + v2.y) * 0.5f
+                    };
+                    for (int k = 0; k < (int)map->map_sectors.size(); ++k)
+                    {
+                        const auto& map_sector = map->map_sectors[k];
+                        if (map_sector.tag == line_def.sector_tag)
+                        {
+                            Vector2 bbmin, bbmax;
+                            const auto& sector = map->sectors[k];
+                            if (sector.vertices.empty()) continue;
+                            bbmin = {
+                                (float)map->vertexes[sector.vertices[0]].x,
+                                (float)map->vertexes[sector.vertices[0]].y
+                            };
+                            bbmax = bbmin;
+                            for (int l = 1; l < (int)sector.vertices.size(); ++l)
+                            {
+                                Vector2 pt = {
+                                    (float)map->vertexes[sector.vertices[l]].x,
+                                    (float)map->vertexes[sector.vertices[l]].y
+                                };
+                                bbmin = onut::min(bbmin, pt);
+                                bbmax = onut::max(bbmax, pt);
+                            }
+                            arrow.to = (bbmin + bbmax) * 0.5f;
+                            map->arrows.push_back(arrow);
+                        }
+                    }
+                }
+            }
         }
     }
 
