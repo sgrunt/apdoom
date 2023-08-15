@@ -6,7 +6,11 @@ REM Compiling crispy-heretic
 MSBUILD "build\Crispy Doom.sln" /t:crispy-heretic /p:Configuration="Release" /p:Platform="Win32"
 COPY build\bin\Release\crispy-heretic.exe Release\crispy-apheretic.exe
 
+REM Compiling crispy-setup
+MSBUILD "build\Crispy Doom.sln" /t:crispy-setup /p:Configuration="Release" /p:Platform="Win32"
 COPY build\bin\Release\crispy-setup.exe Release\crispy-setup.exe
+
+REM Copy over APcpp DLL
 COPY build\bin\Release\APCpp.dll Release\APCpp.dll
 
 REM REM Compiling launcher
@@ -33,6 +37,7 @@ REM Credits
 COPY credits-doom-1993.txt Release\credits-doom-1993.txt
 COPY credits-doom-ii.txt Release\credits-doom-ii.txt
 COPY credits-heretic.txt Release\credits-heretic.txt
+COPY credits-chex.txt Release\credits-chex.txt
 
 REM Copy WADs
 COPY APDOOM.WAD Release\APDOOM.WAD

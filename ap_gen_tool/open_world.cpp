@@ -1829,12 +1829,11 @@ void renderUI()
                 auto meta = &game->metas[i];
                 auto map_state = &meta->state;
                 bool selected = meta == get_meta(active_level);
+                auto ep = i / game->map_count;
+                auto map = i % game->map_count;
+                if (ep != 0 && map == 0) ImGui::Separator();
                 if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "")).c_str(), nullptr, &selected))
-                {
-                    select_map(game, 
-                               i / game->map_count,
-                               i % game->map_count);
-                }
+                    select_map(game, ep, map);
             }
             ImGui::EndMenu();
         }
