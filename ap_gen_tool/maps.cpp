@@ -700,6 +700,17 @@ void init_wad(const char* filename, game_t& game)
                     }
                 }
             }
+
+            // Count checks
+            map->check_count = 0;
+            for (int j = 0, len = (int)map->things.size(); j < len; ++j)
+            {
+                const auto& thing = map->things[j];
+                if (thing.flags & 0x0010) continue; // Thing is not in single player
+                auto it = game.location_doom_types.find(thing.type);
+                if (it == game.location_doom_types.end()) continue;
+                map->check_count++;
+            }
         }
     }
 

@@ -1879,6 +1879,8 @@ void renderUI()
         ImGui::Separator();
         if (ImGui::BeginMenu((game->name + " Maps").c_str()))
         {
+            int episode_check_count = 0;
+            ImVec4 total_checks_col(0.6f, 0.6f, 0.6f, 1.0f);
             for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
             {
                 auto meta = &game->metas[i];
@@ -1886,10 +1888,17 @@ void renderUI()
                 bool selected = meta == get_meta(active_level);
                 auto ep = i / game->map_count;
                 auto map = i % game->map_count;
-                if (ep != 0 && map == 0) ImGui::Separator();
-                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "")).c_str(), nullptr, &selected))
+                if (ep != 0 && map == 0)
+                {
+                    ImGui::TextColored(total_checks_col, "Total checks: %i", episode_check_count);
+                    episode_check_count = 0;
+                    ImGui::Separator();
+                }
+                episode_check_count += meta->map.check_count;
+                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "") + " - " + std::to_string(meta->map.check_count) + " Checks" ).c_str(), nullptr, &selected))
                     select_map(game, ep, map);
             }
+            ImGui::TextColored(total_checks_col, "Total checks: %i", episode_check_count);
             ImGui::EndMenu();
         }
     }
@@ -2130,6 +2139,8 @@ void renderUI()
         {
             auto map = get_map(active_level);
             auto game = get_game(active_level);
+            ImGui::Text("Check count: %i", map->check_count);
+            ImGui::Separator();
             int index = 0;
             for (const auto& thing : map->things)
             {

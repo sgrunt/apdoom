@@ -351,8 +351,6 @@ int generate(game_t* game)
                 continue; // Thing is not in single player
             if (game->location_doom_types.find(thing.type) == game->location_doom_types.end())
                 continue; // Not a location
-            if (level->map_state->locations[i].unreachable)
-                continue; // We don't include this location
 
             bool added_key = false;
             for (const auto& key_def : game->keys)
@@ -370,6 +368,9 @@ int generate(game_t* game)
             {
                 continue;
             }
+
+            if (level->map_state->locations[i].unreachable)
+                continue; // We don't include this location
 
             auto loc_it = game->location_doom_types.find(thing.type);
             if (loc_it != game->location_doom_types.end())

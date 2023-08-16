@@ -149,6 +149,7 @@ struct map_t
     std::vector<sector_t>           sectors;
     int16_t bb[4];
     std::vector<arrow_t>            arrows;
+    int check_count;
 };
 
 
