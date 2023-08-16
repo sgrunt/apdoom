@@ -51,7 +51,7 @@ typedef struct
 static legende_t legendes[5] = {
     {320, 40, 1},
     {0, 150, 0},
-    {0, 200 - 8 * 3, 0},
+    {0, 150, 0},
     {0, 200 - 8 * 3, 0},
     {0, 200 - 8 * 3, 0}
 };
@@ -138,11 +138,11 @@ static level_pos_t level_pos_infos[5][9] =
     // Episode 2
     {
         { 218, 57, "IN_YAH", 0, 0 },
-        { 137, 76, "IN_YAH", 0, 0 }, // 2
+        { 137, 76, "IN_YAH", 0, 0 },
         { 155, 124, "IN_YAH", 0, 0 },
         { 171, 68, "IN_YAH", 0, 0 },
         { 250, 86, "IN_YAH", 0, 0 },
-        { 136, 103, "IN_YAH", 0, 0 }, // 6
+        { 136, 103, "IN_YAH", 0, 0 },
         { 203, 90, "IN_YAH", 0, 0 },
         { 220, 140, "IN_YAH", 0, 0 },
         { 279, 106, "IN_YAH", 0, 0 }
@@ -152,12 +152,12 @@ static level_pos_t level_pos_infos[5][9] =
     {
         { 86, 99, "IN_YAH", 0, 0 },
         { 124, 103, "IN_YAH", 0, 0 },
-        { 154, 79, "IN_YAH", 0, 0 },
-        { 202, 83, "IN_YAH", 0, 0 },
+        { 154, 79 + 4, "IN_YAH", 0, 0 },
+        { 202 - 4, 83 + 3, "IN_YAH", 0, 0 },
         { 178, 59, "IN_YAH", 0, 0 },
-        { 142, 58, "IN_YAH", 0, 0 },
+        { 142, 58 - 1, "IN_YAH", 0, 0 },
         { 219, 66, "IN_YAH", 0, 0 },
-        { 247, 57, "IN_YAH", 0, 0 },
+        { 247 + 2, 57 - 1, "IN_YAH", 0, 0 },
         { 107, 80, "IN_YAH", 0, 0 }
     },
 
@@ -577,16 +577,19 @@ void DrawEpisodicLevelSelectStats()
         print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
         V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
         print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_level_info->check_count);
+    }
 
-        // "You are here"
-        if (i == selected_level[selected_ep] && urh_anim < 25)
-        {
-            int x_offset = 2;
-            int y_offset = -2;
-            V_DrawPatch(x + x_offset + level_pos->urhere_x_offset, 
-                        y + y_offset + level_pos->urhere_y_offset, 
-                        W_CacheLumpName(level_pos->urhere_lump_name, PU_CACHE));
-        }
+    // "You are here"
+    if (urh_anim < 25)
+    {
+        level_pos_t* level_pos = &level_pos_infos[selected_ep][selected_level[selected_ep]];
+        x = level_pos->x;
+        y = level_pos->y;
+        int x_offset = 2;
+        int y_offset = -2;
+        V_DrawPatch(x + x_offset + level_pos->urhere_x_offset, 
+                    y + y_offset + level_pos->urhere_y_offset, 
+                    W_CacheLumpName(level_pos->urhere_lump_name, PU_CACHE));
     }
 
     // Level name

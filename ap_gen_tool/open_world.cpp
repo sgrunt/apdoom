@@ -88,6 +88,7 @@ static map_history_t* map_history = nullptr;
 static OTextureRef ap_icon;
 static OTextureRef ap_deathlogic_icon;
 static OTextureRef ap_unreachable_icon;
+static OTextureRef ap_player_start_icon;
 static int mouse_hover_bb = -1;
 static int mouse_hover_sector = -1;
 static int moving_edge = -1;
@@ -488,6 +489,7 @@ void init()
     ap_icon = OGetTexture("ap.png");
     ap_deathlogic_icon = OGetTexture("deathlogic.png");
     ap_unreachable_icon = OGetTexture("unreachable.png");
+    ap_player_start_icon = OGetTexture("player_start.png");
 
     init_data();
 
@@ -1602,6 +1604,34 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
                     line.special_type == LT_S1_DOOR_BLUE_OPEN_STAY_FAST)
                     color = game->key_colors[0];
             }
+
+            if (line.special_type == LT_DR_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS ||
+                line.special_type == LT_DR_DOOR_OPEN_WAIT_CLOSE_FAST ||
+                line.special_type == LT_SR_DOOR_OPEN_WAIT_CLOSE ||
+                line.special_type == LT_SR_DOOR_OPEN_WAIT_CLOSE_FAST ||
+                line.special_type == LT_S1_DOOR_OPEN_WAIT_CLOSE ||
+                line.special_type == LT_S1_DOOR_OPEN_WAIT_CLOSE_FAST ||
+                line.special_type == LT_WR_DOOR_OPEN_WAIT_CLOSE ||
+                line.special_type == LT_WR_DOOR_OPEN_WAIT_CLOSE_FAST ||
+                line.special_type == LT_W1_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS ||
+                line.special_type == LT_W1_DOOR_OPEN_WAIT_CLOSE_FAST ||
+                line.special_type == LT_D1_DOOR_OPEN_STAY ||
+                line.special_type == LT_D1_DOOR_OPEN_STAY_FAST ||
+                line.special_type == LT_SR_DOOR_OPEN_STAY ||
+                line.special_type == LT_SR_DOOR_OPEN_STAY_FAST ||
+                line.special_type == LT_S1_DOOR_OPEN_STAY ||
+                line.special_type == LT_S1_DOOR_OPEN_STAY_FAST ||
+                line.special_type == LT_GR_DOOR_OPEN_STAY ||
+                line.special_type == LT_SR_DOOR_CLOSE_STAY ||
+                line.special_type == LT_SR_DOOR_CLOSE_STAY_FAST ||
+                line.special_type == LT_S1_DOOR_CLOSE_STAY ||
+                line.special_type == LT_S1_DOOR_CLOSE_STAY_FAST)
+                color = Color(0, 1, 1);
+            else if (line.special_type == LT_S1_EXIT_LEVEL ||
+                line.special_type == LT_W1_EXIT_LEVEL ||
+                line.special_type == LT_S1_EXIT_LEVEL_GOES_TO_SECRET_LEVEL ||
+                line.special_type == LT_W1_EXIT_LEVEL_GOES_TO_SECRET_LEVEL)
+                color = Color(0, 0.5f, 1);
         }
 
         if (draw_tools && tool == tool_t::region)
@@ -1627,6 +1657,14 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
     {
         pb->draw(arrow.from, arrow.color);
         pb->draw(arrow.to, arrow.color);
+
+        Vector2 dir = arrow.to - arrow.from;
+        dir.Normalize();
+        Vector2 right(-dir.y, dir.x);
+
+#define ARROW_HEAD_SIZE 8.0f
+        pb->draw(arrow.to, arrow.color); pb->draw(arrow.to - dir * ARROW_HEAD_SIZE - right * ARROW_HEAD_SIZE, arrow.color);
+        pb->draw(arrow.to, arrow.color); pb->draw(arrow.to - dir * ARROW_HEAD_SIZE + right * ARROW_HEAD_SIZE, arrow.color);
     }
 
     // Bounding boxes
@@ -1704,6 +1742,10 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
                 sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
             if (map_state->locations[i].unreachable)
                 sb->drawSprite(ap_unreachable_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
+        }
+        else if (thing.type == 1) // Player start
+        {
+            sb->drawSprite(ap_player_start_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.5f);
         }
     }
     sb->end();

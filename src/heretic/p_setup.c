@@ -789,6 +789,9 @@ void P_LoadThings(int lump)
         spawnthing.angle = SHORT(mt->angle);
         spawnthing.type = SHORT(things_type_remap[i]);
         spawnthing.options = SHORT(mt->options);
+
+        // [AP] Cannot spawn player at the top of the waterfalls, no way to come back
+        if (spawnthing.type == 1 && gamemap == 3 && gameepisode == 3) spawnthing.y = -1088;
         
         auto type_before = spawnthing.type;
 

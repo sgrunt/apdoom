@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "data.h"
+#include "defs.h"
 
 
 // For earcut to work
@@ -360,6 +361,157 @@ OTextureRef load_sprite(const std::vector<map_directory_t>& directory, const cha
 }
 
 
+Color get_color_for_line_type(int special)
+{
+    switch (special)
+    {
+        case LT_DR_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS:
+        case LT_DR_DOOR_OPEN_WAIT_CLOSE_FAST:
+        case LT_SR_DOOR_OPEN_WAIT_CLOSE:
+        case LT_SR_DOOR_OPEN_WAIT_CLOSE_FAST:
+        case LT_S1_DOOR_OPEN_WAIT_CLOSE:
+        case LT_S1_DOOR_OPEN_WAIT_CLOSE_FAST:
+        case LT_SR_DOOR_OPEN_STAY:
+        case LT_SR_DOOR_OPEN_STAY_FAST:
+        case LT_S1_DOOR_OPEN_STAY:
+        case LT_S1_DOOR_OPEN_STAY_FAST:
+        case LT_SR_DOOR_CLOSE_STAY:
+        case LT_SR_DOOR_CLOSE_STAY_FAST:
+        case LT_S1_DOOR_CLOSE_STAY:
+        case LT_S1_DOOR_CLOSE_STAY_FAST:
+        case LT_GR_DOOR_OPEN_STAY:
+        case LT_D1_DOOR_OPEN_STAY:
+        case LT_D1_DOOR_OPEN_STAY_FAST:
+        case LT_DR_DOOR_BLUE_OPEN_WAIT_CLOSE:
+        case LT_DR_DOOR_RED_OPEN_WAIT_CLOSE:
+        case LT_DR_DOOR_YELLOW_OPEN_WAIT_CLOSE:
+        case LT_D1_DOOR_BLUE_OPEN_STAY:
+        case LT_D1_DOOR_RED_OPEN_STAY:
+        case LT_D1_DOOR_YELLOW_OPEN_STAY:
+        case LT_SR_DOOR_BLUE_OPEN_STAY_FAST:
+        case LT_SR_DOOR_RED_OPEN_STAY_FAST:
+        case LT_SR_DOOR_YELLOW_OPEN_STAY_FAST:
+        case LT_S1_DOOR_BLUE_OPEN_STAY_FAST:
+        case LT_S1_DOOR_RED_OPEN_STAY_FAST:
+        case LT_S1_DOOR_YELLOW_OPEN_STAY_FAST:
+            return Color(1, 0, 1);
+
+        case LT_WR_DOOR_OPEN_WAIT_CLOSE:
+        case LT_WR_DOOR_OPEN_WAIT_CLOSE_FAST:
+        case LT_W1_DOOR_OPEN_WAIT_CLOSE_ALSO_MONSTERS:
+        case LT_W1_DOOR_OPEN_WAIT_CLOSE_FAST:
+        case LT_WR_DOOR_OPEN_STAY:
+        case LT_WR_DOOR_OPEN_STAY_FAST:
+        case LT_W1_DOOR_OPEN_STAY:
+        case LT_W1_DOOR_OPEN_STAY_FAST:
+        case LT_WR_DOOR_CLOSE_STAY:
+        case LT_WR_DOOR_CLOSE_STAY_FAST:
+        case LT_W1_DOOR_CLOSE_STAY:
+        case LT_W1_DOOR_CLOSE_FAST:
+        case LT_WR_DOOR_CLOSE_STAY_OPEN:
+        case LT_W1_DOOR_CLOSE_WAIT_OPEN:
+            return Color(1, 0.5f, 1);
+
+        case LT_SR_FLOOR_LOWER_TO_LOWEST_FLOOR:
+        case LT_S1_FLOOR_LOWER_TO_LOWEST_FLOOR:
+        case LT_SR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR:
+        case LT_S1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR:
+        case LT_S1_FLOOR_RAISE_BY_512:
+        case LT_SR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST:
+        case LT_S1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST:
+        case LT_SR_FLOOR_RAISE_TO_LOWEST_CEILING:
+        case LT_S1_FLOOR_RAISE_TO_LOWEST_CEILING:
+        case LT_SR_FLOOR_LOWER_TO_8_ABOVE_HIGHEST_FLOOR:
+        case LT_S1_FLOOR_LOWER_TO_8_ABOVE_HIGHEST_FLOOR:
+        case LT_G1_FLOOR_RAISE_TO_LOWEST_CEILING:
+        case LT_SR_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES:
+        case LT_S1_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES:
+        case LT_SR_FLOOR_LOWER_TO_HIGHEST_FLOOR:
+        case LT_S1_FLOOR_LOWER_TO_HIGHEST_FLOOR:
+        case LT_SR_CEILING_LOWER_TO_FLOOR:
+        case LT_S1_CEILING_LOWER_TO_FLOOR:
+
+        case LT_SR_FLOOR_RAISE_BY_24_CHANGES_TEXTURE:
+        case LT_S1_FLOOR_RAISE_BY_24_CHANGES_TEXTURE:
+        case LT_SR_FLOOR_RAISE_BY_32_CHANGES_TEXTURE:
+        case LT_S1_FLOOR_RAISE_BY_32_CHANGES_TEXTURE:
+        case LT_SR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE:
+        case LT_S1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE:
+        case LT_SR_LIFT_LOWER_WAIT_RAISE_FAST:
+        case LT_S1_LIFT_LOWER_WAIT_RAISE_FAST:
+        case LT_G1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE:
+        case LT_SR_LIFT_LOWER_WAIT_RAISE:
+        case LT_S1_LIFT_LOWER_WAIT_RAISE:
+            return Color(0, 1, 1);
+
+        case LT_WR_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES:
+        case LT_W1_FLOOR_RAISE_TO_8_BELLOW_LOWEST_CEILING_CRUSHES:
+        case LT_WR_FLOOR_LOWER_TO_HIGHEST_FLOOR:
+        case LT_W1_FLOOR_LOWER_TO_HIGHEST_FLOOR:
+        case LT_WR_FLOOR_LOWER_TO_8_ABOVE_HIGHEST_FLOOR:
+        case LT_W1_FLOOR_LOWER_BY_8_ABOVE_HIGHEST_FLOOR:
+        case LT_WR_FLOOR_RAISE_BY_24:
+        case LT_W1_FLOOR_RAISE_BY_24:
+        case LT_WR_FLOOR_RAISE_BY_24_CHANGES_TEXTURE:
+        case LT_W1_FLOOR_RAISE_BY_24_CHANGES_TEXTURE:
+        case LT_WR_FLOOR_RAISE_BY_SHORTEST_LOWER_TEXTURE:
+        case LT_W1_FLOOR_RAISE_BY_SHORTEST_LOWER_TEXTURE:
+        case LT_WR_FLOOR_LOWER_TO_LOWEST_FLOOR:
+        case LT_W1_FLOOR_LOWER_TO_LOWEST_FLOOR:
+        case LT_WR_FLOOR_LOWER_TO_LOWEST_FLOOR_CHANGES_TEXTURE:
+        case LT_W1_FLOOR_LOWER_BY_LOWEST_FLOOR_CHANGES_TEXTURE:
+        case LT_WR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR:
+        case LT_W1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR:
+        case LT_WR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST:
+        case LT_W1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_FAST:
+        case LT_WR_FLOOR_RAISE_TO_LOWEST_CEILING:
+        case LT_W1_FLOOR_RAISE_TO_LOWEST_CEILING:
+        case LT_W1_CEILING_RAISE_TO_HIGHEST_CEILING:
+        case LT_WR_CEILING_LOWER_TO_8_ABOVE_FLOOR:
+        case LT_W1_CEILING_LOWER_TO_8_ABOVE_FLOOR:
+
+        case LT_WR_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE:
+        case LT_W1_FLOOR_RAISE_TO_NEXT_HIGHER_FLOOR_CHANGES_TEXTURE:
+        case LT_WR_FLOOR_START_MOVING_UP_AND_DOWN:
+        case LT_W1_FLOOR_START_MOVING_UP_AND_DOWN:
+        case LT_WR_FLOOR_STOP_MOVING:
+        case LT_W1_FLOOR_STOP_MOVING:
+        case LT_WR_LIFT_LOWER_WAIT_RAISE_ALSO_MONSTERS:
+        case LT_W1_LIFT_LOWER_WAIT_RAISE:
+        case LT_WR_LIFT_LOWER_WAIT_RAISE_FAST:
+        case LT_W1_LIFT_LOWER_WAIT_RAISE_FAST:
+            return Color(0.5f, 1, 1);
+
+        // Crusher types
+        case LT_S1_CEILING_LOWER_TO_8_ABOVE_FLOOR_PERPETUAL_SLOW_CHRUSHER_DAMAGE:
+        case LT_WR_CRUSHER_START_WITH_SLOW_DAMAGE:
+        case LT_W1_CRUSHER_START_WITH_SLOW_DAMAGE:
+        case LT_WR_CRUSHER_START_WITH_FAST_DAMAGE:
+        case LT_W1_CRUSHER_START_WITH_FAST_DAMAGE:
+        case LT_W1_CRUSHER_START_WITH_SLOW_DAMAGE_SILENT:
+        case LT_WR_CRUSHER_STOP:
+        case LT_W1_CRUSHER_STOP:
+            return Color(1, 0, 0);
+
+        // Stairs types
+        case LT_S1_STAIRS_RAISE_BY_8:
+        case LT_S1_STAIRS_RAISE_BY_16_FAST:
+        case LT_W1_STAIRS_RAISE_BY_8:
+        case LT_W1_STAIRS_RAISE_BY_16_FAST:
+            return Color(0, 0, 1);
+
+        // Teleporter types
+        case LT_WR_TELEPORT_ALSO_MONSTERS:
+        case LT_W1_TELEPORT_ALSO_MONSTERS:
+        case LT_WR_TELEPORT_MONSTERS_ONLY:
+        case LT_W1_TELEPORT_MONSTERS_ONLY:
+            return Color(1, 1, 0.5f);
+    }
+
+    return Color(1, 1, 1);
+}
+
+
 void init_wad(const char* filename, game_t& game)
 {
     // Load DOOM.WAD
@@ -513,12 +665,12 @@ void init_wad(const char* filename, game_t& game)
                 if (line_def.special_type != 0 && line_def.sector_tag != 0)
                 {
                     arrow_t arrow;
-                    arrow.color = {1, 0, 1};
+                    arrow.color = get_color_for_line_type(line_def.special_type);
                     const auto& v1 = map->vertexes[line_def.start_vertex];
                     const auto& v2 = map->vertexes[line_def.end_vertex];
                     arrow.from = {
                         (float)(v1.x + v2.x) * 0.5f,
-                        (float)(v1.y + v2.y) * 0.5f
+                        -(float)(v1.y + v2.y) * 0.5f
                     };
                     for (int k = 0; k < (int)map->map_sectors.size(); ++k)
                     {
@@ -530,14 +682,14 @@ void init_wad(const char* filename, game_t& game)
                             if (sector.vertices.empty()) continue;
                             bbmin = {
                                 (float)map->vertexes[sector.vertices[0]].x,
-                                (float)map->vertexes[sector.vertices[0]].y
+                                -(float)map->vertexes[sector.vertices[0]].y
                             };
                             bbmax = bbmin;
                             for (int l = 1; l < (int)sector.vertices.size(); ++l)
                             {
                                 Vector2 pt = {
                                     (float)map->vertexes[sector.vertices[l]].x,
-                                    (float)map->vertexes[sector.vertices[l]].y
+                                    -(float)map->vertexes[sector.vertices[l]].y
                                 };
                                 bbmin = onut::min(bbmin, pt);
                                 bbmax = onut::max(bbmax, pt);
