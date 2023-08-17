@@ -6,6 +6,7 @@
     "wad": "DOOM.WAD",
     "item_ids": 350000,
     "loc_ids": 351000,
+    "check_sanity": false,
     "map_names": [
         [
             "Hangar (E1M1)",

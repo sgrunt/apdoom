@@ -44,6 +44,7 @@ typedef struct
 {
     int doom_type;
     int index;
+    int check_sanity;
 } ap_thing_info_t;
 
 
@@ -112,6 +113,7 @@ typedef struct
     int* episodes;
     int victory;
     int flip_levels;
+    int check_sanity;
     
 } ap_state_t;
 
@@ -160,7 +162,6 @@ void apdoom_check_location(int ep, int map, int index);
 int apdoom_is_location_progression(int ep, int map, int index);
 void apdoom_check_victory();
 void apdoom_update();
-int ap_is_doomtype_location(int doomtype);
 const char* apdoom_get_seed();
 void apdoom_send_message(const char* msg);
 void apdoom_complete_level(int ep, int map);
@@ -168,6 +169,7 @@ ap_level_state_t* ap_get_level_state(int ep, int map); // 1-based
 ap_level_info_t* ap_get_level_info(int ep, int map); // 1-based
 const ap_notification_icon_t* ap_get_notification_icons(int* count);
 int ap_get_highest_episode();
+int ap_validate_doom_location(int ep, int map, int doom_type, int index);
 
 // Deathlink stuff
 void apdoom_on_death();

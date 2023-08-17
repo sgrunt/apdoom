@@ -88,6 +88,7 @@ static map_history_t* map_history = nullptr;
 static OTextureRef ap_icon;
 static OTextureRef ap_deathlogic_icon;
 static OTextureRef ap_unreachable_icon;
+static OTextureRef ap_check_sanity_icon;
 static OTextureRef ap_player_start_icon;
 static int mouse_hover_bb = -1;
 static int mouse_hover_sector = -1;
@@ -274,6 +275,7 @@ void save(game_t* game)
             location_json["index"] = kv.first;
             location_json["death_logic"] = kv.second.death_logic;
             location_json["unreachable"] = kv.second.unreachable;
+            location_json["check_sanity"] = kv.second.check_sanity;
             location_json["name"] = kv.second.name;
             location_json["description"] = kv.second.description;
             locations_json.append(location_json);
@@ -376,6 +378,8 @@ void load(game_t* game)
             {
                 location.death_logic = location_json["death_logic"].asBool();
                 location.unreachable = location_json["unreachable"].asBool();
+                location.check_sanity = location_json["check_sanity"].asBool();
+                if (location.check_sanity) _map_state->check_sanity_count++;
                 location.name = location_json["name"].asString();
                 location.description = location_json["description"].asString();
                 _map_state->locations[index] = location;
@@ -431,6 +435,10 @@ void undo()
     {
         map_history->history_point--;
         *map_state = map_history->history[map_history->history_point];
+
+        map_state->check_sanity_count = 0;
+        for (const auto& loc : map_state->locations)
+            map_state->check_sanity_count++;
     }
 }
 
@@ -489,6 +497,7 @@ void init()
     ap_icon = OGetTexture("ap.png");
     ap_deathlogic_icon = OGetTexture("deathlogic.png");
     ap_unreachable_icon = OGetTexture("unreachable.png");
+    ap_check_sanity_icon = OGetTexture("check_sanity.png");
     ap_player_start_icon = OGetTexture("player_start.png");
 
     init_data();
@@ -1742,6 +1751,8 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
                 sb->drawSprite(ap_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.0f);
             if (map_state->locations[i].unreachable)
                 sb->drawSprite(ap_unreachable_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
+            else if (map_state->locations[i].check_sanity)
+                sb->drawSprite(ap_check_sanity_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 1.0f);
         }
         else if (thing.type == 1) // Player start
         {
@@ -1880,6 +1891,7 @@ void renderUI()
         if (ImGui::BeginMenu((game->name + " Maps").c_str()))
         {
             int episode_check_count = 0;
+            int episode_check_sanity_count = 0;
             ImVec4 total_checks_col(0.6f, 0.6f, 0.6f, 1.0f);
             for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
             {
@@ -1890,15 +1902,17 @@ void renderUI()
                 auto map = i % game->map_count;
                 if (ep != 0 && map == 0)
                 {
-                    ImGui::TextColored(total_checks_col, "Total checks: %i", episode_check_count);
+                    ImGui::TextColored(total_checks_col, "Total checks: %i (%i sanity)", episode_check_count, episode_check_sanity_count);
                     episode_check_count = 0;
+                    episode_check_sanity_count = 0;
                     ImGui::Separator();
                 }
                 episode_check_count += meta->map.check_count;
-                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "") + " - " + std::to_string(meta->map.check_count) + " Checks" ).c_str(), nullptr, &selected))
+                episode_check_sanity_count += meta->state.check_sanity_count;
+                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "") + " - " + std::to_string(meta->map.check_count) + " Checks (" + std::to_string(meta->state.check_sanity_count) + " sanity)" ).c_str(), nullptr, &selected))
                     select_map(game, ep, map);
             }
-            ImGui::TextColored(total_checks_col, "Total checks: %i", episode_check_count);
+            ImGui::TextColored(total_checks_col, "Total checks: %i (%i sanity)", episode_check_count, episode_check_sanity_count);
             ImGui::EndMenu();
         }
     }
@@ -2172,6 +2186,12 @@ void renderUI()
                         cursorScreenPos.y -= 10;
                         ImGui::GetWindowDrawList()->AddLine(cursorScreenPos, ImVec2(cursorScreenPos.x + 150, cursorScreenPos.y), IM_COL32(255, 255, 255, 255), 1.0f);
                     }
+                    if (map_state->locations[index].check_sanity)
+                    {
+                        ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+                        cursorScreenPos.y -= 10;
+                        ImGui::GetWindowDrawList()->AddLine(cursorScreenPos, ImVec2(cursorScreenPos.x + 150, cursorScreenPos.y), IM_COL32(0, 255, 0, 255), 1.0f);
+                    }
                 }
                 index++;
             }
@@ -2194,6 +2214,13 @@ void renderUI()
                 
                 if (ImGui::Checkbox("Unreachable", &location.unreachable))
                 {
+                    push_undo();
+                }
+
+                if (ImGui::Checkbox("check_sanity", &location.check_sanity))
+                {
+                    if (location.check_sanity) map_state->check_sanity_count++;
+                    else map_state->check_sanity_count--;
                     push_undo();
                 }
 

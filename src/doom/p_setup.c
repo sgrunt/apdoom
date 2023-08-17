@@ -500,15 +500,6 @@ void P_LoadNodes (int lump)
 }
 
 
-
-boolean validate_doom_location(int ep, int map, int doom_type, int index)
-{
-    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
-    if (index >= level_info->thing_count) return false;
-    return level_info->thing_infos[index].doom_type == doom_type;
-}
-
-
 static unsigned long long hash_seed(unsigned char *str)
 {
     unsigned long long hash = 5381;
@@ -1045,7 +1036,7 @@ void P_LoadThings (int lump)
             (gamemode == commercial && is_doom2_type_ap_location(spawnthing.type)))
         {
             // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
-            if (!validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
+            if (!ap_validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
             {
                 I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD or DOOM2.WAD from the steam releases.");
             }

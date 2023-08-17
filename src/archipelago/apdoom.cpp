@@ -196,6 +196,7 @@ static bool ap_initialized = false;
 static std::vector<std::string> ap_cached_messages;
 static std::string ap_save_dir_name;
 static std::vector<ap_notification_icon_t> ap_notification_icons;
+static bool ap_check_sanity = false;
 
 
 void f_itemclr();
@@ -206,6 +207,7 @@ void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
 void f_flip_levels(int);
+void f_check_sanity(int);
 void f_episode1(int);
 void f_episode2(int);
 void f_episode3(int);
@@ -302,6 +304,14 @@ const int* get_max_ammos()
 }
 
 
+int validate_doom_location(int ep, int map, int index)
+{
+    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
+    if (index >= level_info->thing_count) return 0;
+    return level_info->thing_infos[index].check_sanity == 0 || ap_state.check_sanity == 1;
+}
+
+
 int apdoom_init(ap_settings_t* settings)
 {
 	ap_notification_icons.reserve(4096); // 1MB. A bit exessive, but I got a crash with invalid strings and I cannot figure out why. Let's not take any chances...
@@ -387,6 +397,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
 	AP_RegisterSlotDataIntCallback("flip_levels", f_flip_levels);
+	AP_RegisterSlotDataIntCallback("check_sanity", f_check_sanity);
 	AP_RegisterSlotDataIntCallback("episode1", f_episode1);
 	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
@@ -471,7 +482,15 @@ int apdoom_init(ap_settings_t* settings)
 				for (const auto& kv3 : kv2.second)
 				{
 					if (kv3.first == -1) continue;
-					location_scouts.push_back(kv3.second);
+					if (kv3.second == 371349)
+					{
+						int tmp;
+						tmp = 5;
+					}
+					if (validate_doom_location(kv1.first - 1, kv2.first - 1, kv3.first))
+					{
+						location_scouts.push_back(kv3.second);
+					}
 				}
 			}
 		}
@@ -1001,6 +1020,12 @@ void f_flip_levels(int flip_levels)
 }
 
 
+void f_check_sanity(int check_sanity)
+{
+	ap_state.check_sanity = check_sanity;
+}
+
+
 void f_episode1(int ep)
 {
 	ap_state.episodes[0] = ep;
@@ -1167,6 +1192,16 @@ int ap_get_highest_episode()
 			highest = i;
 	return highest;
 }
+
+
+int ap_validate_doom_location(int ep, int map, int doom_type, int index)
+{
+    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
+    if (index >= level_info->thing_count) return -1;
+	if (level_info->thing_infos[index].doom_type != doom_type) return -1;
+    return level_info->thing_infos[index].check_sanity == 0 || ap_state.check_sanity == 1;
+}
+
 
 /*
     black: "000000"

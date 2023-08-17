@@ -6,6 +6,7 @@
     "wad": "DOOM2.WAD",
     "item_ids": 360000,
     "loc_ids": 361000,
+    "check_sanity": false,
     "map_names": [
         "Entryway (MAP01)",
         "Underhalls (MAP02)",

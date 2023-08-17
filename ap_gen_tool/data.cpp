@@ -27,6 +27,7 @@ void init_data()
         game.wad_name = game_json["wad"].asString();
         game.item_ids = game_json["item_ids"].asInt64();
         game.loc_ids = game_json["loc_ids"].asInt64();
+        game.check_sanity = game_json["check_sanity"].asBool();
 
         const auto& episodes_json = game_json["map_names"];
         if (!episodes_json.empty())

@@ -117,7 +117,8 @@ struct region_t
 struct location_t
 {
     bool death_logic = false;
-    bool unreachable = false;
+    bool unreachable = false; // Check will be removed (Unreachable area)
+    bool check_sanity = false; // Removed, but option to put it back
     std::string name;
     std::string description;
 
@@ -146,6 +147,7 @@ struct map_state_t
     std::set<int> accesses;
     std::map<int, location_t> locations;
     bool different = false;
+    int check_sanity_count;
 
     bool operator==(const map_state_t& other) const
     {
@@ -230,6 +232,7 @@ struct game_t
     bool episodic = false;
     std::vector<meta_t> metas;
     std::vector<ap_item_def_t> item_requirements;
+    bool check_sanity = false;
 };
 
 

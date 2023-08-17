@@ -80,13 +80,6 @@ fixed_t GetOffset(vertex_t *v1, vertex_t *v2)
     return r;
 }
 
-boolean validate_doom_location(int ep, int map, int doom_type, int index)
-{
-    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
-    if (index >= level_info->thing_count) return false;
-    return level_info->thing_infos[index].doom_type == doom_type;
-}
-
 
 unsigned long long hash_seed(unsigned char *str)
 {
@@ -793,32 +786,40 @@ void P_LoadThings(int lump)
         // [AP] Cannot spawn player at the top of the waterfalls, no way to come back
         if (spawnthing.type == 1 && gamemap == 3 && gameepisode == 3) spawnthing.y = -1088;
         
-        auto type_before = spawnthing.type;
+        int type_before = spawnthing.type;
 
         // Replace AP locations with AP item
         if (is_heretic_type_ap_location(spawnthing.type))
         {
             // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
-            if (!validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
+            int ret = ap_validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i);
+            if (ret == -1)
             {
                 I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get HERETIC.WAD from the steam releases.");
             }
-            if (apdoom_is_location_progression(gameepisode, gamemap, i))
-                spawnthing.type = 20001;
-            else
-                spawnthing.type = 20000;
-            int skip = 0;
-            ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
-            for (j = 0; j < level_state->check_count; ++j)
+            else if (ret == 0)
             {
-                if (level_state->checks[j] == i)
-                {
-                    skip = 1;
-                    break;
-                }
+                continue; // Skip it
             }
-            if (skip)
-                continue;
+            else if (ret == 1)
+            {
+                if (apdoom_is_location_progression(gameepisode, gamemap, i))
+                    spawnthing.type = 20001;
+                else
+                    spawnthing.type = 20000;
+                int skip = 0;
+                ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+                for (j = 0; j < level_state->check_count; ++j)
+                {
+                    if (level_state->checks[j] == i)
+                    {
+                        skip = 1;
+                        break;
+                    }
+                }
+                if (skip)
+                    continue;
+            }
         }
 
         // [AP] On player start 1, put level select teleport "HUB"

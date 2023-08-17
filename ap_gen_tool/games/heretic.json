@@ -6,6 +6,7 @@
     "wad": "HERETIC.WAD",
     "item_ids": 370000,
     "loc_ids": 371000,
+    "check_sanity": true,
     "map_names": [
         [
             "The Docks (E1M1)",

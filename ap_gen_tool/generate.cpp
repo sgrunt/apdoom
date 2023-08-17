@@ -71,6 +71,7 @@ struct ap_location_t
     int sector;
     int region = -1;
     std::string region_name;
+    bool check_sanity = false;
 };
 
 
@@ -149,6 +150,9 @@ bool loc_name_taken(const std::string& name)
 
 void add_loc(const std::string& name, const map_thing_t& thing, level_t* level, int index, int x, int y)
 {
+    // Make sure it's not unreachable
+    if (level->map_state->locations[index].unreachable) return;
+
     int count = 0;
     std::string loc_name = name;
     while (loc_name_taken(loc_name))
@@ -165,31 +169,11 @@ void add_loc(const std::string& name, const map_thing_t& thing, level_t* level, 
     loc.doom_type = thing.type; // Index can be a risky one. We could replace the item by it's type if it's unique enough
     loc.x = x << 16;
     loc.y = y << 16;
+    loc.check_sanity = level->map_state->locations[index].check_sanity;
     ap_locations.push_back(loc);
 
     level->location_count++;
     total_loc_count++;
-}
-
-void add_loc(const std::string& name, level_t* level)
-{
-    int count = 0;
-    std::string loc_name = name;
-    while (loc_name_taken(loc_name))
-    {
-        ++count;
-        loc_name = name + " " + std::to_string(count + 1);
-    }
-
-    ap_location_t loc;
-    loc.id = location_next_id++;
-    loc.name = loc_name;
-    loc.idx = level->idx;
-    loc.doom_thing_index = -1;
-    loc.doom_type = -1;
-    loc.x = -1;
-    loc.y = -1;
-    ap_locations.push_back(loc);
 }
 
 int64_t add_unique(const std::string& name, const map_thing_t& thing, level_t* level, int index, bool is_key, item_classification_t classification, const std::string& group_name, int x, int y)
@@ -369,8 +353,8 @@ int generate(game_t* game)
                 continue;
             }
 
-            if (level->map_state->locations[i].unreachable)
-                continue; // We don't include this location
+            //if (level->map_state->locations[i].unreachable)
+            //    continue; // We don't include this location
 
             auto loc_it = game->location_doom_types.find(thing.type);
             if (loc_it != game->location_doom_types.end())
@@ -679,6 +663,8 @@ class LocationDict(TypedDict, total=False): \n\
     name: str \n");
         if (game->episodic)
             fprintf(fout, "    episode: int \n");
+        if (game->check_sanity)
+            fprintf(fout, "    check_sanity: bool \n");
         fprintf(fout, "    map: int \n\
     index: int # Thing index as it is stored in the wad file. \n\
     doom_type: int # In case index end up unreliable, we can use doom type. Maps have often only one of each important things. \n\
@@ -697,9 +683,9 @@ class LocationDict(TypedDict, total=False): \n\
             fprintf(fout, "    %llu: {", loc.id);
             fprintf(fout, "'name': %s", convert_quoted_str(loc.name).c_str());
             if (game->episodic)
-            {
                 fprintf(fout, ",\n             'episode': %i", loc.idx.ep + 1);
-            }
+            if (game->check_sanity)
+                fprintf(fout, ",\n             'check_sanity': %s", loc.check_sanity ? "True" : "False");
             fprintf(fout, ",\n             'map': %i", loc.idx.map + 1);
             fprintf(fout, ",\n             'index': %i", loc.doom_thing_index);
             fprintf(fout, ",\n             'doom_type': %i", loc.doom_type);
@@ -821,18 +807,6 @@ class LocationDict(TypedDict, total=False): \n\
             for (int map = 0; map < game->map_count; ++map)
             {
                 auto level = get_level({game->name, ep, map});
-                int64_t loc_id = 0;
-                for (const auto& loc : ap_locations)
-                {
-                    if (loc.idx == level->idx)
-                    {
-                        if (loc.doom_type == -1)
-                        {
-                            loc_id = loc.id;
-                            break;
-                        }
-                    }
-                }
                 fprintf(fout, "        {\"%s\", {%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
                         level->name.c_str(),
                         level->keys[0] ? "true" : "false", 
@@ -846,7 +820,17 @@ class LocationDict(TypedDict, total=False): \n\
                 int idx = 0;
                 for (const auto& thing : level->map->things)
                 {
-                    fprintf(fout, "            {%i, %i},\n", thing.type, idx);
+                    bool check_sanity = false;
+                    for (const auto& loc : ap_locations)
+                    {
+                        if (loc.idx == level->idx &&
+                            loc.doom_thing_index == idx)
+                        {
+                            check_sanity = loc.check_sanity;
+                            break;
+                        }
+                    }
+                    fprintf(fout, "            {%i, %i, %i},\n", thing.type, idx, check_sanity ? 1 : 0);
                     ++idx;
                 }
                 fprintf(fout, "        }},\n");
