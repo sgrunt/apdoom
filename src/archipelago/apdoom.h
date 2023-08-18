@@ -56,6 +56,7 @@ typedef struct
     int check_count;
     int thing_count;
     ap_thing_info_t thing_infos[AP_MAX_THING];
+    int sanity_check_count;
 
 } ap_level_info_t;
 

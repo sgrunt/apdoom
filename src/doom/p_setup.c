@@ -1036,26 +1036,34 @@ void P_LoadThings (int lump)
             (gamemode == commercial && is_doom2_type_ap_location(spawnthing.type)))
         {
             // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
-            if (!ap_validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i))
+            int ret = ap_validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i);
+            if (ret == -1)
             {
                 I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get DOOM.WAD or DOOM2.WAD from the steam releases.");
             }
-            if (apdoom_is_location_progression(gameepisode, gamemap, i))
-                spawnthing.type = 20001;
-            else
-                spawnthing.type = 20000;
-            int skip = 0;
-            ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
-            for (j = 0; j < level_state->check_count; ++j)
+            else if (ret == 0)
             {
-                if (level_state->checks[j] == i)
-                {
-                    skip = 1;
-                    break;
-                }
+                continue; // Skip it
             }
-            if (skip)
-                continue;
+            else if (ret == 1)
+            {
+                if (apdoom_is_location_progression(gameepisode, gamemap, i))
+                    spawnthing.type = 20001;
+                else
+                    spawnthing.type = 20000;
+                int skip = 0;
+                ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+                for (j = 0; j < level_state->check_count; ++j)
+                {
+                    if (level_state->checks[j] == i)
+                    {
+                        skip = 1;
+                        break;
+                    }
+                }
+                if (skip)
+                    continue;
+            }
         }
 
         // [AP] On player start 1, put level select teleport "HUB"

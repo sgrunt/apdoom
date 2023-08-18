@@ -1902,17 +1902,17 @@ void renderUI()
                 auto map = i % game->map_count;
                 if (ep != 0 && map == 0)
                 {
-                    ImGui::TextColored(total_checks_col, "Total checks: %i (%i sanity)", episode_check_count, episode_check_sanity_count);
+                    ImGui::TextColored(total_checks_col, "Total checks: %i-%i=(%i)", episode_check_count, episode_check_sanity_count, episode_check_count - episode_check_sanity_count);
                     episode_check_count = 0;
                     episode_check_sanity_count = 0;
                     ImGui::Separator();
                 }
                 episode_check_count += meta->map.check_count;
                 episode_check_sanity_count += meta->state.check_sanity_count;
-                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "") + " - " + std::to_string(meta->map.check_count) + " Checks (" + std::to_string(meta->state.check_sanity_count) + " sanity)" ).c_str(), nullptr, &selected))
+                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "") + " - " + std::to_string(meta->map.check_count) + "-" + std::to_string(meta->state.check_sanity_count) + "=(" + std::to_string(meta->map.check_count - meta->state.check_sanity_count) + ")").c_str(), nullptr, &selected))
                     select_map(game, ep, map);
             }
-            ImGui::TextColored(total_checks_col, "Total checks: %i (%i sanity)", episode_check_count, episode_check_sanity_count);
+            ImGui::TextColored(total_checks_col, "Total checks: %i-%i=(%i)", episode_check_count, episode_check_sanity_count, episode_check_count - episode_check_sanity_count);
             ImGui::EndMenu();
         }
     }

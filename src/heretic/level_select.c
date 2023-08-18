@@ -412,13 +412,15 @@ boolean LevelSelectResponder(event_t* ev)
             }
             else if (ev->data3 < 0)
             {
-                select_map_dir(2);
+                //select_map_dir(2);
+                level_select_prev_episode();
                 joywait = I_GetTime() + 5;
             }
             else if (ev->data3 > 0)
             {
-                select_map_dir(3);
+                //select_map_dir(3);
                 joywait = I_GetTime() + 5;
+                level_select_next_episode();
             }
 
 #define JOY_BUTTON_MAPPED(x) ((x) >= 0)
@@ -437,11 +439,13 @@ boolean LevelSelectResponder(event_t* ev)
             {
                 case KEY_LEFTARROW:
                 case 'a':
-                    select_map_dir(0);
+                    //select_map_dir(0);
+                    level_select_prev_episode();
                     break;
                 case KEY_RIGHTARROW:
                 case 'd':
-                    select_map_dir(1);
+                    //select_map_dir(1);
+                    level_select_next_episode();
                     break;
                 case KEY_UPARROW:
                 case 'w':
@@ -452,10 +456,10 @@ boolean LevelSelectResponder(event_t* ev)
                     select_map_dir(3);
                     break;
                 case '[':
-                    level_select_prev_episode();
+                    //level_select_prev_episode();
                     break;
                 case ']':
-                    level_select_next_episode();
+                    //level_select_next_episode();
                     break;
                 case KEY_ENTER:
                 case 'e':
@@ -576,7 +580,7 @@ void DrawEpisodicLevelSelectStats()
         // Progress
         print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
         V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_level_info->check_count);
+        print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_level_info->check_count - ap_level_info->sanity_check_count);
     }
 
     // "You are here"
@@ -599,15 +603,14 @@ void DrawEpisodicLevelSelectStats()
     MN_DrTextB(level_name, text_x, text_y);
 
     // Legend
-    int lx = legendes[selected_ep].x;
-    int ly = legendes[selected_ep].y;
-
-    typedef void (*draw_legend_line_fn_t)(const char* text, int x, int y);
-    draw_legend_line_fn_t draw_legend_line_fn = draw_legend_line;
-    if (legendes[selected_ep].right_align) draw_legend_line_fn = draw_legend_line_right_aligned;
-    draw_legend_line_fn("~2Change map: ~3Arrows", lx, ly);
-    draw_legend_line_fn("~2Change episode: ~3(~2, ~3)", lx, ly + 8);
-    draw_legend_line_fn("~2Enter map: ~3Enter", lx, ly + 16);
+    //int lx = legendes[selected_ep].x;
+    //int ly = legendes[selected_ep].y;
+    //typedef void (*draw_legend_line_fn_t)(const char* text, int x, int y);
+    //draw_legend_line_fn_t draw_legend_line_fn = draw_legend_line;
+    //if (legendes[selected_ep].right_align) draw_legend_line_fn = draw_legend_line_right_aligned;
+    //draw_legend_line_fn("~2Change map: ~3Arrows", lx, ly);
+    //draw_legend_line_fn("~2Change episode: ~3(~2, ~3)", lx, ly + 8);
+    //draw_legend_line_fn("~2Enter map: ~3Enter", lx, ly + 16);
 }
 
 

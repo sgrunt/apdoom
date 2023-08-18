@@ -379,9 +379,22 @@ int apdoom_init(ap_settings_t* settings)
 	for (int i = 0; i < ap_ammo_count; ++i)
 		ap_state.player_state.max_ammo[i] = max_ammos[i];
 	for (int ep = 0; ep < ap_episode_count; ++ep)
+	{
 		for (int map = 0; map < ap_map_count; ++map)
+		{
 			for (int k = 0; k < AP_CHECK_MAX; ++k)
+			{
 				ap_state.level_states[ep * ap_map_count + map].checks[k] = -1;
+			}
+			auto level_info = ap_get_level_info(ep + 1, map + 1);
+			level_info->sanity_check_count = 0;
+			for (int k = 0; k < level_info->thing_count; ++k)
+			{
+				if (level_info->thing_infos[k].check_sanity)
+					level_info->sanity_check_count++;
+			}
+		}
+	}
 
 	ap_settings = *settings;
 
