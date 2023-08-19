@@ -586,6 +586,7 @@ static random_monster_def_t doom2_random_monster_defs[] =
 typedef struct
 {
     int index;
+    random_monster_def_t* og_monster;
     random_monster_def_t* monster;
     fixed_t fit_radius;
     fixed_t fit_height;
@@ -774,286 +775,131 @@ void P_LoadThings (int lump)
         else
             bit = 1<<(gameskill-1);
 
-        if (ap_state.random_monsters == 1) // Shuffle
-        {
-            random_monster_def_t* monsters[1024] = {0};
-            int monster_count = 0;
-            monster_spawn_def_t spawns[1024] = {0};
-            int spawn_count = 0;
+        random_monster_def_t* monsters[1024] = {0};
+        int monster_count = 0;
+        monster_spawn_def_t spawns[1024] = {0};
+        int spawn_count = 0;
 
-            // Collect all monsters
-            mt = (mapthing_t *)data;
-            for (i = 0; i < numthings; i++, mt++)
-            {
-                if (!(mt->options & bit))
+        // Collect spawn points
+        mt = (mapthing_t *)data;
+        for (i = 0; i < numthings; i++, mt++)
+        {
+            if (!(mt->options & bit))
+                continue;
+
+            if (gameepisode == 1 && gamemap == 8 && gamemode != commercial)
+                if (mt->y > E1M8_CUTOFF_OFFSET)
                     continue;
 
-                if (gameepisode == 1 && gamemap == 8 && gamemode != commercial)
-                    if (mt->y > E1M8_CUTOFF_OFFSET)
-                        continue;
-
-                for (int j = 0; j < monster_def_count; ++j)
+            for (int j = 0; j < monster_def_count; ++j)
+            {
+                if (random_monster_defs[j].dont_shuffle)
+                    continue;
+                if (random_monster_defs[j].doom_type == mt->type)
                 {
-                    if (random_monster_defs[j].dont_shuffle)
-                        continue;
-                    if (random_monster_defs[j].doom_type == mt->type)
-                    {
-                        monsters[monster_count++] = &random_monster_defs[j];
-                        get_fit_dimensions(mt->x * FRACUNIT, mt->y * FRACUNIT, &spawns[spawn_count].fit_radius, &spawns[spawn_count].fit_height);
-                        spawns[spawn_count++].index = i;
-                        break;
-                    }
+                    get_fit_dimensions(mt->x * FRACUNIT, mt->y * FRACUNIT, &spawns[spawn_count].fit_radius, &spawns[spawn_count].fit_height);
+                    spawns[spawn_count].og_monster = &random_monster_defs[j];
+                    spawns[spawn_count++].index = i;
+                    break;
                 }
             }
+        }
 
-            // Randomly pick them until empty, and place them in different spots
-            for (i = 0; i < spawn_count; i++)
-            {
-                int idx = rand() % monster_count;
-                spawns[i].monster = monsters[idx];
-                monsters[idx] = monsters[monster_count - 1];
-                monster_count--;
-            }
-
-            // Go through again, and make sure they fit
-            for (i = 0; i < spawn_count; i++)
-            {
-                monster_spawn_def_t* spawn1 = &spawns[i];
-                if (spawn1->monster->height > spawn1->fit_height ||
-                    spawn1->monster->radius > spawn1->fit_radius)
-                {
-                    // He doesn't fit here, find another monster randomly that would fit here, then swap
-                    int tries = 1000;
-                    while (tries--)
-                    {
-                        int j = rand() % spawn_count;
-                        if (j == i) continue;
-                        monster_spawn_def_t* spawn2 = &spawns[j];
-                        if (spawn1->monster->height <= spawn2->fit_height &&
-                            spawn1->monster->radius <= spawn2->fit_radius &&
-                            spawn2->monster->height <= spawn1->fit_height &&
-                            spawn2->monster->radius <= spawn1->fit_radius)
-                        {
-                            random_monster_def_t* tmp = spawn1->monster;
-                            spawn1->monster = spawn2->monster;
-                            spawn2->monster = tmp;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Do the final remapping
-            for (i = 0; i < spawn_count; i++)
+        if (ap_state.random_monsters == 1) // Shuffle
+        {
+            // Collect monsters
+            for (int i = 0; i < spawn_count; ++i)
             {
                 monster_spawn_def_t* spawn = &spawns[i];
-                things_type_remap[spawn->index] = spawn->monster->doom_type;
+                monsters[monster_count++] = spawn->og_monster;
             }
         }
         else if (ap_state.random_monsters == 2) // Random balanced
         {
             int ratios[NUM_RMC] = {0};
+            random_monster_def_t* defs_by_rmc[NUM_RMC][20];
+            int defs_by_rmc_count[NUM_RMC] = {0};
+            int rmc_ratios[NUM_RMC] = {0};
+            for (int i = 0; i < monster_def_count; ++i)
+            {
+                random_monster_def_t* monster = &random_monster_defs[i];
+                defs_by_rmc[monster->category][defs_by_rmc_count[monster->category]++] = monster;
+                rmc_ratios[monster->category] += monster->frequency;
+            }
+
             int total = 0;
-            int indices[1024];
-            int index_count = 0;
-
-            // Calculate ratios
-            mt = (mapthing_t *)data;
-            for (i = 0; i < numthings; i++, mt++)
+            for (int i = 0; i < spawn_count; ++i)
             {
-                if (!(mt->options & bit))
-                    continue;
-
-                if (gameepisode == 1 && gamemap == 8)
-                    if (mt->y > E1M8_CUTOFF_OFFSET)
-                        continue;
-
-                switch (mt->type)
-                {
-                    case 3004: // Former Human
-                    case 9: // Former Human Sergeant
-                    case 3001: // Imp
-                    case 65:	// Former Human Commando
-                    case 84:	// Wolf SS
-                        ratios[0]++;
-                        total++;
-                        indices[index_count++] = i;
-                        break;
-
-                    case 3002: // Demon
-                    case 58: // SPECTRE
-                    case 3006: // Lost soul
-                    case 3005: // Cacodemon
-                    case 67:	// Mancubus
-                    case 71:	// Pain Elemental
-                    case 64:	// Archvile
-                    case 68:	// Arachnotron
-                    case 66:	// Revenant
-                        ratios[1]++;
-                        total++;
-                        indices[index_count++] = i;
-                        break;
-
-                    case 3003: // Baron of hell
-                    case 69:	// Hell Knight
-                        ratios[2]++;
-                        total++;
-                        indices[index_count++] = i;
-                        break;
-
-
-
-                }
+                ratios[spawns[i].og_monster->category]++;
+                total++;
             }
 
-            // Randomly pick monsters based on ratio
-            int barron_count = 0;
-            for (i = 0; i < index_count; i++)
+            while (monster_count < spawn_count)
             {
-                mt = &((mapthing_t*)data)[indices[i]];
-                if (gameepisode == 1 && gamemap == 8)
+                int rnd = rand() % total;
+                for (int i = 0; i < NUM_RMC; ++i)
                 {
-                    if (index_count - i <= 2 - barron_count)
+                    if (rnd < ratios[i])
                     {
-                        barron_count++;
-                        things_type_remap[indices[i]] = 3003; // Baron of hell
-                        continue;
-                    }
-                }
-                if (gamemode == commercial)
-                {
-                    switch (mt->type)
-                    {
-                        case 3004: // Former Human
-                        case 9: // Former Human Sergeant
-                        case 3001: // Imp
-                        case 3002: // Demon
-                        case 58: // SPECTRE
-                        case 3006: // Lost soul
-                        case 3005: // Cacodemon
-                        case 3003: // Baron of hell
-
-                        case 68:	// Arachnotron
-                        case 64:	// Archvile
-                        case 69:	// Hell Knight
-                        case 67:	// Mancubus
-                        case 71:	// Pain Elemental
-
-                        case 66:	// Revenant
-                        case 65:	// Former Human Commando
-                        case 84:	// Wolf SS
+                        rnd = rand() % rmc_ratios[i];
+                        for (int j = 0; j < defs_by_rmc_count[i]; ++j)
                         {
-                            int rnd = rand() % total;
-                            if (rnd < ratios[0])
+                            if (rnd < defs_by_rmc[i][j]->frequency)
                             {
-                                switch (rand()%4)
-                                {
-                                    case 0:
-                                        if (rand()%3) things_type_remap[indices[i]] = 3004; // Former Human
-                                        else things_type_remap[indices[i]] = 65; // Former Human Commando
-                                        break;
-                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
-                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
-                                    case 3: things_type_remap[indices[i]] = 84; break; // Wolf SS
-                                }
+                                monsters[monster_count++] = defs_by_rmc[i][j];
+                                break;
                             }
-                            else if (rnd < ratios[0] + ratios[1])
-                            {
-                                switch (rand()%18)
-                                {
-                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 3: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 4: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 5: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 6: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 7: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 8: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 9: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 10: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 11: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 12: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 13:
-                                        if (rand()%2) things_type_remap[indices[i]] = 3005; // Cacodemon
-                                        else things_type_remap[indices[i]] = 71; // Pain Elemental
-                                        break;
-                                    case 14: things_type_remap[indices[i]] = 3006; break; // Lost soul
-                                    case 15:
-                                        if (rand()%5) things_type_remap[indices[i]] = 3006; // Lost soul
-                                        else things_type_remap[indices[i]] = 64; // Archvile
-                                        break;
-
-                                    case 16: things_type_remap[indices[i]] = 68; break; // Arachnotron
-                                    case 17: things_type_remap[indices[i]] = 67; break; // Mancubus
-                                }
-                            }
-                            else
-                            {
-                                if (rand()%3) things_type_remap[indices[i]] = 69; // Hell Knight
-                                else things_type_remap[indices[i]] = 3003; // Baron of hell
-                            }
-                            break;
+                            rnd -= defs_by_rmc[i][j]->frequency;
                         }
-                        case 16: // Cyberdemon
-                        case 7: // Spiderdemon
-                            if (rand()%2) things_type_remap[indices[i]] = 16;
-                            else things_type_remap[indices[i]] = 7;
-                            break;
+                        break;
                     }
+                    rnd -= ratios[i];
                 }
-                else
+            }
+        }
+        
+        // Randomly pick them until empty, and place them in different spots
+        for (i = 0; i < spawn_count; i++)
+        {
+            int idx = rand() % monster_count;
+            spawns[i].monster = monsters[idx];
+            monsters[idx] = monsters[monster_count - 1];
+            monster_count--;
+        }
+
+        // Go through again, and make sure they fit
+        for (i = 0; i < spawn_count; i++)
+        {
+            monster_spawn_def_t* spawn1 = &spawns[i];
+            if (spawn1->monster->height > spawn1->fit_height ||
+                spawn1->monster->radius > spawn1->fit_radius)
+            {
+                // He doesn't fit here, find another monster randomly that would fit here, then swap
+                int tries = 1000;
+                while (tries--)
                 {
-                    switch (mt->type)
+                    int j = rand() % spawn_count;
+                    if (j == i) continue;
+                    monster_spawn_def_t* spawn2 = &spawns[j];
+                    if (spawn1->monster->height <= spawn2->fit_height &&
+                        spawn1->monster->radius <= spawn2->fit_radius &&
+                        spawn2->monster->height <= spawn1->fit_height &&
+                        spawn2->monster->radius <= spawn1->fit_radius)
                     {
-                        case 3004: // Former Human
-                        case 9: // Former Human Sergeant
-                        case 3001: // Imp
-                        case 3002: // Demon
-                        case 58: // SPECTRE
-                        case 3006: // Lost soul
-                        case 3005: // Cacodemon
-                        case 3003: // Baron of hell
-                        {
-                            int rnd = rand() % total;
-                            if (rnd < ratios[0])
-                            {
-                                switch (rand()%3)
-                                {
-                                    case 0: things_type_remap[indices[i]] = 3004; break; // Former Human
-                                    case 1: things_type_remap[indices[i]] = 9; break; // Former Human Sergeant
-                                    case 2: things_type_remap[indices[i]] = 3001; break; // Imp
-                                }
-                            }
-                            else if (rnd < ratios[0] + ratios[1])
-                            {
-                                switch (rand()%8)
-                                {
-                                    case 0: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 1: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 2: things_type_remap[indices[i]] = 3002; break; // Demon
-                                    case 3: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 4: things_type_remap[indices[i]] = 58; break; // SPECTRE
-                                    case 5: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 6: things_type_remap[indices[i]] = 3005; break; // Cacodemon
-                                    case 7: things_type_remap[indices[i]] = 3006; break; // Lost soul
-                                }
-                            }
-                            else
-                            {
-                                barron_count++;
-                                things_type_remap[indices[i]] = 3003; // Baron of hell
-                            }
-                            break;
-                        }
-                        case 16: // Cyberdemon
-                        case 7: // Spiderdemon
-                            if (rand()%2) things_type_remap[indices[i]] = 16;
-                            else things_type_remap[indices[i]] = 7;
-                            break;
+                        random_monster_def_t* tmp = spawn1->monster;
+                        spawn1->monster = spawn2->monster;
+                        spawn2->monster = tmp;
+                        break;
                     }
                 }
             }
+        }
+
+        // Do the final remapping
+        for (i = 0; i < spawn_count; i++)
+        {
+            monster_spawn_def_t* spawn = &spawns[i];
+            things_type_remap[spawn->index] = spawn->monster->doom_type;
         }
     }
 
