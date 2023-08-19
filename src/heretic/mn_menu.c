@@ -1979,6 +1979,7 @@ boolean MN_Responder(event_t * event)
             }
         }
     }
+
     if (key == 0)
     {
         if (event->type != ev_keydown)
@@ -1987,6 +1988,7 @@ boolean MN_Responder(event_t * event)
         }
 
         key = event->data1;
+        if (key == 'e') key = key_menu_forward;
         charTyped = event->data2;
     }
 

@@ -361,6 +361,198 @@ void P_LoadNodes(int lump)
 }
 
 
+typedef enum
+{
+    // Not size, but difficulty
+    rmc_small,
+    rmc_medium,
+    rmc_big,
+    rmc_boss,
+
+    NUM_RMC
+} random_monster_cat_t;
+
+
+typedef struct
+{
+    int doom_type;
+    int hit_points;
+    int radius;
+    int height;
+    int frequency; // Globally in entire game. This is used for random balanced
+    random_monster_cat_t category;
+    int dont_shuffle;
+} random_monster_def_t;
+
+
+// I feel like these ratios should be per episode. Espideo 4-5 squewing things up a bit
+static random_monster_def_t random_monster_defs[] =
+{
+    { 66, 40, 16*FRACUNIT, 36*FRACUNIT, 1350, rmc_small }, // Gargoyle
+    { 5, 80, 16*FRACUNIT, 36*FRACUNIT, 626, rmc_small }, // Fire gargoyle
+    { 68, 80, 22*FRACUNIT, 62*FRACUNIT, 560, rmc_small }, // Golem
+    { 69, 80, 22*FRACUNIT, 62*FRACUNIT, 137, rmc_small }, // Golem ghost
+    { 45, 100, 22*FRACUNIT, 62*FRACUNIT, 292, rmc_small }, // Nitrogolem
+    { 46, 100, 22*FRACUNIT, 62*FRACUNIT, 153, rmc_small }, // Nitrogolem ghost
+
+    { 64, 200, 24*FRACUNIT, 78*FRACUNIT, 193, rmc_medium }, // Undead Warrior
+    { 65, 200, 24*FRACUNIT, 78*FRACUNIT, 55, rmc_medium }, // Undead Warrior ghost
+    { 15, 180, 16*FRACUNIT, 68*FRACUNIT, 476, rmc_medium }, // Disciple of D'Sparil
+    { 90, 150, 20*FRACUNIT, 64*FRACUNIT, 652, rmc_medium }, // Sabreclaw
+    { 70, 220, 32*FRACUNIT, 74*FRACUNIT, 248, rmc_medium }, // Weredragon
+    { 92, 280, 22*FRACUNIT, 70*FRACUNIT, 284, rmc_medium }, // Ophidian
+
+    { 6, 700, 50*FRACUNIT, 72*FRACUNIT, 108, rmc_big }, // Iron lich (Changed this radius from 40 -> 50 otherwise it gets stuck in stairs)
+
+    { 9, 3000, 28*FRACUNIT, 100*FRACUNIT, 22, rmc_boss, 1 }, // Maulotaur
+    { 7, 2000, 28*FRACUNIT, 100*FRACUNIT, 1, rmc_boss, 1 } // D'Sparil 28x100 [Boss, keep them there]
+};
+static const int monster_def_count = sizeof(random_monster_defs) / sizeof(random_monster_def_t);
+
+
+typedef struct
+{
+    int index;
+    random_monster_def_t* og_monster;
+    random_monster_def_t* monster;
+    fixed_t fit_radius;
+    fixed_t fit_height;
+} monster_spawn_def_t;
+
+
+extern fixed_t tmbbox[4];
+extern int tmflags;
+extern fixed_t tmx;
+extern fixed_t tmy;
+fixed_t tmradius;
+int tmtype;
+
+
+boolean PIT_CheckLine_NoFlags(line_t* ld)
+{
+    if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+     || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
+     || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
+     || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+        return true;
+
+    if (P_BoxOnLineSide (tmbbox, ld) != -1)
+        return true;
+		
+    // A line has been hit
+    
+    // The moving thing's destination position will cross
+    // the given line.
+    // If this should not be allowed, return false.
+    // If the line is special, keep track of it
+    // to process later if the move is proven ok.
+    // NOTE: specials are NOT sorted by order,
+    // so two special lines that are only 8 pixels apart
+    // could be crossed in either order.
+
+    //if (tmtype == 6)
+    //    return false; // Iron lich are too big
+    
+    if (!ld->backsector)
+	    return false;		// one sided line
+		
+	if (ld->flags & ML_BLOCKING)
+	    return false;	// explicitly blocking everything
+
+	if (ld->flags & ML_BLOCKMONSTERS)
+	    return false;	// block monsters only
+
+    if (tmradius <= 20)
+        return true; // Smallest unit
+
+    // Check if the back sector can step up/down
+    float floor = ld->frontsector->floorheight;
+    float back_floor = ld->backsector->floorheight;
+    
+    return abs(floor - back_floor) <= 20 * FRACUNIT;
+}
+
+
+boolean check_position(fixed_t x, fixed_t y, fixed_t radius)
+{
+    int			xl;
+    int			xh;
+    int			yl;
+    int			yh;
+    int			bx;
+    int			by;
+    subsector_t*	newsubsec;
+	
+    tmx = x;
+    tmy = y;
+    tmradius = radius;
+	
+    tmbbox[BOXTOP] = y + radius;
+    tmbbox[BOXBOTTOM] = y - radius;
+    tmbbox[BOXRIGHT] = x + radius;
+    tmbbox[BOXLEFT] = x - radius;
+
+    newsubsec = R_PointInSubsector(x, y);
+    validcount++;
+    
+    // check lines
+    xl = (tmbbox[BOXLEFT] - bmaporgx)>>MAPBLOCKSHIFT;
+    xh = (tmbbox[BOXRIGHT] - bmaporgx)>>MAPBLOCKSHIFT;
+    yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
+    yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
+
+    for (bx=xl ; bx<=xh ; bx++)
+        for (by=yl ; by<=yh ; by++)
+            if (!P_BlockLinesIterator(bx, by, PIT_CheckLine_NoFlags))
+                return false;
+
+    return true;
+}
+
+
+void get_fit_dimensions(fixed_t x, fixed_t y, fixed_t* fit_radius, fixed_t* fit_height)
+{
+    static const fixed_t radius_checks[] = {
+        128*FRACUNIT,
+        64*FRACUNIT,
+        48*FRACUNIT,
+        40*FRACUNIT,
+        31*FRACUNIT,
+        30*FRACUNIT,
+        24*FRACUNIT,
+        20*FRACUNIT,
+        16*FRACUNIT
+    };
+
+    static const fixed_t height_checks[] = {
+        110*FRACUNIT,
+        100*FRACUNIT,
+        64*FRACUNIT,
+        56*FRACUNIT
+    };
+
+    subsector_t* ss = R_PointInSubsector(x, y);
+
+    for (int i = 0, len = sizeof(height_checks) / sizeof(fixed_t); i < len; ++i)
+    {
+        fixed_t sector_height = ss->sector->ceilingheight - ss->sector->floorheight;
+        if (sector_height >= height_checks[i] || i == len - 1)
+        {
+            *fit_height = height_checks[i];
+            break;
+        }
+    }
+
+    for (int i = 0, len = sizeof(radius_checks) / sizeof(fixed_t); i < len; ++i)
+    {
+        if (check_position(x, y, radius_checks[i]) || i == len - 1)
+        {
+            *fit_radius = radius_checks[i];
+            break;
+        }
+    }
+}
+
 
 /*
 =================
@@ -397,8 +589,8 @@ void P_LoadThings(int lump)
         things_type_remap[i] = mt->type;
     }
 
-   
-    if (ap_state.random_monsters > 0)
+    int do_random_monsters = ap_state.random_monsters;
+    if (do_random_monsters > 0)
     {
         // Make sure at the right difficulty level
         if (gameskill == sk_baby)
@@ -408,195 +600,129 @@ void P_LoadThings(int lump)
         else
             bit = 1<<(gameskill-1);
 
-        if (ap_state.random_monsters == 1) // Shuffle
+        random_monster_def_t* monsters[1024] = {0};
+        int monster_count = 0;
+        monster_spawn_def_t spawns[1024] = {0};
+        int spawn_count = 0;
+
+        // Collect spawn points
+        mt = (mapthing_t *)data;
+        for (i = 0; i < numthings; i++, mt++)
         {
-            int monsters[1024];
-            int monster_count = 0;
-            int indices[1024];
-            int index_count = 0;
+            if (!(mt->options & bit))
+                continue;
 
-            // Collect all monsters
-            mt = (mapthing_t *)data;
-            for (i = 0; i < numthings; i++, mt++)
+            for (int j = 0; j < monster_def_count; ++j)
             {
-                if (!(mt->options & bit))
+                if (random_monster_defs[j].dont_shuffle || 
+                    (random_monster_defs[j].doom_type == 6 && gameepisode == 1 && gamemap == 8))
                     continue;
-
-                // Similar level in Heretic? I don't think so
-                //if (gameepisode == 1 && gamemap == 8)
-                //    if (mt->y > E1M8_CUTOFF_OFFSET)
-                //        continue;
-
-                switch (mt->type)
+                if (random_monster_defs[j].doom_type == mt->type)
                 {
-                    //case 7: // D'Sparil 28x100 [Boss, keep them there]
-                    case 15: // Disciple of D'Sparil 16x68
-                    case 5: // Fire gargoyle 16x36
-                    case 66: // Gargoyle 16x36
-                    case 68: // Golem 22x62
-                    case 69: // Golem ghost 22x62
-                    //case 6: // Iron lich 40x72 [Boss, keep them there]
-                    case 9: // Maulotaur 28x100
-                    case 45: // Nitrogolem 22x62
-                    case 46: // Nitrogolem ghost 22x62
-                    case 92: // Ophidian 22x70
-                    case 90: // Sabreclaw 20x64
-                    case 64: // Undead Warrior 24x78
-                    case 65: // Undead Warrior ghost 24x78
-                    case 70: // Weredragon 32x74
-                    {
-                        monsters[monster_count++] = mt->type;
-                        indices[index_count++] = i;
-                        break;
-                    }
+                    tmtype = mt->type;
+                    get_fit_dimensions(mt->x * FRACUNIT, mt->y * FRACUNIT, &spawns[spawn_count].fit_radius, &spawns[spawn_count].fit_height);
+                    spawns[spawn_count].og_monster = &random_monster_defs[j];
+                    spawns[spawn_count++].index = i;
+                    break;
                 }
             }
+        }
 
-            // Randomly pick them until empty, and place them in different spots
-            for (i = 0; i < index_count; i++)
+        if (ap_state.random_monsters == 1) // Shuffle
+        {
+            // Collect monsters
+            for (int i = 0; i < spawn_count; ++i)
             {
-                int idx = rand() % monster_count;
-                things_type_remap[indices[i]] = monsters[idx];
-                monsters[idx] = monsters[monster_count - 1];
-                monster_count--;
+                monster_spawn_def_t* spawn = &spawns[i];
+                monsters[monster_count++] = spawn->og_monster;
             }
         }
         else if (ap_state.random_monsters == 2) // Random balanced
         {
-            int ratios[3] = {0, 0, 0};
-            int total = 0;
-            int indices[1024];
-            int index_count = 0;
-
-            // Make sure at the right difficulty level
-            if (gameskill == sk_baby)
-                bit = 1;
-            else if (gameskill == sk_nightmare)
-                bit = 4;
-            else
-                bit = 1<<(gameskill-1);
-
-            // Calculate ratios
-            mt = (mapthing_t *)data;
-            for (i = 0; i < numthings; i++, mt++)
+            int ratios[NUM_RMC] = {0};
+            random_monster_def_t* defs_by_rmc[NUM_RMC][20];
+            int defs_by_rmc_count[NUM_RMC] = {0};
+            int rmc_ratios[NUM_RMC] = {0};
+            for (int i = 0; i < monster_def_count; ++i)
             {
-                if (!(mt->options & bit))
-                    continue;
-
-                // Similar level in Heretic? I don't think so
-                //if (gameepisode == 1 && gamemap == 8)
-                //    if (mt->y > E1M8_CUTOFF_OFFSET)
-                //        continue;
-
-                //case 7: // D'Sparil 28x100 [Boss, keep them there]
-                //case 6: // Iron lich 40x72 [Boss, keep them there]
-
-                switch (mt->type)
-                {
-                    // Whimpy
-                    case 66: // Gargoyle 16x36
-                    case 5: // Fire gargoyle 16x36
-                    case 68: // Golem 22x62
-                    case 69: // Golem ghost 22x62
-                        ratios[0]++;
-                        total++;
-                        indices[index_count++] = i;
-                        break;
-
-                    // Normal
-                    case 45: // Nitrogolem 22x62
-                    case 46: // Nitrogolem ghost 22x62
-                    case 90: // Sabreclaw 20x64
-                    case 64: // Undead Warrior 24x78
-                    case 65: // Undead Warrior ghost 24x78
-                    case 15: // Disciple of D'Sparil 16x68
-                        ratios[1]++;
-                        total++;
-                        indices[index_count++] = i;
-                        break;
-
-                    // Big
-                    case 92: // Ophidian 22x70 280
-                    case 9: // Maulotaur 28x100 3000
-                    case 70: // Weredragon 32x74 220
-                        ratios[2]++;
-                        total++;
-                        indices[index_count++] = i;
-                        break;
-                }
+                random_monster_def_t* monster = &random_monster_defs[i];
+                defs_by_rmc[monster->category][defs_by_rmc_count[monster->category]++] = monster;
+                rmc_ratios[monster->category] += monster->frequency;
             }
 
-            // Randomly pick monsters based on ratio
-            int barron_count = 0;
-            for (i = 0; i < index_count; i++)
+            int total = 0;
+            for (int i = 0; i < spawn_count; ++i)
             {
-                mt = &((mapthing_t*)data)[indices[i]];
+                ratios[spawns[i].og_monster->category]++;
+                total++;
+            }
 
-                switch (mt->type)
+            while (monster_count < spawn_count)
+            {
+                int rnd = rand() % total;
+                for (int i = 0; i < NUM_RMC; ++i)
                 {
-                    //case 7: // D'Sparil 28x100 [Boss, keep them there]
-                    case 15: // Disciple of D'Sparil 16x68
-                    case 5: // Fire gargoyle 16x36
-                    case 66: // Gargoyle 16x36
-                    case 68: // Golem 22x62
-                    case 69: // Golem ghost 22x62
-                    //case 6: // Iron lich 40x72 [Boss, keep them there]
-                    case 9: // Maulotaur 28x100
-                    case 45: // Nitrogolem 22x62
-                    case 46: // Nitrogolem ghost 22x62
-                    case 92: // Ophidian 22x70
-                    case 90: // Sabreclaw 20x64
-                    case 64: // Undead Warrior 24x78
-                    case 65: // Undead Warrior ghost 24x78
-                    case 70: // Weredragon 32x74
+                    if (rnd < ratios[i])
                     {
-                        int rnd = rand() % total;
-                        if (rnd < ratios[0])
+                        rnd = rand() % rmc_ratios[i];
+                        for (int j = 0; j < defs_by_rmc_count[i]; ++j)
                         {
-                            switch (rand()%7)
+                            if (rnd < defs_by_rmc[i][j]->frequency)
                             {
-                                case 0: things_type_remap[indices[i]] = 66; break; // Gargoyle
-                                case 1: things_type_remap[indices[i]] = 66; break; // Gargoyle
-                                case 2: things_type_remap[indices[i]] = 5; break; // Fire gargoyle
-                                case 3: things_type_remap[indices[i]] = 5; break; // Fire gargoyle
-                                case 4: things_type_remap[indices[i]] = 68; break; // Golem
-                                case 5: things_type_remap[indices[i]] = 68; break; // Golem
-                                case 6: things_type_remap[indices[i]] = 69; break; // Golem ghost
+                                monsters[monster_count++] = defs_by_rmc[i][j];
+                                break;
                             }
+                            rnd -= defs_by_rmc[i][j]->frequency;
                         }
-                        else if (rnd < ratios[0] + ratios[1])
-                        {
-                            switch (rand()%12)
-                            {
-                                case 0: things_type_remap[indices[i]] = 45; break; // Nitrogolem
-                                case 1: things_type_remap[indices[i]] = 45; break; // Nitrogolem
-                                case 2: things_type_remap[indices[i]] = 45; break; // Nitrogolem
-                                case 3: things_type_remap[indices[i]] = 46; break; // Nitrogolem ghost
-                                case 4: things_type_remap[indices[i]] = 90; break; // Sabreclaw
-                                case 5: things_type_remap[indices[i]] = 90; break; // Sabreclaw
-                                case 6: things_type_remap[indices[i]] = 64; break; // Undead Warrior
-                                case 7: things_type_remap[indices[i]] = 64; break; // Undead Warrior
-                                case 8: things_type_remap[indices[i]] = 64; break; // Undead Warrior
-                                case 9: things_type_remap[indices[i]] = 65; break; // Undead Warrior ghost
-                                case 10: things_type_remap[indices[i]] = 15; break; // Disciple of D'Sparil
-                                case 11: things_type_remap[indices[i]] = 15; break; // Disciple of D'Sparil
-                            }
-                        }
-                        else
-                        {
-                            if (rand()%20)
-                            {
-                                if (rand()%2)
-                                    things_type_remap[indices[i]] = 92; // Ophidian
-                                else
-                                    things_type_remap[indices[i]] = 70; // Weredragon
-                            }
-                            else things_type_remap[indices[i]] = 9; // Maulotaur
-                        }
+                        break;
+                    }
+                    rnd -= ratios[i];
+                }
+            }
+        }
+        
+        // Randomly pick them until empty, and place them in different spots
+        for (i = 0; i < spawn_count; i++)
+        {
+            int idx = rand() % monster_count;
+            spawns[i].monster = monsters[idx];
+            monsters[idx] = monsters[monster_count - 1];
+            monster_count--;
+        }
+
+        // Go through again, and make sure they fit
+        for (i = 0; i < spawn_count; i++)
+        {
+            monster_spawn_def_t* spawn1 = &spawns[i];
+            if (spawn1->monster->height > spawn1->fit_height ||
+                spawn1->monster->radius > spawn1->fit_radius)
+            {
+                // He doesn't fit here, find another monster randomly that would fit here, then swap
+                int tries = 1000;
+                while (tries--)
+                {
+                    int j = rand() % spawn_count;
+                    if (j == i) continue;
+                    monster_spawn_def_t* spawn2 = &spawns[j];
+                    if (spawn1->monster->height <= spawn2->fit_height &&
+                        spawn1->monster->radius <= spawn2->fit_radius &&
+                        spawn2->monster->height <= spawn1->fit_height &&
+                        spawn2->monster->radius <= spawn1->fit_radius)
+                    {
+                        random_monster_def_t* tmp = spawn1->monster;
+                        spawn1->monster = spawn2->monster;
+                        spawn2->monster = tmp;
                         break;
                     }
                 }
             }
+        }
+
+        // Do the final remapping
+        for (i = 0; i < spawn_count; i++)
+        {
+            monster_spawn_def_t* spawn = &spawns[i];
+            things_type_remap[spawn->index] = spawn->monster->doom_type;
         }
     }
 
