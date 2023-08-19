@@ -457,6 +457,7 @@ void initSettings()
 {
     oSettings->setGameName("APDOOM Gen Tool");
     oSettings->setResolution({ 1600, 900 });
+    oSettings->setBorderlessFullscreen(false);
     oSettings->setIsResizableWindow(true);
     oSettings->setIsFixedStep(false);
     oSettings->setShowFPS(false);
@@ -2195,6 +2196,14 @@ void renderUI()
                 }
                 index++;
             }
+        }
+        ImGui::End();
+
+        if (ImGui::Begin("Game"))
+        {
+            auto game = get_game(active_level);
+            for (const auto& kv : game->total_doom_types)
+                ImGui::LabelText(("Doom Type " + std::to_string(kv.first)).c_str(), "%i", kv.second);
         }
         ImGui::End();
 

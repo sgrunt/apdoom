@@ -706,6 +706,11 @@ void init_wad(const char* filename, game_t& game)
             for (int j = 0, len = (int)map->things.size(); j < len; ++j)
             {
                 const auto& thing = map->things[j];
+
+                // Count total thing count (Consider UV difficulty)
+                if (thing.flags & 0x0004)
+                    game.total_doom_types[thing.type]++;
+
                 if (thing.flags & 0x0010) continue; // Thing is not in single player
                 auto it = game.location_doom_types.find(thing.type);
                 if (it == game.location_doom_types.end()) continue;

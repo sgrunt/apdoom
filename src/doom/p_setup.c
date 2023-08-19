@@ -512,6 +512,217 @@ static unsigned long long hash_seed(unsigned char *str)
 }
 
 
+typedef enum
+{
+    // Not size, but difficulty
+    rmc_small,
+    rmc_medium,
+    rmc_big,
+    rmc_boss,
+
+    NUM_RMC
+} random_monster_cat_t;
+
+
+typedef struct
+{
+    int doom_type;
+    int hit_points;
+    int radius;
+    int height;
+    int frequency; // Globally in entire game. This is used for random balanced
+    random_monster_cat_t category;
+    int dont_shuffle;
+} random_monster_def_t;
+
+
+static random_monster_def_t doom_random_monster_defs[] =
+{
+    { 3004, 20, 20*FRACUNIT, 56*FRACUNIT, 384, rmc_small }, // Former Human
+    { 9, 30, 20*FRACUNIT, 56*FRACUNIT, 656, rmc_small }, // Former Human Sergeant
+    { 3001, 60, 20*FRACUNIT, 56*FRACUNIT, 974, rmc_small }, // Imp
+
+    { 3002, 150, 30*FRACUNIT, 56*FRACUNIT, 443, rmc_medium }, // Demon
+    { 58, 150, 30*FRACUNIT, 56*FRACUNIT, 183, rmc_medium }, // SPECTRE
+    { 3006, 100, 16*FRACUNIT, 56*FRACUNIT, 323, rmc_medium }, // Lost soul
+    { 3005, 400, 31*FRACUNIT, 56*FRACUNIT, 193, rmc_medium }, // Cacodemon
+
+    { 3003, 1000, 24*FRACUNIT, 64*FRACUNIT, 82, rmc_big }, // Baron of hell
+
+    { 16, 4000, 40*FRACUNIT, 110*FRACUNIT, 5, rmc_boss, 1 }, // Cyberdemon
+    { 7, 3000, 128*FRACUNIT, 100*FRACUNIT, 2, rmc_boss, 1 } // Spiderdemon
+};
+
+
+static random_monster_def_t doom2_random_monster_defs[] =
+{
+    { 3004, 20, 20*FRACUNIT, 56*FRACUNIT, 290, rmc_small }, // Former Human
+    { 9, 30, 20*FRACUNIT, 56*FRACUNIT, 483, rmc_small }, // Former Human Sergeant
+    { 3001, 60, 20*FRACUNIT, 56*FRACUNIT, 1223, rmc_small }, // Imp
+
+    { 3002, 150, 30*FRACUNIT, 56*FRACUNIT, 331, rmc_medium }, // Demon
+    { 58, 150, 30*FRACUNIT, 56*FRACUNIT, 175, rmc_medium }, // SPECTRE
+    { 3006, 100, 16*FRACUNIT, 56*FRACUNIT, 197, rmc_medium }, // Lost soul
+    { 3005, 400, 31*FRACUNIT, 56*FRACUNIT, 188, rmc_medium }, // Cacodemon
+
+    { 3003, 1000, 24*FRACUNIT, 64*FRACUNIT, 31, rmc_big }, // Baron of hell
+
+    { 16, 4000, 40*FRACUNIT, 110*FRACUNIT, 12, rmc_boss, 1 }, // Cyberdemon
+    { 7, 3000, 128*FRACUNIT, 100*FRACUNIT, 6, rmc_boss, 1 }, // Spiderdemon
+
+    { 84, 50, 20*FRACUNIT, 56*FRACUNIT, 156, rmc_small }, // Wolf SS
+    { 65, 70, 20*FRACUNIT, 56*FRACUNIT, 273, rmc_small }, // Former Human Commando
+
+    { 71, 400, 31*FRACUNIT, 56*FRACUNIT, 64, rmc_medium }, // Pain Elemental
+    { 67, 600, 48*FRACUNIT, 64*FRACUNIT, 68, rmc_medium }, // Mancubus
+    { 68, 500, 64*FRACUNIT, 64*FRACUNIT, 65, rmc_medium }, // Arachnotron
+    { 66, 300, 20*FRACUNIT, 56*FRACUNIT, 90, rmc_medium }, // Revenant
+
+    { 64, 700, 20*FRACUNIT, 56*FRACUNIT, 17, rmc_big }, // Archvile
+    { 69, 500, 24*FRACUNIT, 64*FRACUNIT, 75, rmc_big } // Hell Knight
+};
+
+
+typedef struct
+{
+    int index;
+    random_monster_def_t* monster;
+    fixed_t fit_radius;
+    fixed_t fit_height;
+} monster_spawn_def_t;
+
+
+
+extern fixed_t tmbbox[4];
+extern int tmflags;
+extern fixed_t tmx;
+extern fixed_t tmy;
+fixed_t tmradius;
+
+
+boolean PIT_CheckLine_NoFlags(line_t* ld)
+{
+    if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+     || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
+     || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
+     || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+        return true;
+
+    if (P_BoxOnLineSide (tmbbox, ld) != -1)
+        return true;
+		
+    // A line has been hit
+    
+    // The moving thing's destination position will cross
+    // the given line.
+    // If this should not be allowed, return false.
+    // If the line is special, keep track of it
+    // to process later if the move is proven ok.
+    // NOTE: specials are NOT sorted by order,
+    // so two special lines that are only 8 pixels apart
+    // could be crossed in either order.
+    
+    if (!ld->backsector)
+	    return false;		// one sided line
+		
+	if (ld->flags & ML_BLOCKING)
+	    return false;	// explicitly blocking everything
+
+	if (ld->flags & ML_BLOCKMONSTERS)
+	    return false;	// block monsters only
+
+    if (tmradius <= 20)
+        return true; // Smallest unit
+
+    // Check if the back sector can step up/down
+    float floor = ld->frontsector->floorheight;
+    float back_floor = ld->backsector->floorheight;
+    
+    return abs(floor - back_floor) <= 20 * FRACUNIT;
+}
+
+
+boolean check_position(fixed_t x, fixed_t y, fixed_t radius)
+{
+    int			xl;
+    int			xh;
+    int			yl;
+    int			yh;
+    int			bx;
+    int			by;
+    subsector_t*	newsubsec;
+	
+    tmx = x;
+    tmy = y;
+    tmradius = radius;
+	
+    tmbbox[BOXTOP] = y + radius;
+    tmbbox[BOXBOTTOM] = y - radius;
+    tmbbox[BOXRIGHT] = x + radius;
+    tmbbox[BOXLEFT] = x - radius;
+
+    newsubsec = R_PointInSubsector(x, y);
+    validcount++;
+    
+    // check lines
+    xl = (tmbbox[BOXLEFT] - bmaporgx)>>MAPBLOCKSHIFT;
+    xh = (tmbbox[BOXRIGHT] - bmaporgx)>>MAPBLOCKSHIFT;
+    yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
+    yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
+
+    for (bx=xl ; bx<=xh ; bx++)
+        for (by=yl ; by<=yh ; by++)
+            if (!P_BlockLinesIterator(bx, by, PIT_CheckLine_NoFlags))
+                return false;
+
+    return true;
+}
+
+
+void get_fit_dimensions(fixed_t x, fixed_t y, fixed_t* fit_radius, fixed_t* fit_height)
+{
+    static const fixed_t radius_checks[] = {
+        128*FRACUNIT,
+        64*FRACUNIT,
+        48*FRACUNIT,
+        40*FRACUNIT,
+        31*FRACUNIT,
+        30*FRACUNIT,
+        24*FRACUNIT,
+        20*FRACUNIT,
+        16*FRACUNIT
+    };
+
+    static const fixed_t height_checks[] = {
+        110*FRACUNIT,
+        100*FRACUNIT,
+        64*FRACUNIT,
+        56*FRACUNIT
+    };
+
+    subsector_t* ss = R_PointInSubsector(x, y);
+
+    for (int i = 0, len = sizeof(height_checks) / sizeof(fixed_t); i < len; ++i)
+    {
+        fixed_t sector_height = ss->sector->ceilingheight - ss->sector->floorheight;
+        if (sector_height >= height_checks[i] || i == len - 1)
+        {
+            *fit_height = height_checks[i];
+            break;
+        }
+    }
+
+    for (int i = 0, len = sizeof(radius_checks) / sizeof(fixed_t); i < len; ++i)
+    {
+        if (check_position(x, y, radius_checks[i]) || i == len - 1)
+        {
+            *fit_radius = radius_checks[i];
+            break;
+        }
+    }
+}
+
+
 //
 // P_LoadThings
 //
@@ -550,6 +761,11 @@ void P_LoadThings (int lump)
 
     if (do_random_monsters > 0)
     {
+        random_monster_def_t* random_monster_defs = gamemode == commercial ? doom2_random_monster_defs : doom_random_monster_defs;
+        int monster_def_count = gamemode == commercial ?
+            sizeof(doom2_random_monster_defs) / sizeof(random_monster_def_t) : 
+            sizeof(doom_random_monster_defs) / sizeof(random_monster_def_t);
+
         // Make sure at the right difficulty level
         if (gameskill == sk_baby)
             bit = 1;
@@ -560,10 +776,10 @@ void P_LoadThings (int lump)
 
         if (ap_state.random_monsters == 1) // Shuffle
         {
-            int monsters[1024];
+            random_monster_def_t* monsters[1024] = {0};
             int monster_count = 0;
-            int indices[1024];
-            int index_count = 0;
+            monster_spawn_def_t spawns[1024] = {0};
+            int spawn_count = 0;
 
             // Collect all monsters
             mt = (mapthing_t *)data;
@@ -572,65 +788,74 @@ void P_LoadThings (int lump)
                 if (!(mt->options & bit))
                     continue;
 
-                if (gameepisode == 1 && gamemap == 8)
+                if (gameepisode == 1 && gamemap == 8 && gamemode != commercial)
                     if (mt->y > E1M8_CUTOFF_OFFSET)
                         continue;
 
-                switch (mt->type)
+                for (int j = 0; j < monster_def_count; ++j)
                 {
-                    case 3004: // Former Human
-                    case 9: // Former Human Sergeant
-                    case 3001: // Imp
-                    case 3002: // Demon
-                    case 58: // SPECTRE
-                    case 3006: // Lost soul
-                    case 3005: // Cacodemon
-                    case 3003: // Baron of hell
-                        
-                    case 68:	// Arachnotron
-                    case 64:	// Archvile
-                    case 69:	// Hell Knight
-                    case 67:	// Mancubus
-                    case 71:	// Pain Elemental
-                    case 65:	// Former Human Commando
-                    case 66:	// Revenant
-                    case 84:	// Wolf SS
-
-                    //case 16: // Cyberdemon [Too big, keep them there]
-                    //case 7: // Spiderdemon [Too big, keep them there]
-                    //case 88:	// Boss Brain
-                    //case 89:	// Boss Shooter
+                    if (random_monster_defs[j].dont_shuffle)
+                        continue;
+                    if (random_monster_defs[j].doom_type == mt->type)
                     {
-                        monsters[monster_count++] = mt->type;
-                        indices[index_count++] = i;
+                        monsters[monster_count++] = &random_monster_defs[j];
+                        get_fit_dimensions(mt->x * FRACUNIT, mt->y * FRACUNIT, &spawns[spawn_count].fit_radius, &spawns[spawn_count].fit_height);
+                        spawns[spawn_count++].index = i;
                         break;
                     }
                 }
             }
 
             // Randomly pick them until empty, and place them in different spots
-            for (i = 0; i < index_count; i++)
+            for (i = 0; i < spawn_count; i++)
             {
                 int idx = rand() % monster_count;
-                things_type_remap[indices[i]] = monsters[idx];
+                spawns[i].monster = monsters[idx];
                 monsters[idx] = monsters[monster_count - 1];
                 monster_count--;
+            }
+
+            // Go through again, and make sure they fit
+            for (i = 0; i < spawn_count; i++)
+            {
+                monster_spawn_def_t* spawn1 = &spawns[i];
+                if (spawn1->monster->height > spawn1->fit_height ||
+                    spawn1->monster->radius > spawn1->fit_radius)
+                {
+                    // He doesn't fit here, find another monster randomly that would fit here, then swap
+                    int tries = 1000;
+                    while (tries--)
+                    {
+                        int j = rand() % spawn_count;
+                        if (j == i) continue;
+                        monster_spawn_def_t* spawn2 = &spawns[j];
+                        if (spawn1->monster->height <= spawn2->fit_height &&
+                            spawn1->monster->radius <= spawn2->fit_radius &&
+                            spawn2->monster->height <= spawn1->fit_height &&
+                            spawn2->monster->radius <= spawn1->fit_radius)
+                        {
+                            random_monster_def_t* tmp = spawn1->monster;
+                            spawn1->monster = spawn2->monster;
+                            spawn2->monster = tmp;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Do the final remapping
+            for (i = 0; i < spawn_count; i++)
+            {
+                monster_spawn_def_t* spawn = &spawns[i];
+                things_type_remap[spawn->index] = spawn->monster->doom_type;
             }
         }
         else if (ap_state.random_monsters == 2) // Random balanced
         {
-            int ratios[3] = {0, 0, 0};
+            int ratios[NUM_RMC] = {0};
             int total = 0;
             int indices[1024];
             int index_count = 0;
-
-            // Make sure at the right difficulty level
-            if (gameskill == sk_baby)
-                bit = 1;
-            else if (gameskill == sk_nightmare)
-                bit = 4;
-            else
-                bit = 1<<(gameskill-1);
 
             // Calculate ratios
             mt = (mapthing_t *)data;

@@ -233,6 +233,7 @@ struct game_t
     std::vector<meta_t> metas;
     std::vector<ap_item_def_t> item_requirements;
     bool check_sanity = false;
+    std::map<int, int> total_doom_types; // Count of every doom types in the game
 };
 
 
