@@ -857,6 +857,50 @@ void P_LoadThings (int lump)
                 }
             }
         }
+        else if (ap_state.random_monsters == 3) // Random chaotic
+        {
+            int total = 0;
+            for (int i = 0; i < monster_def_count; ++i)
+            {
+                random_monster_def_t* monster = &random_monster_defs[i];
+                if (monster->dont_shuffle) continue;
+                total += monster->frequency;
+            }
+
+            while (monster_count < spawn_count)
+            {
+                int rnd = rand() % total;
+                for (int i = 0; i < monster_def_count; ++i)
+                {
+                    random_monster_def_t* monster = &random_monster_defs[i];
+                    if (monster->dont_shuffle) continue;
+                    if (rnd < monster->frequency)
+                    {
+                        monsters[monster_count++] = monster;
+                        break;
+                    }
+                    rnd -= monster->frequency;
+                }
+            }
+        }
+
+        // Make sure we have at least 2 baron of hell in first episode boss level
+        if (gameepisode == 1 && gamemap == 8 && gamemode != commercial)
+        {
+            int baron_count = 0;
+            for (int i = 0; i < monster_count; ++i)
+                if (monsters[i]->doom_type == 3003)
+                    baron_count++;
+            while (baron_count < 2)
+            {
+                int i = rand() % monster_count;
+                if (monsters[i]->doom_type != 3003)
+                {
+                    monsters[i] = &random_monster_defs[7];
+                    baron_count++;
+                }
+            }
+        }
         
         // Randomly pick them until empty, and place them in different spots
         for (i = 0; i < spawn_count; i++)
