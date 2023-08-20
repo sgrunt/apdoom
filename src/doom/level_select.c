@@ -457,37 +457,19 @@ boolean LevelSelectResponder(event_t* ev)
         }
         case ev_keydown:
         {
-            switch (ev->data1)
+            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft)
             {
-                case KEY_LEFTARROW:
-                case 'a':
-                    level_select_prev_episode();
-                    //level_select_nav_left();
-                    break;
-                case KEY_RIGHTARROW:
-                case 'd':
-                    level_select_next_episode();
-                    //level_select_nav_right();
-                    break;
-                case KEY_UPARROW:
-                case 'w':
-                    level_select_nav_up();
-                    break;
-                case KEY_DOWNARROW:
-                case 's':
-                    level_select_nav_down();
-                    break;
-                case '[':
-                    //level_select_prev_episode();
-                    break;
-                case ']':
-                    //level_select_next_episode();
-                    break;
-                case KEY_ENTER:
-                case 'e':
-                    level_select_nav_enter();
-                    break;
+                if (gamemode == commercial) level_select_nav_left();
+                else level_select_prev_episode();
             }
+            if (ev->data1 == key_right || ev->data1 == key_alt_straferight)
+            {
+                if (gamemode == commercial) level_select_nav_right();
+                else level_select_next_episode();
+            }
+            if (ev->data1 == key_up || ev->data1 == key_alt_up) level_select_nav_up();
+            if (ev->data1 == key_down || ev->data1 == key_alt_down) level_select_nav_down();
+            if (ev->data1 == key_menu_forward || ev->data1 == key_use) level_select_nav_enter();
             break;
         }
     }

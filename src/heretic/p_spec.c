@@ -733,7 +733,7 @@ void P_CrossSpecialLine(int linenum, int side, mobj_t * thing)
 		    if (i == MAXPLAYERS) return;
 
             G_ExitLevel();
-            line->special = 0;
+            //line->special = 0; // [AP] Don't turn the line off!
             break;
         case 53:               // Perpetual Platform Raise
             EV_DoPlat(line, perpetualRaise, 0);

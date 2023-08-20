@@ -435,37 +435,11 @@ boolean LevelSelectResponder(event_t* ev)
         }
         case ev_keydown:
         {
-            switch (ev->data1)
-            {
-                case KEY_LEFTARROW:
-                case 'a':
-                    //select_map_dir(0);
-                    level_select_prev_episode();
-                    break;
-                case KEY_RIGHTARROW:
-                case 'd':
-                    //select_map_dir(1);
-                    level_select_next_episode();
-                    break;
-                case KEY_UPARROW:
-                case 'w':
-                    select_map_dir(2);
-                    break;
-                case KEY_DOWNARROW:
-                case 's':
-                    select_map_dir(3);
-                    break;
-                case '[':
-                    //level_select_prev_episode();
-                    break;
-                case ']':
-                    //level_select_next_episode();
-                    break;
-                case KEY_ENTER:
-                case 'e':
-                    level_select_nav_enter();
-                    break;
-            }
+            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft) level_select_prev_episode();
+            if (ev->data1 == key_right || ev->data1 == key_alt_straferight) level_select_next_episode();
+            if (ev->data1 == key_up || ev->data1 == key_alt_up) select_map_dir(2);
+            if (ev->data1 == key_down || ev->data1 == key_alt_down) select_map_dir(3);
+            if (ev->data1 == key_menu_forward || ev->data1 == key_use) level_select_nav_enter();
             break;
         }
     }

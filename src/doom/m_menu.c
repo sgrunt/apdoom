@@ -2897,7 +2897,7 @@ boolean M_Responder (event_t* ev)
 
     // Keys usable within menu
 
-    if (key == key_menu_down)
+    if (key == key_menu_down || key == key_down || key == key_alt_down)
     {
         // Move down to next item
 
@@ -2911,7 +2911,7 @@ boolean M_Responder (event_t* ev)
 
 	return true;
     }
-    else if (key == key_menu_up)
+    else if (key == key_menu_up || key == key_up || key == key_alt_up)
     {
         // Move back up to previous item
 
@@ -2925,7 +2925,7 @@ boolean M_Responder (event_t* ev)
 
 	return true;
     }
-    else if (key == key_menu_left)
+    else if (key == key_menu_left || key == key_left || key == key_alt_strafeleft)
     {
         // Slide slider left
 
@@ -2952,7 +2952,7 @@ boolean M_Responder (event_t* ev)
         }
 	return true;
     }
-    else if (key == key_menu_right)
+    else if (key == key_menu_right || key == key_right || key == key_alt_straferight)
     {
         // Slide slider right
 
@@ -2979,7 +2979,7 @@ boolean M_Responder (event_t* ev)
         }
 	return true;
     }
-    else if (key == key_menu_forward)
+    else if (key == key_menu_forward || key == key_use)
     {
         // Activate menu item
 

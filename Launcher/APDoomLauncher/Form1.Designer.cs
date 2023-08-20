@@ -255,7 +255,7 @@ namespace APDoomLauncher
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(155, 17);
             this.label7.TabIndex = 9;
-            this.label7.Text = "APDOOM 0.12.1 (beta)";
+            this.label7.Text = "APDOOM 0.12.3 (beta)";
             // 
             // pictureBox3
             // 

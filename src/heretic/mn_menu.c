@@ -1207,9 +1207,9 @@ static boolean SCKill(int option)
     {
         if (players[consoleplayer].mo->health > 0)
         {
-            MenuActive = false;
+            MN_DeactivateMenu();
             P_KillMobj_Real(0, players[consoleplayer].mo, false);
-            return;
+            return true;
         }
     }
 
@@ -1988,7 +1988,6 @@ boolean MN_Responder(event_t * event)
         }
 
         key = event->data1;
-        if (key == 'e') key = key_menu_forward;
         charTyped = event->data2;
     }
 
@@ -2307,7 +2306,7 @@ boolean MN_Responder(event_t * event)
     {
         item = &CurrentMenu->items[CurrentItPos];
 
-        if (key == key_menu_down)            // Next menu item
+        if (key == key_menu_down || key == key_down || key == key_alt_down)            // Next menu item
         {
             do
             {
@@ -2324,7 +2323,7 @@ boolean MN_Responder(event_t * event)
             S_StartSound(NULL, sfx_switch);
             return (true);
         }
-        else if (key == key_menu_up)         // Previous menu item
+        else if (key == key_menu_up || key == key_up || key == key_alt_up)         // Previous menu item
         {
             do
             {
@@ -2341,7 +2340,7 @@ boolean MN_Responder(event_t * event)
             S_StartSound(NULL, sfx_switch);
             return (true);
         }
-        else if (key == key_menu_left)       // Slider left
+        else if (key == key_menu_left || key == key_left || key == key_alt_strafeleft)       // Slider left
         {
             if ((item->type == ITT_LRFUNC || item->type == ITT_LRFUNC2 ||
                  item->type == ITT_NUMFUNC) && item->func != NULL)
@@ -2358,7 +2357,7 @@ boolean MN_Responder(event_t * event)
             }
             return (true);
         }
-        else if (key == key_menu_right)      // Slider right
+        else if (key == key_menu_right || key == key_right || key == key_alt_straferight)      // Slider right
         {
             if ((item->type == ITT_LRFUNC || item->type == ITT_LRFUNC2 ||
                  item->type == ITT_NUMFUNC) && item->func != NULL)
@@ -2375,7 +2374,7 @@ boolean MN_Responder(event_t * event)
             }
             return (true);
         }
-        else if (key == key_menu_forward)    // Activate item (enter)
+        else if (key == key_menu_forward || key == key_use)    // Activate item (enter)
         {
             if (item->type == ITT_SETMENU)
             {
