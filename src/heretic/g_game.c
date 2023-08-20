@@ -244,6 +244,38 @@ int G_CmdChecksum(ticcmd_t *cmd)
 }
 */
 
+void cache_ap_player_state(void)
+{
+    player_t* p = &players[consoleplayer];
+
+    ap_state.player_state.health = p->health;
+    ap_state.player_state.armor_points = p->armorpoints;
+    ap_state.player_state.armor_type = p->armortype;
+    ap_state.player_state.backpack = p->backpack;
+    ap_state.player_state.ready_weapon = p->readyweapon;
+    ap_state.player_state.kill_count = p->killcount;
+    ap_state.player_state.item_count = p->itemcount;
+    ap_state.player_state.secret_count = p->secretcount;
+    for (int i = 0; i < NUMPOWERS; ++i)
+        ap_state.player_state.powers[i] = p->powers[i];
+    for (int i = 0; i < NUMWEAPONS; ++i)
+        ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
+    for (int i = 0; i < NUMAMMO; ++i)
+        ap_state.player_state.ammo[i] = p->ammo[i];
+    for (int i = 0; i < NUMAMMO; ++i)
+        ap_state.player_state.max_ammo[i] = p->maxammo[i];
+    int inv_slot = 0;
+    memset(ap_state.player_state.inventory, 0, sizeof(ap_inventory_slot_t) * NUMINVENTORYSLOTS);
+    for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
+    {
+        if (p->inventory[i].type == arti_fly)
+            continue; // Skip wings
+        ap_state.player_state.inventory[inv_slot].type = i < p->inventorySlotNum ? p->inventory[i].type : 0;
+        ap_state.player_state.inventory[inv_slot].count = i < p->inventorySlotNum ? p->inventory[i].count : 0;
+        ++inv_slot;
+    }
+}
+
 static boolean WeaponSelectable(weapontype_t weapon)
 {
     if (weapon == wp_beak)
@@ -1861,38 +1893,6 @@ static void G_WriteLevelStat(void)
             gameepisode, gamemap, (secretexit ? "s" : ""),
             levelTimeString, totalTimeString, playerKills, totalkills, 
             playerItems, totalitems, playerSecrets, totalsecret);
-}
-
-void cache_ap_player_state(void)
-{
-    player_t* p = &players[consoleplayer];
-
-    ap_state.player_state.health = p->health;
-    ap_state.player_state.armor_points = p->armorpoints;
-    ap_state.player_state.armor_type = p->armortype;
-    ap_state.player_state.backpack = p->backpack;
-    ap_state.player_state.ready_weapon = p->readyweapon;
-    ap_state.player_state.kill_count = p->killcount;
-    ap_state.player_state.item_count = p->itemcount;
-    ap_state.player_state.secret_count = p->secretcount;
-    for (int i = 0; i < NUMPOWERS; ++i)
-        ap_state.player_state.powers[i] = p->powers[i];
-    for (int i = 0; i < NUMWEAPONS; ++i)
-        ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
-    for (int i = 0; i < NUMAMMO; ++i)
-        ap_state.player_state.ammo[i] = p->ammo[i];
-    for (int i = 0; i < NUMAMMO; ++i)
-        ap_state.player_state.max_ammo[i] = p->maxammo[i];
-    int inv_slot = 0;
-    memset(ap_state.player_state.inventory, 0, sizeof(ap_inventory_slot_t) * NUMINVENTORYSLOTS);
-    for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
-    {
-        if (p->inventory[i].type == arti_fly)
-            continue; // Skip wings
-        ap_state.player_state.inventory[inv_slot].type = i < p->inventorySlotNum ? p->inventory[i].type : 0;
-        ap_state.player_state.inventory[inv_slot].count = i < p->inventorySlotNum ? p->inventory[i].count : 0;
-        ++inv_slot;
-    }
 }
 
 void G_DoCompleted(void)

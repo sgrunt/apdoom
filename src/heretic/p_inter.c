@@ -941,7 +941,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 // PROC P_KillMobj
 //
 //---------------------------------------------------------------------------
-
+void cache_ap_player_state(void);
 void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean died_by_death_link)
 {
     target->flags &= ~(MF_SHOOTABLE | MF_FLOAT | MF_SKULLFLY | MF_NOGRAVITY);
@@ -989,6 +989,9 @@ void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean died_by_death_lin
         target->player->powers[pw_flight] = 0;
         target->player->powers[pw_weaponlevel2] = 0;
         target->player->playerstate = PST_DEAD;
+        
+        cache_ap_player_state(); // [Ap] Make sure we cache it's inventory
+
 	    if (!died_by_death_link)
 		    apdoom_on_death();
         P_DropWeapon(target->player);
