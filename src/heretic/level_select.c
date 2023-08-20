@@ -194,6 +194,7 @@ int selected_ep = 0;
 int prev_ep = 0;
 int ep_anim = 0;
 int urh_anim = 0;
+int activating_level_select_anim = 200;
 
 
 
@@ -388,6 +389,7 @@ static void level_select_nav_enter()
 
 boolean LevelSelectResponder(event_t* ev)
 {
+    if (activating_level_select_anim) return true;
     if (ep_anim) return true;
 
     int ep_count = 0;
@@ -462,28 +464,31 @@ void ShowLevelSelect()
     viewactive = false;
     automapactive = false;
 
+    activating_level_select_anim = 200;
     ap_state.ep = 0;
     ap_state.map = 0;
+    ep_anim = 0;
     players[consoleplayer].centerMessage = NULL;
 
-    if (gamemode == commercial)
+    while (!ap_state.episodes[selected_ep])
     {
-        selected_ep = 0;
-    }
-    else
-    {
-        while (!ap_state.episodes[selected_ep])
-        {
-            selected_ep = (selected_ep + 1) % ap_episode_count;
-            if (selected_ep == 0) // oops;
-                break;
-        }
+        selected_ep = (selected_ep + 1) % ap_episode_count;
+        if (selected_ep == 0) // oops;
+            break;
     }
 }
 
 
 void TickLevelSelect()
 {
+    if (activating_level_select_anim > 0)
+    {
+        activating_level_select_anim -= 6;
+        if (activating_level_select_anim < 0)
+            activating_level_select_anim = 0;
+        else
+            return;
+    }
     if (ep_anim > 0)
         ep_anim -= 1;
     else if (ep_anim < 0)
@@ -622,10 +627,11 @@ void DrawLevelSelect()
         V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
     }
 
-    V_DrawPatch(x_offset, 0, W_CacheLumpName(lump_name, PU_CACHE));
+    V_DrawPatch(x_offset, activating_level_select_anim, W_CacheLumpName(lump_name, PU_CACHE));
     if (ep_anim == 0)
     {
-        DrawLevelSelectStats();
+        if (activating_level_select_anim == 0)
+            DrawLevelSelectStats();
     }
     else
     {
