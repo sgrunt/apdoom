@@ -819,6 +819,7 @@ void G_DoLoadLevel (void)
     int             i; 
 
     crispy->fliplevels = ap_get_level_state(gameepisode, gamemap)->flipped ? true : false;
+    S_UpdateStereoSeparation();
     setsizeneeded = true;
 
     // Set the sky map.
