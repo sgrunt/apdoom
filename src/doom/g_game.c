@@ -1243,6 +1243,7 @@ void G_Ticker (void)
     int		i;
     int		buf; 
     ticcmd_t*	cmd;
+    player_t* p;
     
     // do player reborns if needed
     for (i=0 ; i<MAXPLAYERS ; i++) 
@@ -1257,7 +1258,7 @@ void G_Ticker (void)
 	  case ga_loadlevel: 
 	    G_DoLoadLevel(); 
         set_ap_player_states();
-        player_t* p = &players[consoleplayer];
+        p = &players[consoleplayer];
         for (i = 0; i < NUMWEAPONS; ++i)
         {
             p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
@@ -1275,7 +1276,7 @@ void G_Ticker (void)
         }
         p->neghealth = p->health = deh_initial_health;
         if (p->mo) p->mo->health = p->health;
-	    break; 
+	    break;
 	  case ga_newgame: 
 	    // [crispy] re-read game parameters from command line
 	    G_ReadGameParms();
@@ -1742,7 +1743,7 @@ void G_DoReborn (int playernum)
 { 
     int                             i; 
 	 
-    if (!netgame)
+    if (!netgame && ap_state.reset_level_on_death)
     {
 	// [crispy] if the player dies and the game has been loaded or saved
 	// in the mean time, reload that savegame instead of restarting the level
@@ -1752,7 +1753,7 @@ void G_DoReborn (int playernum)
 	else
 	{
 	// reload the level from scratch
-	gameaction = ga_loadlevel;  
+	gameaction = ga_loadlevel;
 	G_ClearSavename();
 	}
     }
@@ -1773,6 +1774,26 @@ void G_DoReborn (int playernum)
 	if (G_CheckSpot (playernum, &playerstarts[playernum]) ) 
 	{ 
 	    P_SpawnPlayer (&playerstarts[playernum]); 
+        set_ap_player_states();
+        player_t* p = &players[consoleplayer];
+        for (i = 0; i < NUMWEAPONS; ++i)
+        {
+            p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+            if (p->weaponowned[i])
+            {
+                switch (i)
+                {
+                    case wp_pistol: p->ammo[am_clip] = max(p->ammo[am_clip], deh_initial_bullets); break;
+                    case wp_shotgun: p->ammo[am_shell] = max(p->ammo[am_shell], 30); break;
+                    case wp_missile: p->ammo[am_misl] = max(p->ammo[am_misl], 10); break;
+                    case wp_plasma: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
+                    case wp_bfg: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
+                }
+            }
+        }
+        p->neghealth = p->health = deh_initial_health;
+        if (p->mo) p->mo->health = p->health;
+        leveltimesinceload = min(leveltimesinceload, 175);
 	    return; 
 	}
 	

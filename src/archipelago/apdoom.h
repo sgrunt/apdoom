@@ -115,6 +115,7 @@ typedef struct
     int victory;
     int flip_levels;
     int check_sanity;
+    int reset_level_on_death;
     
 } ap_state_t;
 

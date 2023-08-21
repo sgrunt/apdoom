@@ -208,6 +208,7 @@ void f_random_monsters(int);
 void f_random_items(int);
 void f_flip_levels(int);
 void f_check_sanity(int);
+void f_reset_level_on_death(int);
 void f_episode1(int);
 void f_episode2(int);
 void f_episode3(int);
@@ -411,6 +412,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
 	AP_RegisterSlotDataIntCallback("flip_levels", f_flip_levels);
 	AP_RegisterSlotDataIntCallback("check_sanity", f_check_sanity);
+	AP_RegisterSlotDataIntCallback("reset_level_on_death", f_reset_level_on_death);
 	AP_RegisterSlotDataIntCallback("episode1", f_episode1);
 	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
@@ -1036,6 +1038,12 @@ void f_flip_levels(int flip_levels)
 void f_check_sanity(int check_sanity)
 {
 	ap_state.check_sanity = check_sanity;
+}
+
+
+void f_reset_level_on_death(int reset_level_on_death)
+{
+	ap_state.reset_level_on_death = reset_level_on_death;
 }
 
 
