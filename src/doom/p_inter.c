@@ -745,6 +745,9 @@ P_TouchSpecialThing
 }
 
 
+void cache_ap_player_state(void);
+
+
 //
 // KillMobj
 //
@@ -789,6 +792,9 @@ P_KillMobj_Real // So we can specify death by death link
 			
 	target->flags &= ~MF_SOLID;
 	target->player->playerstate = PST_DEAD;
+	
+	cache_ap_player_state();
+
 	if (!died_by_death_link)
 		apdoom_on_death();
 	P_DropWeapon (target->player);

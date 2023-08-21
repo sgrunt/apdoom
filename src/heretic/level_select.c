@@ -559,7 +559,7 @@ void DrawEpisodicLevelSelectStats()
         // Progress
         print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
         V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_level_info->check_count - ap_level_info->sanity_check_count);
+        print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
     }
 
     // "You are here"
