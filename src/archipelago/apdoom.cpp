@@ -785,6 +785,8 @@ void save_state()
 
 	json["victory"] = ap_state.victory;
 
+	json["version"] = APDOOM_VERSION_FULL_TEXT;
+
 	f << json;
 }
 
