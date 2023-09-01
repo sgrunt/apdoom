@@ -1310,9 +1310,19 @@ void D_DoomMain(void)
     int apserver_arg_id = M_CheckParmWithArgs("-apserver", 1);
     if (!apserver_arg_id)
 	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-apserver' parameter requires an argument.");
+
+    int player_is_hex = 0;
     int applayer_arg_id = M_CheckParmWithArgs("-applayer", 1);
     if (!applayer_arg_id)
-	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-applayer' parameter requires an argument.");
+    {
+        applayer_arg_id = M_CheckParmWithArgs("-applayerhex", 1);
+        if (!applayer_arg_id)
+        {
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-applayer' parameter requires an argument.");
+        }
+        player_is_hex = 1;
+    }
+
     const char* password = "";
     if (M_CheckParm("-password"))
     {
@@ -1337,7 +1347,21 @@ void D_DoomMain(void)
     settings.ip = myargv[apserver_arg_id + 1];
     if (mission == heretic)
         settings.game = "Heretic";
-    settings.player_name = myargv[applayer_arg_id + 1];
+
+    char* player_name = myargv[applayer_arg_id + 1];
+    if (player_is_hex)
+    {
+        int len = strlen(player_name) / 2;
+        char byte_str[3] = {0};
+        for (int i = 0; i < len; ++i)
+        {
+            memcpy(byte_str, player_name + (i * 2), 2);
+            player_name[i] = strtol(byte_str, NULL, 16);
+        }
+        player_name[len] = '\0';
+    }
+    settings.player_name = player_name;
+
     settings.passwd = password;
     settings.message_callback = on_ap_message;
     settings.give_item_callback = on_ap_give_item;
