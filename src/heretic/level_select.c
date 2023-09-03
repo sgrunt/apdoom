@@ -437,8 +437,8 @@ boolean LevelSelectResponder(event_t* ev)
         }
         case ev_keydown:
         {
-            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft) level_select_prev_episode();
-            if (ev->data1 == key_right || ev->data1 == key_alt_straferight) level_select_next_episode();
+            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft || ev->data1 == key_strafeleft) level_select_prev_episode();
+            if (ev->data1 == key_right || ev->data1 == key_alt_straferight || ev->data1 == key_straferight) level_select_next_episode();
             if (ev->data1 == key_up || ev->data1 == key_alt_up) select_map_dir(2);
             if (ev->data1 == key_down || ev->data1 == key_alt_down) select_map_dir(3);
             if (ev->data1 == key_menu_forward || ev->data1 == key_use) level_select_nav_enter();

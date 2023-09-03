@@ -457,12 +457,12 @@ boolean LevelSelectResponder(event_t* ev)
         }
         case ev_keydown:
         {
-            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft)
+            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft || ev->data1 == key_strafeleft)
             {
                 if (gamemode == commercial) level_select_nav_left();
                 else level_select_prev_episode();
             }
-            if (ev->data1 == key_right || ev->data1 == key_alt_straferight)
+            if (ev->data1 == key_right || ev->data1 == key_alt_straferight || ev->data1 == key_straferight)
             {
                 if (gamemode == commercial) level_select_nav_right();
                 else level_select_next_episode();
