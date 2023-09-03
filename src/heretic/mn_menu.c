@@ -1201,6 +1201,9 @@ void draw_apdoom_version(void)
 //
 //---------------------------------------------------------------------------
 
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean send_death_link);
+extern boolean killed_from_menu;
+
 static boolean SCKill(int option)
 {
     if (players[consoleplayer].mo)
@@ -1208,6 +1211,7 @@ static boolean SCKill(int option)
         if (players[consoleplayer].mo->health > 0)
         {
             MN_DeactivateMenu();
+            killed_from_menu = true;
             P_KillMobj_Real(0, players[consoleplayer].mo, false);
             return true;
         }

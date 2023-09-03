@@ -942,7 +942,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 //
 //---------------------------------------------------------------------------
 void cache_ap_player_state(void);
-void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean died_by_death_link)
+void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean send_death_link)
 {
     target->flags &= ~(MF_SHOOTABLE | MF_FLOAT | MF_SKULLFLY | MF_NOGRAVITY);
     target->flags |= MF_CORPSE | MF_DROPOFF;
@@ -992,7 +992,7 @@ void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean died_by_death_lin
         
         cache_ap_player_state(); // [Ap] Make sure we cache it's inventory
 
-	    if (!died_by_death_link)
+	    if (send_death_link)
 		    apdoom_on_death();
         P_DropWeapon(target->player);
         if (target->flags2 & MF2_FIREDAMAGE)
@@ -1017,7 +1017,7 @@ void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean died_by_death_lin
 
 void P_KillMobj(mobj_t*	source, mobj_t*	target)
 {
-	P_KillMobj_Real(source, target, false);
+	P_KillMobj_Real(source, target, true);
 }
 
 //---------------------------------------------------------------------------

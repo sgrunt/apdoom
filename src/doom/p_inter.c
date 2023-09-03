@@ -755,7 +755,7 @@ void
 P_KillMobj_Real // So we can specify death by death link
 ( mobj_t*	source,
   mobj_t*	target,
-  boolean   died_by_death_link )
+  boolean   send_death_link )
 {
     mobjtype_t	item;
     mobj_t*	mo;
@@ -795,7 +795,7 @@ P_KillMobj_Real // So we can specify death by death link
 	
 	cache_ap_player_state();
 
-	if (!died_by_death_link)
+	if (send_death_link)
 		apdoom_on_death();
 	P_DropWeapon (target->player);
 	// [crispy] center view when dying
@@ -879,7 +879,7 @@ P_KillMobj
 ( mobj_t*	source,
   mobj_t*	target )
 {
-	P_KillMobj_Real(source, target, false);
+	P_KillMobj_Real(source, target, true);
 }
 
 

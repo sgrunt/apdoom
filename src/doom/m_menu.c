@@ -1743,6 +1743,9 @@ void M_Options(int choice)
     M_SetupNextMenu(&OptionsDef);
 }
 
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean send_death_link);
+extern boolean killed_from_menu;
+
 void M_Kill(int choice)
 {
     if (players[consoleplayer].mo)
@@ -1750,6 +1753,7 @@ void M_Kill(int choice)
         if (players[consoleplayer].mo->health > 0)
         {
             M_ClearMenus ();
+            killed_from_menu = true;
             P_KillMobj_Real(0, players[consoleplayer].mo, false);
             return;
         }

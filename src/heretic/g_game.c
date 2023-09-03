@@ -225,7 +225,7 @@ int inventoryTics;
 
 // haleyjd: removed WATCOMC
 
-void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean died_by_death_link);
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean send_death_link);
 
 //=============================================================================
 // Not used - ripped out for Heretic
@@ -1419,7 +1419,7 @@ void G_Ticker(void)
                 if (apdoom_should_die() && players[consoleplayer].mo)
                 {
                     HU_AddAPMessage("Death by Deathlink");
-                    P_KillMobj_Real(NULL, players[consoleplayer].mo, true);
+                    P_KillMobj_Real(NULL, players[consoleplayer].mo, false);
                 }
             }
             break;
@@ -1679,6 +1679,7 @@ void G_DeathMatchSpawnPlayer(int playernum)
 */
 
 extern int leveltimesinceload;
+boolean killed_from_menu = false;
 
 void G_DoReborn(int playernum)
 {
@@ -1687,7 +1688,7 @@ void G_DoReborn(int playernum)
     // quit demo unless -demoextend
     if (!demoextend && G_CheckDemoStatus())
         return;
-    if (!netgame && ap_state.reset_level_on_death)
+    if (!netgame && (ap_state.reset_level_on_death || killed_from_menu))
         gameaction = ga_loadlevel;      // reload the level from scratch
     else
     {                           // respawn at the start

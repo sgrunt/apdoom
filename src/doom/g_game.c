@@ -254,7 +254,7 @@ int             vanilla_demo_limit = 1;
 // [crispy] store last cmd to track joins
 static ticcmd_t* last_cmd = NULL;
 
-void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean died_by_death_link);
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean send_death_link);
 
 int G_CmdChecksum (ticcmd_t* cmd) 
 { 
@@ -1474,7 +1474,7 @@ void G_Ticker (void)
             if (apdoom_should_die() && players[consoleplayer].mo)
             {
                 HU_AddAPMessage("Death by Deathlink");
-                P_KillMobj_Real(NULL, players[consoleplayer].mo, true);
+                P_KillMobj_Real(NULL, players[consoleplayer].mo, false);
             }
         }
 	break; 
@@ -1739,12 +1739,14 @@ static inline void G_ClearSavename ()
 //
 // G_DoReborn 
 // 
+boolean killed_from_menu = false;
 void G_DoReborn (int playernum) 
 { 
     int                             i; 
 	 
-    if (!netgame && ap_state.reset_level_on_death)
+    if (!netgame && (ap_state.reset_level_on_death || killed_from_menu))
     {
+        killed_from_menu = false;
 	// [crispy] if the player dies and the game has been loaded or saved
 	// in the mean time, reload that savegame instead of restarting the level
 	// when "Run" is pressed upon resurrection
