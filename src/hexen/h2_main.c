@@ -938,6 +938,7 @@ void H2_GameLoop(void)
 
     while (1)
     {
+        static int oldgametic;
         // Frame syncronous IO operations
         I_StartFrame();
 
@@ -945,8 +946,12 @@ void H2_GameLoop(void)
         // Will run at least one tic
         TryRunTics();
 
-        // Move positional sounds
-        S_UpdateSounds(players[displayplayer].mo);
+        if (oldgametic < gametic)
+        {
+            // Move positional sounds
+            S_UpdateSounds(players[displayplayer].mo);
+            oldgametic = gametic;
+        }
 
         DrawAndBlit();
 
