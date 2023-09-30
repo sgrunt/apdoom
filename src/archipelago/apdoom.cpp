@@ -52,7 +52,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
     if (!wlen)
     {
         errno = EINVAL;
-        printf("ConvertMultiByteToWide: Failed to convert path to wide encoding.\n");
+        printf("APDOOM: ConvertMultiByteToWide: Failed to convert path to wide encoding.\n");
         return NULL;
     }
 
@@ -60,14 +60,14 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
 
     if (!wstr)
     {
-        printf("ERROR: ConvertMultiByteToWide: Failed to allocate new string.");
+        printf("APDOOM: ConvertMultiByteToWide: Failed to allocate new string.");
         return NULL;
     }
 
     if (MultiByteToWideChar(code_page, 0, str, -1, wstr, wlen) == 0)
     {
         errno = EINVAL;
-        printf("ConvertMultiByteToWide: Failed to convert path to wide encoding.\n");
+        printf("APDOOM: ConvertMultiByteToWide: Failed to convert path to wide encoding.\n");
         free(wstr);
         return NULL;
     }
@@ -315,6 +315,8 @@ int validate_doom_location(int ep, int map, int index)
 
 int apdoom_init(ap_settings_t* settings)
 {
+	printf("%s\n", APDOOM_VERSION_FULL_TEXT);
+
 	ap_notification_icons.reserve(4096); // 1MB. A bit exessive, but I got a crash with invalid strings and I cannot figure out why. Let's not take any chances...
 	memset(&ap_state, 0, sizeof(ap_state));
 
@@ -353,6 +355,8 @@ int apdoom_init(ap_settings_t* settings)
 		printf("APDOOM: Invalid game: %s\n", settings->game);
 		return 0;
 	}
+
+	printf("APDOOM: Initializing Game: \"%s\", Server: %s, Slot: %s\n", settings->game, settings->ip, settings->player_name);
 
 	ap_state.level_states = new ap_level_state_t[ap_episode_count * ap_map_count];
 	ap_state.episodes = new int[ap_episode_count];
@@ -433,12 +437,34 @@ int apdoom_init(ap_settings_t* settings)
 				printf("APDOOM: Authenticated\n");
 				AP_GetRoomInfo(&ap_room_info);
 
+				printf("APDOOM: Room Info:\n");
+				printf("  Network Version: %i.%i.%i\n", ap_room_info.version.major, ap_room_info.version.minor, ap_room_info.version.build);
+				printf("  Tags:\n");
+				for (const auto& tag : ap_room_info.tags)
+					printf("    %s\n", tag.c_str());
+				printf("  Password required: %s\n", ap_room_info.password_required ? "true" : "false");
+				printf("  Permissions:\n");
+				for (const auto& permission : ap_room_info.permissions)
+					printf("    %s = %i:\n", permission.first.c_str(), permission.second);
+				printf("  Hint cost: %i\n", ap_room_info.hint_cost);
+				printf("  Location check points: %i\n", ap_room_info.location_check_points);
+				printf("  Data package version: %i\n", ap_room_info.datapackage_version);
+				printf("  Data package versions: %i\n", ap_room_info.datapackage_version);
+				for (const auto& datapackage_version : ap_room_info.datapackage_versions)
+					printf("    %s = %i:\n", datapackage_version.first.c_str(), datapackage_version.second);
+				printf("  Seed name: %s\n", ap_room_info.seed_name.c_str());
+				printf("  Time: %f\n", ap_room_info.time);
+
 				ap_was_connected = true;
 				ap_save_dir_name = "AP_" + ap_room_info.seed_name + "_" + string_to_hex(ap_settings.player_name);
 
 				// Create a directory where saves will go for this AP seed.
+				printf("APDOOM: Save directory: %s\n", ap_save_dir_name.c_str());
 				if (!AP_FileExists(ap_save_dir_name.c_str()))
+				{
+					printf("  Doesn't exist, creating...\n");
 					AP_MakeDirectory(ap_save_dir_name.c_str());
+				}
 
 				load_state();
 				should_break = true;
@@ -452,7 +478,7 @@ int apdoom_init(ap_settings_t* settings)
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
 		{
-			printf("APDOOM: Failed to connect, timeout\n");
+			printf("APDOOM: Failed to connect, timeout 10s\n");
 			return 0;
 		}
 	}
@@ -463,17 +489,22 @@ int apdoom_init(ap_settings_t* settings)
 		if (ap_state.episodes[i])
 			ep_count++;
 	if (!ep_count)
+	{
+		printf("APDOOM: No episode selected, selecting episode 1\n");
 		ap_state.episodes[0] = 1;
+	}
 
 	// Randomly flip levels based on the seed
 	if (ap_state.flip_levels == 1)
 	{
+		printf("APDOOM: All levels flipped\n");
 		for (int ep = 0; ep < ap_episode_count; ++ep)
 			for (int map = 0; map < ap_map_count; ++map)
 				ap_state.level_states[ep * ap_map_count + map].flipped = 1;
 	}
 	else if (ap_state.flip_levels == 2)
 	{
+		printf("APDOOM: Levels randomly flipped\n");
 		auto ap_seed = apdoom_get_seed();
 		unsigned long long seed = hash_seed(ap_seed);
 		srand(seed);
@@ -509,7 +540,8 @@ int apdoom_init(ap_settings_t* settings)
 				}
 			}
 		}
-
+		
+		printf("APDOOM: Scouting for %i locations...\n", (int)location_scouts.size());
 		AP_SendLocationScouts(location_scouts, 0);
 
 		// Wait for location infos
@@ -521,12 +553,17 @@ int apdoom_init(ap_settings_t* settings)
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			if (std::chrono::steady_clock::now() - start_time > std::chrono::seconds(10))
 			{
-				printf("APDOOM: Failed to connect, timeout waiting for LocationScouts\n");
-				return 0;
+				printf("APDOOM: Timeout waiting for LocationScouts. 10s\n  Do you have a VPN active?\n  Checks will all look non-progression.");
+				break;
 			}
 		}
 	}
-
+	else
+	{
+		printf("APDOOM: Scout locations cached loaded\n");
+	}
+	
+	printf("APDOOM: Initialized\n");
 	ap_initialized = true;
 	return 1;
 }
@@ -571,12 +608,63 @@ static void json_get_bool_or(const Json::Value& json, int& out_or_default)
 }
 
 
+const char* get_weapon_name(int weapon)
+{
+	switch (weapon)
+	{
+		case 0: return "Fist";
+		case 1: return "Pistol";
+		case 2: return "Shotgun";
+		case 3: return "Chaingun";
+		case 4: return "Rocket launcher";
+		case 5: return "Plasma gun";
+		case 6: return "BFG9000";
+		case 7: return "Chainsaw";
+		case 8: return "Super shotgun";
+		default: return "UNKNOWN";
+	}
+}
+
+
+const char* get_power_name(int weapon)
+{
+	switch (weapon)
+	{
+		case 0: return "Invulnerability";
+		case 1: return "Strength";
+		case 2: return "Invisibility";
+		case 3: return "Hazard suit";
+		case 4: return "Computer area map";
+		case 5: return "Infrared";
+		default: return "UNKNOWN";
+	}
+}
+
+
+const char* get_ammo_name(int weapon)
+{
+	switch (weapon)
+	{
+		case 0: return "Bullets";
+		case 1: return "Shells";
+		case 2: return "Cells";
+		case 3: return "Rockets";
+		default: return "UNKNOWN";
+	}
+}
+
+
 void load_state()
 {
+	printf("APDOOM: Load sate\n");
+
 	std::string filename = ap_save_dir_name + "/apstate.json";
 	std::ifstream f(filename);
 	if (!f.is_open())
+	{
+		printf("  None found.\n");
 		return; // Could be no state yet, that's fine
+	}
 	Json::Value json;
 	f >> json;
 	f.close();
@@ -610,6 +698,27 @@ void load_state()
 			ap_state.player_state.max_ammo[i] = max_ammos[i] * (ap_state.player_state.backpack ? 2 : 1);
 	}
 
+	printf("  Player State:\n");
+	printf("    Health %i:\n", ap_state.player_state.health);
+	printf("    Armor points %i:\n", ap_state.player_state.armor_points);
+	printf("    Armor type %i:\n", ap_state.player_state.armor_type);
+	printf("    Backpack %s:\n", ap_state.player_state.backpack ? "true" : "false");
+	printf("    Ready weapon: %s\n", get_weapon_name(ap_state.player_state.ready_weapon));
+	printf("    Kill count %i:\n", ap_state.player_state.kill_count);
+	printf("    Item count %i:\n", ap_state.player_state.item_count);
+	printf("    Secret count %i:\n", ap_state.player_state.secret_count);
+	printf("    Active powerups:\n");
+	for (int i = 0; i < ap_powerup_count; ++i)
+		if (ap_state.player_state.powers[i])
+			printf("    %s\n", get_power_name(i));
+	printf("    Owned weapons:\n");
+	for (int i = 0; i < ap_weapon_count; ++i)
+		if (ap_state.player_state.weapon_owned[i])
+			printf("      %s\n", get_weapon_name(i));
+	printf("    Ammo:\n");
+	for (int i = 0; i < ap_ammo_count; ++i)
+		printf("      %s = %i\n", get_ammo_name(i), ap_state.player_state.ammo[i]);
+
 	// Level states
 	for (int i = 0; i < ap_episode_count; ++i)
 	{
@@ -640,9 +749,22 @@ void load_state()
 	}
 
 	json_get_int(json["ep"], ap_state.ep);
+	printf("  Enabled episodes: ");
+	int first = 1;
 	for (int i = 0; i < ap_episode_count; ++i)
+	{
 		json_get_int(json["enabled_episodes"][i++], ap_state.episodes[i]);
+		if (ap_state.episodes[i])
+		{
+			if (!first) printf(", ");
+			first = 0;
+			printf("%i", i);
+		}
+	}
+	printf("\n");
 	json_get_int(json["map"], ap_state.map);
+	printf("  Episode: %i\n", ap_state.ep);
+	printf("  Map: %i\n", ap_state.map);
 
 	for (const auto& prog_json : json["progressive_locations"])
 	{
@@ -650,6 +772,7 @@ void load_state()
 	}
 	
 	json_get_bool_or(json["victory"], ap_state.victory);
+	printf("  Victory state: %s\n", ap_state.victory ? "true" : "false");
 }
 
 
