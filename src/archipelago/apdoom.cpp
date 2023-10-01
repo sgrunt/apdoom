@@ -240,7 +240,7 @@ static int get_original_music_for_level(int ep, int map)
 		}
 		case ap_game_t::doom2:
 		{
-			return 1;
+			return 52 + ap_index_to_map({ep - 1, map - 1}) - 1;
 		}
 		case ap_game_t::heretic:
 		{

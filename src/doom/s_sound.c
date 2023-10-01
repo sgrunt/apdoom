@@ -378,34 +378,34 @@ void S_Start(void)
     if (musicVolume) // [crispy] do not reset pause state at zero music volume
     mus_paused = 0;
 
-    if (gamemode == commercial)
+    ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
+    mnum = level_state->music;
+    if (!mnum)
     {
-        const int nmus[] =
+        if (gamemode == commercial)
         {
-            mus_messag,
-            mus_ddtblu,
-            mus_doom,
-            mus_shawn,
-            mus_in_cit,
-            mus_the_da,
-            mus_in_cit,
-            mus_shawn2,
-            mus_ddtbl2,
-        };
+            const int nmus[] =
+            {
+                mus_messag,
+                mus_ddtblu,
+                mus_doom,
+                mus_shawn,
+                mus_in_cit,
+                mus_the_da,
+                mus_in_cit,
+                mus_shawn2,
+                mus_ddtbl2,
+            };
 
-        if ((gameepisode == 2 || gamemission == pack_nerve) &&
-            gamemap <= arrlen(nmus))
-        {
-            mnum = nmus[gamemap - 1];
+            if ((gameepisode == 2 || gamemission == pack_nerve) &&
+                gamemap <= arrlen(nmus))
+            {
+                mnum = nmus[gamemap - 1];
+            }
+            else
+            mnum = mus_runnin + gamemap - 1;
         }
         else
-        mnum = mus_runnin + gamemap - 1;
-    }
-    else
-    {
-        ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
-        mnum = level_state->music;
-        if (!mnum)
         {
             int spmus[]=
             {
