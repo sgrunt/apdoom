@@ -588,6 +588,8 @@ void P_LoadThings(int lump)
     {
         things_type_remap[i] = mt->type;
     }
+    
+#define E1M8_CUTOFF_OFFSET -1984
 
     int do_random_monsters = ap_state.random_monsters;
     if (do_random_monsters > 0)
@@ -614,9 +616,13 @@ void P_LoadThings(int lump)
 
             for (int j = 0; j < monster_def_count; ++j)
             {
-                if (random_monster_defs[j].dont_shuffle || 
-                    (random_monster_defs[j].doom_type == 6 && gameepisode == 1 && gamemap == 8))
+                if (random_monster_defs[j].dont_shuffle)
                     continue;
+
+                if (gameepisode == 1 && gamemap == 8)
+                    if (mt->y < E1M8_CUTOFF_OFFSET)
+                        continue;
+
                 if (random_monster_defs[j].doom_type == mt->type)
                 {
                     tmtype = mt->type;
@@ -703,6 +709,24 @@ void P_LoadThings(int lump)
                         break;
                     }
                     rnd -= monster->frequency;
+                }
+            }
+        }
+
+        // Make sure we have at least 2 iron lynch in first episode boss level
+        if (gameepisode == 1 && gamemap == 8)
+        {
+            int iron_lynch_count = 0;
+            for (int i = 0; i < monster_count; ++i)
+                if (monsters[i]->doom_type == 6)
+                    iron_lynch_count++;
+            while (iron_lynch_count < 2)
+            {
+                int i = rand() % monster_count;
+                if (monsters[i]->doom_type != 6)
+                {
+                    monsters[i] = &random_monster_defs[12];
+                    iron_lynch_count++;
                 }
             }
         }
