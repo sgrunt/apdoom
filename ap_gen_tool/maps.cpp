@@ -536,6 +536,8 @@ void init_wad(const char* filename, game_t& game)
     fseek(f, header.directory_offset, SEEK_SET);
     fread(directory.data(), sizeof(map_directory_t), header.num_lumps, f);
 
+    bool is_doom2 = game.codename == "doom2";
+
     // loop directory and find levels, then load them all. YOLO
     for (int i = 0, len = (int)directory.size(); i < len; ++i)
     {
@@ -543,26 +545,44 @@ void init_wad(const char* filename, game_t& game)
         {
             map_t* map = nullptr;
 
-            // DOOM 1 style
-            if (game.episodic)
-                if (strlen(dir_entry.name) == 4 && dir_entry.name[0] == 'E' && dir_entry.name[2] == 'M')
-                {
-                    // That's a level!
-                    auto ep = dir_entry.name[1] - '0';
-                    auto lvl = dir_entry.name[3] - '0';
-                    if (!(ep < 1 || ep > game.ep_count || lvl < 1 || lvl > game.map_count))
-                    {
-                        map = &game.metas[(ep - 1) * game.map_count + (lvl - 1)].map;
-                    }
-                }
-
-            // DOOM 2 style
-            if (!game.episodic)
+            if (is_doom2)
+            {
+                // DOOM 2 style
                 if (strlen(dir_entry.name) == 5 && strncmp(dir_entry.name, "MAP", 3) == 0)
                 {
                     auto lvl = std::atoi(dir_entry.name + 3) - 1;
-                    map = &game.metas[lvl].map;
+                    if (lvl >= 0)
+                    {
+                        for (auto& episode : game.episodes)
+                        {
+                            if (lvl < (int)episode.size())
+                            {
+                                map = &episode[lvl].map;
+                                break;
+                            }
+                            lvl -= (int)episode.size();
+                        }
+                    }
                 }
+            }
+            else
+            {
+                // DOOM 1 style
+                if (strlen(dir_entry.name) == 4 && dir_entry.name[0] == 'E' && dir_entry.name[2] == 'M')
+                {
+                    // That's a level!
+                    auto ep = dir_entry.name[1] - '1';
+                    auto lvl = dir_entry.name[3] - '1';
+
+                    if (ep >= 0 && ep < game.ep_count)
+                    {
+                        if (lvl >= 0 && lvl < (int)game.episodes[ep].size())
+                        {
+                            map = &game.episodes[ep][lvl].map;
+                        }
+                    }
+                }
+            }
 
             if (!map) continue;
 

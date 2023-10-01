@@ -176,7 +176,7 @@ struct map_history_t
 };
 
 
-struct meta_t // Bad name, but whatever. It's everything about a level
+struct meta_t // Bad name, but everything about a level
 {
     std::string name;
     map_t map; // As loaded from the wad
@@ -228,9 +228,7 @@ struct game_t
 
     Color key_colors[3];
     int ep_count = -1;
-    int map_count = -1;
-    bool episodic = false;
-    std::vector<meta_t> metas;
+    std::vector<std::vector<meta_t>> episodes;
     std::vector<ap_item_def_t> item_requirements;
     bool check_sanity = false;
     std::map<int, int> total_doom_types; // Count of every doom types in the game

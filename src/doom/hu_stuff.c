@@ -996,6 +996,7 @@ static const crispy_statsline_func_t crispy_statslines[NUM_STATSFORMATS] =
 
 void HU_ClearAPMessages()
 {
+#if 0
     // Keep the last 3 ones in case they are important, but remove the queue.
     while (HU_GetActiveAPMessageCount() > 3 && ap_message_buffer_count)
     {
@@ -1018,6 +1019,11 @@ void HU_ClearAPMessages()
         }
         ap_message_buffer_count--;
     }
+#else // Clear everything
+    for (int i = 0; i < 4; ++i)
+        ap_message_ons[i] = false;
+    ap_message_buffer_count = 0;
+#endif
     ap_message_anim = 0;
 }
 

@@ -164,7 +164,6 @@ typedef struct
 extern ap_state_t ap_state;
 extern int ap_is_in_game; // Don't give items when in menu (Or when dead on the ground).
 extern int ap_episode_count;
-extern int ap_map_count;
 
 
 int apdoom_init(ap_settings_t* settings);
@@ -182,6 +181,7 @@ ap_level_info_t* ap_get_level_info(int ep, int map); // 1-based
 const ap_notification_icon_t* ap_get_notification_icons(int* count);
 int ap_get_highest_episode();
 int ap_validate_doom_location(int ep, int map, int doom_type, int index);
+int ap_get_map_count(int ep);
 
 // Deathlink stuff
 void apdoom_on_death();

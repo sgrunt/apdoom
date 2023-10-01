@@ -119,16 +119,18 @@ map_view_t* get_view(const level_index_t& idx)
 {
     auto game = get_game(idx);
     if (!game) return nullptr;
-    auto k = idx.ep * game->map_count + idx.map;
-    return &game->metas[k].view;
+    if (idx.ep < 0 || idx.ep >= (int)game->episodes.size()) return nullptr;
+    if (idx.map < 0 || idx.map >= (int)game->episodes[idx.ep].size()) return nullptr;
+    return &game->episodes[idx.ep][idx.map].view;
 }
 
 map_history_t* get_history(const level_index_t& idx)
 {
     auto game = get_game(idx);
     if (!game) return nullptr;
-    auto k = idx.ep * game->map_count + idx.map;
-    return &game->metas[k].history;
+    if (idx.ep < 0 || idx.ep >= (int)game->episodes.size()) return nullptr;
+    if (idx.map < 0 || idx.map >= (int)game->episodes[idx.ep].size()) return nullptr;
+    return &game->episodes[idx.ep][idx.map].history;
 }
 
 
@@ -226,71 +228,78 @@ void save(game_t* game)
 
     Json::Value eps_json(Json::arrayValue);
     int i = 0;
-    for (const auto& meta : game->metas)
+    int ep = 0;
+    for (const auto& episode : game->episodes)
     {
-        Json::Value _map_json;
-        Json::Value bbs_json(Json::arrayValue);
-        auto state = &meta.state;
-        for (const auto& bb : state->bbs)
+        int lvl = 0;
+        for (const auto& meta : episode)
         {
-            Json::Value bb_json(Json::arrayValue);
-            bb_json.append(bb.x1);
-            bb_json.append(bb.y1);
-            bb_json.append(bb.x2);
-            bb_json.append(bb.y2);
-            bb_json.append(bb.region);
-            bbs_json.append(bb_json);
+            Json::Value _map_json;
+            Json::Value bbs_json(Json::arrayValue);
+            auto state = &meta.state;
+            for (const auto& bb : state->bbs)
+            {
+                Json::Value bb_json(Json::arrayValue);
+                bb_json.append(bb.x1);
+                bb_json.append(bb.y1);
+                bb_json.append(bb.x2);
+                bb_json.append(bb.y2);
+                bb_json.append(bb.region);
+                bbs_json.append(bb_json);
+            }
+            _map_json["bbs"] = bbs_json;
+
+            Json::Value regions_json(Json::arrayValue);
+            for (const auto& region : state->regions)
+            {
+                Json::Value region_json;
+                region_json["name"] = region.name;
+                region_json["tint"] = onut::serializeFloat4(&region.tint.r);
+
+                Json::Value sectors_json(Json::arrayValue);
+                for (auto sectori : region.sectors)
+                    sectors_json.append(sectori);
+                region_json["sectors"] = sectors_json;
+
+                region_json["rules"] = serialize_rules(region.rules);
+
+                regions_json.append(region_json);
+            }
+            _map_json["regions"] = regions_json;
+
+            Json::Value accesses_json(Json::arrayValue);
+            for (auto access : state->accesses)
+            {
+                accesses_json.append(access);
+            }
+            _map_json["accesses"] = accesses_json;
+
+            Json::Value locations_json(Json::arrayValue);
+            for (const auto& kv : state->locations)
+            {
+                Json::Value location_json;
+                location_json["index"] = kv.first;
+                location_json["death_logic"] = kv.second.death_logic;
+                location_json["unreachable"] = kv.second.unreachable;
+                location_json["check_sanity"] = kv.second.check_sanity;
+                location_json["name"] = kv.second.name;
+                location_json["description"] = kv.second.description;
+                locations_json.append(location_json);
+            }
+            _map_json["locations"] = locations_json;
+
+            _map_json["world_rules"] = serialize_rules(state->world_rules);
+            _map_json["exit_rules"] = serialize_rules(state->exit_rules);
+
+            _map_json["ep"] = ep;
+            _map_json["map"] = lvl;
+
+            eps_json.append(_map_json);
+
+            ++i;
+            ++lvl;
         }
-        _map_json["bbs"] = bbs_json;
-
-        Json::Value regions_json(Json::arrayValue);
-        for (const auto& region : state->regions)
-        {
-            Json::Value region_json;
-            region_json["name"] = region.name;
-            region_json["tint"] = onut::serializeFloat4(&region.tint.r);
-
-            Json::Value sectors_json(Json::arrayValue);
-            for (auto sectori : region.sectors)
-                sectors_json.append(sectori);
-            region_json["sectors"] = sectors_json;
-
-            region_json["rules"] = serialize_rules(region.rules);
-
-            regions_json.append(region_json);
-        }
-        _map_json["regions"] = regions_json;
-
-        Json::Value accesses_json(Json::arrayValue);
-        for (auto access : state->accesses)
-        {
-            accesses_json.append(access);
-        }
-        _map_json["accesses"] = accesses_json;
-
-        Json::Value locations_json(Json::arrayValue);
-        for (const auto& kv : state->locations)
-        {
-            Json::Value location_json;
-            location_json["index"] = kv.first;
-            location_json["death_logic"] = kv.second.death_logic;
-            location_json["unreachable"] = kv.second.unreachable;
-            location_json["check_sanity"] = kv.second.check_sanity;
-            location_json["name"] = kv.second.name;
-            location_json["description"] = kv.second.description;
-            locations_json.append(location_json);
-        }
-        _map_json["locations"] = locations_json;
-
-        _map_json["world_rules"] = serialize_rules(state->world_rules);
-        _map_json["exit_rules"] = serialize_rules(state->exit_rules);
-
-        _map_json["ep"] = (i / game->map_count);
-        _map_json["map"] = (i % game->map_count);
-
-        eps_json.append(_map_json);
-
-        ++i;
+        ++ep;
     }
 
     _json["maps"] = eps_json;
@@ -316,7 +325,20 @@ void load(game_t* game)
     {
         int ep = _map_json["ep"].asInt();
         int lvl = _map_json["map"].asInt();
-        auto meta = &game->metas[ep * game->map_count + lvl];
+        if (ep == 0 && lvl >= (int)game->episodes[ep].size())
+        {
+            // Could be in DOOM2's old format, remap it
+            for (auto& episode : game->episodes)
+            {
+                if (lvl < (int)episode.size())
+                {
+                    break;
+                }
+                lvl -= (int)episode.size();
+                ++ep;
+            }
+        }
+        auto meta = get_meta({game->name, ep, lvl});
         auto _map_state = &meta->state;
 
         const auto& bbs_json = _map_json["bbs"];
@@ -1894,24 +1916,28 @@ void renderUI()
             int episode_check_count = 0;
             int episode_check_sanity_count = 0;
             ImVec4 total_checks_col(0.6f, 0.6f, 0.6f, 1.0f);
-            for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
+            int ep = 0;
+            for (const auto& episode : game->episodes)
             {
-                auto meta = &game->metas[i];
-                auto map_state = &meta->state;
-                bool selected = meta == get_meta(active_level);
-                auto ep = i / game->map_count;
-                auto map = i % game->map_count;
-                if (ep != 0 && map == 0)
+                int map = 0;
+                for (const auto& meta : episode)
                 {
-                    ImGui::TextColored(total_checks_col, "Total checks: %i-%i=(%i)", episode_check_count, episode_check_sanity_count, episode_check_count - episode_check_sanity_count);
-                    episode_check_count = 0;
-                    episode_check_sanity_count = 0;
-                    ImGui::Separator();
+                    auto map_state = &meta.state;
+                    bool selected = &meta == get_meta(active_level);
+                    if (ep != 0 && map == 0)
+                    {
+                        ImGui::TextColored(total_checks_col, "Total checks: %i-%i=(%i)", episode_check_count, episode_check_sanity_count, episode_check_count - episode_check_sanity_count);
+                        episode_check_count = 0;
+                        episode_check_sanity_count = 0;
+                        ImGui::Separator();
+                    }
+                    episode_check_count += meta.map.check_count;
+                    episode_check_sanity_count += meta.state.check_sanity_count;
+                    if (ImGui::MenuItem((meta.name + (map_state->different ? "*" : "") + " - " + std::to_string(meta.map.check_count) + "-" + std::to_string(meta.state.check_sanity_count) + "=(" + std::to_string(meta.map.check_count - meta.state.check_sanity_count) + ")").c_str(), nullptr, &selected))
+                        select_map(game, ep, map);
+                    ++map;
                 }
-                episode_check_count += meta->map.check_count;
-                episode_check_sanity_count += meta->state.check_sanity_count;
-                if (ImGui::MenuItem((meta->name + (map_state->different ? "*" : "") + " - " + std::to_string(meta->map.check_count) + "-" + std::to_string(meta->state.check_sanity_count) + "=(" + std::to_string(meta->map.check_count - meta->state.check_sanity_count) + ")").c_str(), nullptr, &selected))
-                    select_map(game, ep, map);
+                ++ep;
             }
             ImGui::TextColored(total_checks_col, "Total checks: %i-%i=(%i)", episode_check_count, episode_check_sanity_count, episode_check_count - episode_check_sanity_count);
             ImGui::EndMenu();

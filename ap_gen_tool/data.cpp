@@ -34,27 +34,19 @@ void init_data()
         {
             if (episodes_json[0].isArray()) // Episodic
             {
-                game.episodic = true;
                 game.ep_count = (int)episodes_json.size();
-                game.map_count = (int)episodes_json[0].size();
-                game.metas.resize(game.ep_count * game.map_count);
-                for (int ep = 0; ep < game.ep_count; ++ep)
+                game.episodes.resize(game.ep_count);
+                int ep = 0;
+                for (const auto& episode_json : episodes_json)
                 {
-                    for (int map = 0; map < game.map_count; ++map)
+                    game.episodes[ep].resize(episode_json.size());
+                    int map = 0;
+                    for (const auto& mapname_json : episode_json)
                     {
-                        game.metas[ep * game.map_count + map].name = episodes_json[ep][map].asString();
+                        game.episodes[ep][map].name = mapname_json.asString();
+                        ++map;
                     }
-                }
-            }
-            else // Non-Episodic
-            {
-                game.episodic = false;
-                game.ep_count = 1;
-                game.map_count = (int)episodes_json.size();
-                game.metas.resize(game.map_count);
-                for (int i = 0; i < game.map_count; ++i)
-                {
-                    game.metas[i].name = episodes_json[i].asString();
+                    ++ep;
                 }
             }
         }
@@ -174,9 +166,10 @@ meta_t* get_meta(const level_index_t& idx, active_source_t source)
 {
     auto game = get_game(idx);
     if (!game) return nullptr;
-    auto k = idx.ep * game->map_count + idx.map;
-    if (source == active_source_t::current) return &game->metas[k];
-    if (source == active_source_t::target) return &game->metas[k];
+    if (idx.ep < 0 || idx.ep >= (int)game->episodes.size()) return nullptr;
+    if (idx.map < 0 || idx.map >= (int)game->episodes[idx.ep].size()) return nullptr;
+    if (source == active_source_t::current ||
+        source == active_source_t::target) return &game->episodes[idx.ep][idx.map];
     return nullptr;
 }
 
@@ -184,9 +177,10 @@ map_state_t* get_state(const level_index_t& idx, active_source_t source)
 {
     auto game = get_game(idx);
     if (!game) return nullptr;
-    auto k = idx.ep * game->map_count + idx.map;
-    if (source == active_source_t::current) return &game->metas[k].state;
-    if (source == active_source_t::target) return &game->metas[k].state;
+    if (idx.ep < 0 || idx.ep >= (int)game->episodes.size()) return nullptr;
+    if (idx.map < 0 || idx.map >= (int)game->episodes[idx.ep].size()) return nullptr;
+    if (source == active_source_t::current ||
+        source == active_source_t::target) return &game->episodes[idx.ep][idx.map].state;
     return nullptr;
 }
 
@@ -194,8 +188,9 @@ map_t* get_map(const level_index_t& idx)
 {
     auto game = get_game(idx);
     if (!game) return nullptr;
-    auto k = idx.ep * game->map_count + idx.map;
-    return &game->metas[k].map;
+    if (idx.ep < 0 || idx.ep >= (int)game->episodes.size()) return nullptr;
+    if (idx.map < 0 || idx.map >= (int)game->episodes[idx.ep].size()) return nullptr;
+    return &game->episodes[idx.ep][idx.map].map;
 }
 
 const std::string& get_level_name(const level_index_t& idx)
@@ -203,6 +198,7 @@ const std::string& get_level_name(const level_index_t& idx)
     auto game = get_game(idx);
     static std::string err_str = "ERROR";
     if (!game) return err_str;
-    auto k = idx.ep * game->map_count + idx.map;
-    return game->metas[k].name;
+    if (idx.ep < 0 || idx.ep >= (int)game->episodes.size()) return nullptr;
+    if (idx.map < 0 || idx.map >= (int)game->episodes[idx.ep].size()) return nullptr;
+    return game->episodes[idx.ep][idx.map].name;
 }

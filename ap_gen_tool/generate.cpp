@@ -115,7 +115,6 @@ std::map<std::string, std::set<std::string>> item_name_groups;
 std::map<uintptr_t, std::map<int, int64_t>> level_to_keycards;
 std::map<std::string, ap_item_t*> item_map;
 
-static bool has_ssg = false;
 
 const char* get_doom_type_name(int doom_type);
 
@@ -268,6 +267,7 @@ std::string convert_quoted_str(const std::string& str)
 }
 
 
+// This is a mess. Many refactors. Sorry...
 int generate(game_t* game)
 {
     OLog("AP Gen Tool");
@@ -282,7 +282,6 @@ int generate(game_t* game)
     item_id_base = game->item_ids;
     item_next_id = item_id_base;
     location_next_id = game->loc_ids;
-    has_ssg = game->name == "DOOM II"; // temp
 
     total_item_count = 0;
     total_loc_count = 0;
@@ -304,20 +303,28 @@ int generate(game_t* game)
         add_item(def.name, def.doom_type, 0, FILLER, def.group);
     
     std::vector<level_t*> levels;
-    for (int i = 0, len = (int)game->metas.size(); i < len; ++i)
+    std::map<int, std::vector<level_t*>> levels_map;
+    int ep = 0;
+    for (auto& episode : game->episodes)
     {
-        auto meta = &game->metas[i];
-        level_t* level = new level_t();
-        level->idx = {game->name, i / game->map_count, i % game->map_count};
-        level->name = meta->name;
-        level->map = &meta->map;
-        level->map_state = &meta->state;
-        levels.push_back(level);
+        int map = 0;
+        for (auto& meta : episode)
+        {
+            level_t* level = new level_t();
+            level->idx = {game->name, ep, map};
+            level->name = meta.name;
+            level->map = &meta.map;
+            level->map_state = &meta.state;
+            levels.push_back(level);
+            levels_map[ep].push_back(level);
+            ++map;
+        }
+        ++ep;
     }
 
-    auto get_level = [game, &levels](const level_index_t& idx) -> level_t*
+    auto get_level = [&levels_map](const level_index_t& idx) -> level_t*
     {
-        return levels[idx.ep * game->map_count + idx.map];
+        return levels_map[idx.ep][idx.map];
     };
     
     // Keycard n such
@@ -500,8 +507,7 @@ class ItemDict(TypedDict, total=False): \n\
     count: int \n\
     name: str \n\
     doom_type: int # Unique numerical id used to spawn the item. -1 is level item, -2 is level complete item. \n");
-        if (game->episodic)
-            fprintf(fout, "    episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n");
+        fprintf(fout, "    episode: int # Relevant if that item targets a specific level, like keycard or map reveal pickup. \n");
         fprintf(fout, "    map: int \n\
 \n\
 \n\
@@ -523,10 +529,7 @@ class ItemDict(TypedDict, total=False): \n\
             fprintf(fout, ",\n             'count': %i", item.count);
             fprintf(fout, ",\n             'name': %s", convert_quoted_str(item.name).c_str());
             fprintf(fout, ",\n             'doom_type': %i", item.doom_type);
-            if (game->episodic)
-            {
-                fprintf(fout, ",\n             'episode': %i", item.idx.ep + 1);
-            }
+            fprintf(fout, ",\n             'episode': %i", item.idx.ep + 1);
             fprintf(fout, ",\n             'map': %i", item.idx.map + 1);
             fprintf(fout, "},\n");
         }
@@ -562,8 +565,7 @@ class ItemDict(TypedDict, total=False): \n\
         fprintf(fout, "class RegionDict(TypedDict, total=False):\n");
         fprintf(fout, "    name: str\n");
         fprintf(fout, "    connects_to_hub: bool\n");
-        if (game->episodic)
-            fprintf(fout, "    episode: int\n");
+        fprintf(fout, "    episode: int\n");
         fprintf(fout, "    connections: List[ConnectionDict]\n\n\n");
 
         fprintf(fout, "regions:List[RegionDict] = [\n");
@@ -626,8 +628,7 @@ class ItemDict(TypedDict, total=False): \n\
                 }
                 fprintf(fout, "    {\"name\":\"%s\",\n", region_name.c_str());
                 fprintf(fout, "     \"connects_to_hub\":%s,\n", connects_to_hub ? "True" : "False");
-                if (game->episodic)
-                    fprintf(fout, "     \"episode\":%i,\n", level->idx.ep + 1);
+                fprintf(fout, "     \"episode\":%i,\n", level->idx.ep + 1);
                 if (connections.empty())
                 {
                     fprintf(fout, "     \"connections\":[]},\n");
@@ -661,8 +662,7 @@ class ItemDict(TypedDict, total=False): \n\
 \n\
 class LocationDict(TypedDict, total=False): \n\
     name: str \n");
-        if (game->episodic)
-            fprintf(fout, "    episode: int \n");
+        fprintf(fout, "    episode: int \n");
         if (game->check_sanity)
             fprintf(fout, "    check_sanity: bool \n");
         fprintf(fout, "    map: int \n\
@@ -682,8 +682,7 @@ class LocationDict(TypedDict, total=False): \n\
 
             fprintf(fout, "    %llu: {", loc.id);
             fprintf(fout, "'name': %s", convert_quoted_str(loc.name).c_str());
-            if (game->episodic)
-                fprintf(fout, ",\n             'episode': %i", loc.idx.ep + 1);
+            fprintf(fout, ",\n             'episode': %i", loc.idx.ep + 1);
             if (game->check_sanity)
                 fprintf(fout, ",\n             'check_sanity': %s", loc.check_sanity ? "True" : "False");
             fprintf(fout, ",\n             'map': %i", loc.idx.map + 1);
@@ -762,8 +761,9 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "#pragma once\n\n");
         fprintf(fout, "#include \"apdoom.h\"\n");
         fprintf(fout, "#include \"apdoom_def_types.h\"\n");
-        fprintf(fout, "#include <map>\n\n\n");
-        fprintf(fout, "#include <string>\n\n\n");
+        fprintf(fout, "#include <map>\n");
+        fprintf(fout, "#include <string>\n");
+        fprintf(fout, "#include <vector>\n\n\n");
 
         std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> location_table;
         for (const auto& loc : ap_locations)
@@ -799,12 +799,13 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "};\n\n\n");
 
         // Level infos
-        fprintf(fout, "ap_level_info_t ap_%s_level_infos[%i][%i] = \n", game->codename.c_str(), game->ep_count, game->map_count);
+        fprintf(fout, "std::vector<std::vector<ap_level_info_t>> ap_%s_level_infos = \n", game->codename.c_str());
         fprintf(fout, "{\n");
         for (int ep = 0; ep < game->ep_count; ++ep)
         {
             fprintf(fout, "    {\n");
-            for (int map = 0; map < game->map_count; ++map)
+            int map = 0;
+            for (const auto& meta : game->episodes[ep])
             {
                 auto level = get_level({game->name, ep, map});
                 fprintf(fout, "        {\"%s\", {%s, %s, %s}, {%i, %i, %i}, %i, %i, {\n", 
@@ -834,6 +835,7 @@ class LocationDict(TypedDict, total=False): \n\
                     ++idx;
                 }
                 fprintf(fout, "        }},\n");
+                ++map;
             }
             fprintf(fout, "    },\n");
         }
@@ -893,23 +895,13 @@ class LocationDict(TypedDict, total=False): \n\
         fprintf(fout, "if TYPE_CHECKING:\n");
         fprintf(fout, "    from . import %sWorld\n\n", game->classname.c_str());
         
-        if (!game->episodic)
-        {
-            fprintf(fout, "\ndef set_rules(%s_world: \"%sWorld\", pro):\n", game->world.c_str(), game->classname.c_str());
-            fprintf(fout, "    player = %s_world.player\n", game->world.c_str());
-            fprintf(fout, "    world = %s_world.multiworld\n\n", game->world.c_str());
-        }
-        
         int prev_ep = -1;
         for (auto level : levels)
         {
-            if (game->episodic)
+            if (level->idx.ep != prev_ep)
             {
-                if (level->idx.ep != prev_ep)
-                {
-                    prev_ep = level->idx.ep;
-                    fprintf(fout, "\ndef set_episode%i_rules(player, world, pro):\n", level->idx.ep + 1);
-                }
+                prev_ep = level->idx.ep;
+                fprintf(fout, "\ndef set_episode%i_rules(player, world, pro):\n", level->idx.ep + 1);
             }
 
             const std::string& level_name = level->name;
@@ -1029,16 +1021,13 @@ class LocationDict(TypedDict, total=False): \n\
             }
         }
 
-        if (game->episodic)
+        fprintf(fout, "\ndef set_rules(%s_world: \"%sWorld\", included_episodes, pro):\n", game->world.c_str(), game->classname.c_str());
+        fprintf(fout, "    player = %s_world.player\n", game->world.c_str());
+        fprintf(fout, "    world = %s_world.multiworld\n\n", game->world.c_str());
+        for (int ep = 0; ep < game->ep_count; ++ep)
         {
-            fprintf(fout, "\ndef set_rules(%s_world: \"%sWorld\", included_episodes, pro):\n", game->world.c_str(), game->classname.c_str());
-            fprintf(fout, "    player = %s_world.player\n", game->world.c_str());
-            fprintf(fout, "    world = %s_world.multiworld\n\n", game->world.c_str());
-            for (int ep = 0; ep < game->ep_count; ++ep)
-            {
-                fprintf(fout, "    if included_episodes[%i]:\n", ep);
-                fprintf(fout, "        set_episode%i_rules(player, world, pro)\n", ep + 1);
-            }
+            fprintf(fout, "    if included_episodes[%i]:\n", ep);
+            fprintf(fout, "        set_episode%i_rules(player, world, pro)\n", ep + 1);
         }
 
         fclose(fout);

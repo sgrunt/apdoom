@@ -49,6 +49,12 @@ typedef struct
     char* urhere_lump_name;
     int urhere_x_offset;
     int urhere_y_offset;
+    char* img;
+    int img_x_offset;
+    int img_y_offset;
+    int h_key_alignement;
+    int h_key_x_offset;
+    int h_key_y_offset;
 } level_pos_t;
 
 
@@ -75,58 +81,116 @@ static level_pos_t level_pos_infos[4][9] =
 {
     // Episode 1
     {
-        { 185, 164 + 10, 22, "WIURH0", 0, 0 },
-        { 148, 143, 18, "WIURH0", 0, 0 },
-        { 69, 122, 18, "WIURH1", 0, 0 },
-        { 209 + 20, 102, 22, "WIURH0", 0, 0 },
-        { 116, 89, 26, "WIURH2", 0, 0 },
-        { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0 },
-        { 71, 56, 18, "WIURH1", 0, 0 },
-        { 135, 29, 18, "WIURH0", -2, 4 },
-        { 70, 24, 22, "WIURH1", 0, 0 }
+        { 185, 164 + 10, 22, "WIURH0", 0, 0, 0, 0, 0 },
+        { 148, 143, 18, "WIURH0", 0, 0, 0, 0, 0 },
+        { 69, 122, 18, "WIURH1", 0, 0, 0, 0, 0 },
+        { 209 + 20, 102, 22, "WIURH0", 0, 0, 0, 0, 0 },
+        { 116, 89, 26, "WIURH2", 0, 0, 0, 0, 0 },
+        { 166 + 10, 55 - 2, 22, "WIURH0", 0, 0, 0, 0, 0 },
+        { 71, 56, 18, "WIURH1", 0, 0, 0, 0, 0 },
+        { 135, 29, 18, "WIURH0", -2, 4, 0, 0, 0 },
+        { 70, 24, 22, "WIURH1", 0, 0, 0, 0, 0 }
     },
 
 #ifndef FIRST_EP_ONLY
     // Episode 2
     {
-	    { 254, 25, 18, "WIURH2", 0, 0 },	// location of level 0 (CJ)
-	    { 97, 50, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
-	    { 188, 64, 18, "WIURH0", 0, 0 },	// location of level 2 (CJ)
-	    { 128, 83, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
-	    { 214, 92, 22, "WIURH0", 0, 0 },	// location of level 4 (CJ)
-	    { 133, 130, 20, "WIURH0", 0, 0 },	// location of level 5 (CJ)
-	    { 208, 135, 18, "WIURH0", 0, 0 },	// location of level 6 (CJ)
-	    { 148, 160, 22, "WIURH2", 0, 0 },	// location of level 7 (CJ)
-	    { 235, 168, 18, "WIURH2", 0, 0 }	// location of level 8 (CJ)
+	    { 254, 25, 18, "WIURH2", 0, 0, 0, 0, 0 },	// location of level 0 (CJ)
+	    { 97, 50, 22, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 1 (CJ)
+	    { 188, 64, 18, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 2 (CJ)
+	    { 128, 83, 22, "WIURH3", 0, 0, 0, 0, 0 },	// location of level 3 (CJ)
+	    { 214, 92, 22, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 4 (CJ)
+	    { 133, 130, 20, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 5 (CJ)
+	    { 208, 135, 18, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 6 (CJ)
+	    { 148, 160, 22, "WIURH2", 0, 0, 0, 0, 0 },	// location of level 7 (CJ)
+	    { 235, 168, 18, "WIURH2", 0, 0, 0, 0, 0 }	// location of level 8 (CJ)
     },
 
     // Episode 3
     {
-	    { 156, 168, 22, "WIURH0", 0, 0 },	// location of level 0 (CJ)
-	    { 48, 154, 22, "WIURH0", 0, 0 },	// location of level 1 (CJ)
-	    { 174, 95, -26, "WIURH0", 0, 0 },	// location of level 2 (CJ)
-	    { 265, 75, 22, "WIURH3", 0, 0 },	// location of level 3 (CJ)
-	    { 130, 52, -24, "WIURH3", 0, 0 },	// location of level 4 (CJ)
-	    { 279, 23, -26, "WIURH1", 8, 0 },	// location of level 5 (CJ)
-	    { 198, 48, 18, "WIURH3", 0, 0 },	// location of level 6 (CJ)
-	    { 140, 25, 22, "WIURH1", 0, 0 },	// location of level 7 (CJ)
-	    { 281, 136, -26, "WIURH3", 0, 0 }	// location of level 8 (CJ)
+	    { 156, 168, 22, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 0 (CJ)
+	    { 48, 154, 22, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 1 (CJ)
+	    { 174, 95, -26, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 2 (CJ)
+	    { 265, 75, 22, "WIURH3", 0, 0, 0, 0, 0 },	// location of level 3 (CJ)
+	    { 130, 52, -24, "WIURH3", 0, 0, 0, 0, 0 },	// location of level 4 (CJ)
+	    { 279, 23, -26, "WIURH1", 8, 0, 0, 0, 0 },	// location of level 5 (CJ)
+	    { 198, 48, 18, "WIURH3", 0, 0, 0, 0, 0 },	// location of level 6 (CJ)
+	    { 140, 25, 22, "WIURH1", 0, 0, 0, 0, 0 },	// location of level 7 (CJ)
+	    { 281, 136, -26, "WIURH3", 0, 0, 0, 0, 0 }	// location of level 8 (CJ)
     },
 
     // Episode 4
     {
-        { 101, 177, 22, "WIURH1", 0, 0 },	// location of level 0 (CJ)
-	    { 183, 148, 18, "WIURH0", 0, 0 },	// location of level 1 (CJ)
-	    { 172, 97, 18, "WIURH2", 0, 0 },	// location of level 2 (CJ)
-	    { 78, 86, 22, "WIURH2", 0, 0 },	// location of level 3 (CJ)
-	    { 251, 85, 26, "WIURH2", 0, 0 },	// location of level 4 (CJ)
-	    { 37, 24, -24, "WIURH2", 3, -20 },	// location of level 5 (CJ)
-	    { 260, 47, 18, "WIURH0", -5, -4 },	// location of level 6 (CJ)
-	    { 194, 25, 24, "WIURH3", 0, 0 },	// location of level 7 (CJ)
-	    { 88, 58, 17, "WIURH0", 0, 0 }	// location of level 8 (CJ)
+        { 101, 177, 22, "WIURH1", 0, 0, 0, 0, 0 },	// location of level 0 (CJ)
+	    { 183, 148, 18, "WIURH0", 0, 0, 0, 0, 0 },	// location of level 1 (CJ)
+	    { 172, 97, 18, "WIURH2", 0, 0, 0, 0, 0 },	// location of level 2 (CJ)
+	    { 78, 86, 22, "WIURH2", 0, 0, 0, 0, 0 },	// location of level 3 (CJ)
+	    { 251, 85, 26, "WIURH2", 0, 0, 0, 0, 0 },	// location of level 4 (CJ)
+	    { 37, 24, -24, "WIURH2", 3, -20, 0, 0, 0 },	// location of level 5 (CJ)
+	    { 260, 47, 18, "WIURH0", -5, -4, 0, 0, 0 },	// location of level 6 (CJ)
+	    { 194, 25, 24, "WIURH3", 0, 0, 0, 0, 0 },	// location of level 7 (CJ)
+	    { 88, 58, 17, "WIURH0", 0, 0, 0, 0, 0 }	// location of level 8 (CJ)
     }
 #endif
 };
+
+static level_pos_t level_pos_infos_d2[4][11] =
+{
+    // Episode 1
+    {
+        { 30, 15 + 17 * 0, 0, "M_SKULL1", -32, -9, "CWILV00", 10, -5, 1 },
+        { 30, 15 + 17 * 1, 0, "M_SKULL1", -32, -9, "CWILV01", 10, -5, 1 },
+        { 30, 15 + 17 * 2, 0, "M_SKULL1", -32, -9, "CWILV02", 10, -5, 1 },
+        { 30, 15 + 17 * 3, 0, "M_SKULL1", -32, -9, "CWILV03", 10, -5, 1 },
+        { 30, 15 + 17 * 4, 0, "M_SKULL1", -32, -9, "CWILV04", 10, -5, 1 },
+        { 30, 15 + 17 * 5, 0, "M_SKULL1", -32, -9, "CWILV05", 10, -5, 1 },
+        { 30, 15 + 17 * 6, 0, "M_SKULL1", -32, -9, "CWILV06", 10, -5, 1 },
+        { 30, 15 + 17 * 7, 0, "M_SKULL1", -32, -9, "CWILV07", 10, -5, 1 },
+        { 30, 15 + 17 * 8, 0, "M_SKULL1", -32, -9, "CWILV08", 10, -5, 1 },
+        { 30, 15 + 17 * 9, 0, "M_SKULL1", -32, -9, "CWILV09", 10, -5, 1 },
+        { 30, 15 + 17 *10, 0, "M_SKULL1", -32, -9, "CWILV10", 10, -5, 1 }
+    },
+
+    // Episode 2
+    {
+        { 40, 15 + 21 * 0, 0, "M_SKULL1", -32, -9, "CWILV11", 10, -5, 1 },
+        { 40, 15 + 21 * 1, 0, "M_SKULL1", -32, -9, "CWILV12", 10, -5, 1 },
+        { 40, 15 + 21 * 2, 0, "M_SKULL1", -32, -9, "CWILV13", 10, -5, 1 },
+        { 40, 15 + 21 * 3, 0, "M_SKULL1", -32, -9, "CWILV14", 10, -5, 1 },
+        { 40, 15 + 21 * 4, 0, "M_SKULL1", -32, -9, "CWILV15", 10, -5, 1 },
+        { 40, 15 + 21 * 5, 0, "M_SKULL1", -32, -9, "CWILV16", 10, -5, 1 },
+        { 40, 15 + 21 * 6, 0, "M_SKULL1", -32, -9, "CWILV17", 10, -5, 1 },
+        { 40, 15 + 21 * 7, 0, "M_SKULL1", -32, -9, "CWILV18", 10, -5, 1 },
+        { 40, 15 + 21 * 8, 0, "M_SKULL1", -32, -9, "CWILV19", 10, -5, 1 }
+    },
+
+    // Episode 3
+    {
+        { 30, 15 + 18 * 0, 0, "M_SKULL1", -32, -9, "CWILV20", 10, -5, 1 },
+        { 30, 15 + 18 * 1, 0, "M_SKULL1", -32, -9, "CWILV21", 10, -5, 1 },
+        { 30, 15 + 18 * 2, 0, "M_SKULL1", -32, -9, "CWILV22", 10, -5, 1 },
+        { 30, 15 + 18 * 3, 0, "M_SKULL1", -32, -9, "CWILV23", 10, -5, 1 },
+        { 30, 15 + 18 * 4, 0, "M_SKULL1", -32, -9, "CWILV24", 10, -5, 1 },
+        { 30, 15 + 18 * 5, 0, "M_SKULL1", -32, -9, "CWILV25", 10, -5, 1, -38, -12 },
+        { 30, 15 + 18 * 6, 0, "M_SKULL1", -32, -9, "CWILV26", 10, -5, 1 },
+        { 30, 15 + 18 * 7, 0, "M_SKULL1", -32, -9, "CWILV27", 10, -5, 1 },
+        { 30, 15 + 18 * 8, 0, "M_SKULL1", -32, -9, "CWILV28", 10, -5, 1 },
+        { 30, 15 + 18 * 9, 0, "M_SKULL1", -32, -9, "CWILV29", 10, -5, 1 }
+    },
+
+    // Episode 4
+    {
+        { 100, 50, 0, "M_SKULL1", -32, -9, "CWILV30", 10, -5, 1 },
+        { 130, 110, 0, "M_SKULL1", -32, -9, "CWILV31", 10, -5, 1 }
+    }
+};
+
+
+const level_pos_t* get_level_pos_info(int ep, int map)
+{
+    if (gamemode == commercial) return &level_pos_infos_d2[ep][map];
+    return &level_pos_infos[ep][map];
+}
 
 
 static wbstartstruct_t wiinfo;
@@ -138,8 +202,6 @@ int selected_ep = 0;
 int prev_ep = 0;
 int ep_anim = 0;
 int urh_anim = 0;
-
-static hu_textline_t level_lines[32][3];
 
 static const char* YELLOW_DIGIT_LUMP_NAMES[] = {
     "STYSNUM0", "STYSNUM1", "STYSNUM2", "STYSNUM3", "STYSNUM4", 
@@ -199,10 +261,7 @@ void play_level(int ep, int lvl)
 {
     // Check if level has a save file first
     char filename[260];
-    if (gamemode != commercial)
-        snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
-    else
-        snprintf(filename, 260, "%s/save_MAP%02i.dsg", apdoom_get_seed(), lvl + 1);
+    snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
     if (M_FileExists(filename))
     {
         // We load
@@ -227,18 +286,19 @@ void play_level(int ep, int lvl)
 void select_map_dir(int dir)
 {
     int from = selected_level[selected_ep];
-    float fromx = (float)level_pos_infos[selected_ep][from].x;
-    float fromy = (float)level_pos_infos[selected_ep][from].y;
+    float fromx = (float)get_level_pos_info(selected_ep, from)->x;
+    float fromy = (float)get_level_pos_info(selected_ep, from)->y;
 
     int best = from;
     float best_score = 0.0f;
 
-    for (int i = 0; i < ap_map_count; ++i)
+    int map_count = ap_get_map_count(selected_ep + 1);
+    for (int i = 0; i < map_count; ++i)
     {
         if (i == from) continue;
 
-        float tox = (float)level_pos_infos[selected_ep][i].x;
-        float toy = (float)level_pos_infos[selected_ep][i].y;
+        float tox = (float)get_level_pos_info(selected_ep, i)->x;
+        float toy = (float)get_level_pos_info(selected_ep, i)->y;
         float score = 0.0f;
         float dist = 10000.0f;
 
@@ -281,75 +341,34 @@ void select_map_dir(int dir)
 
 static void level_select_nav_left()
 {
-    if (gamemode == commercial)
-    {
-        selected_level[selected_ep] -= 16;
-        if (selected_level[selected_ep] < 0) selected_level[selected_ep] += ap_map_count;
-        urh_anim = 0;
-        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-    }
-    else
-    {
-        select_map_dir(0);
-    }
+    select_map_dir(0);
 }
 
 
 static void level_select_nav_right()
 {
-    if (gamemode == commercial)
-    {
-        selected_level[selected_ep] += 16;
-        if (selected_level[selected_ep] >= ap_map_count) selected_level[selected_ep] -= 32;
-        urh_anim = 0;
-        S_StartSoundOptional(NULL, sfx_mnusli, sfx_stnmov);
-    }
-    else
-    {
-        select_map_dir(1);
-    }
+    select_map_dir(1);
 }
 
 
 static void level_select_nav_up()
 {
-    if (gamemode == commercial)
-    {
-        if (selected_level[selected_ep] - 1 < (selected_level[selected_ep] / 16) * 16)
-            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16 + 15;
-        else
-            selected_level[selected_ep]--;
-    }
-    else
-    {
-        select_map_dir(2);
-    }
+    select_map_dir(2);
 }
 
 
 static void level_select_nav_down()
 {
-    if (gamemode == commercial)
-    {
-        if (selected_level[selected_ep] + 1 > (selected_level[selected_ep] / 16) * 16 + 15)
-            selected_level[selected_ep] = (selected_level[selected_ep] / 16) * 16;
-        else
-            selected_level[selected_ep]++;
-    }
-    else
-    {
-        select_map_dir(3);
-    }
+    select_map_dir(3);
 }
 
 
 static int get_episode_count()
 {
     int ep_count = 0;
-    if (gamemode != commercial)
-        for (int i = 0; i < ap_episode_count; ++i)
-            if (ap_state.episodes[i])
-                ep_count++;
+    for (int i = 0; i < ap_episode_count; ++i)
+        if (ap_state.episodes[i])
+            ep_count++;
     return ep_count;
 }
 
@@ -414,11 +433,7 @@ boolean LevelSelectResponder(event_t* ev)
 {
     if (ep_anim) return true;
 
-    int ep_count = 0;
-    if (gamemode != commercial)
-        for (int i = 0; i < ap_episode_count; ++i)
-            if (ap_state.episodes[i])
-                ep_count++;
+    int ep_count = get_episode_count();
 
     switch (ev->type)
     {
@@ -457,16 +472,8 @@ boolean LevelSelectResponder(event_t* ev)
         }
         case ev_keydown:
         {
-            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft || ev->data1 == key_strafeleft)
-            {
-                if (gamemode == commercial) level_select_nav_left();
-                else level_select_prev_episode();
-            }
-            if (ev->data1 == key_right || ev->data1 == key_alt_straferight || ev->data1 == key_straferight)
-            {
-                if (gamemode == commercial) level_select_nav_right();
-                else level_select_next_episode();
-            }
+            if (ev->data1 == key_left || ev->data1 == key_alt_strafeleft || ev->data1 == key_strafeleft) level_select_prev_episode();
+            if (ev->data1 == key_right || ev->data1 == key_alt_straferight || ev->data1 == key_straferight) level_select_next_episode();
             if (ev->data1 == key_up || ev->data1 == key_alt_up) level_select_nav_up();
             if (ev->data1 == key_down || ev->data1 == key_alt_down) level_select_nav_down();
             if (ev->data1 == key_menu_forward || ev->data1 == key_use) level_select_nav_enter();
@@ -480,6 +487,8 @@ boolean LevelSelectResponder(event_t* ev)
 
 void ShowLevelSelect()
 {
+    HU_ClearAPMessages();
+
     // If in a level, save current level
     if (gamestate == GS_LEVEL)
         G_DoSaveGame(); 
@@ -494,18 +503,11 @@ void ShowLevelSelect()
     ap_state.ep = 0;
     ap_state.map = 0;
 
-    if (gamemode == commercial)
+    while (!ap_state.episodes[selected_ep])
     {
-        selected_ep = 0;
-    }
-    else
-    {
-        while (!ap_state.episodes[selected_ep])
-        {
-            selected_ep = (selected_ep + 1) % ap_episode_count;
-            if (selected_ep == 0) // oops;
-                break;
-        }
+        selected_ep = (selected_ep + 1) % ap_episode_count;
+        if (selected_ep == 0) // oops;
+            break;
     }
 
     wiinfo.epsd = selected_ep;
@@ -518,35 +520,6 @@ void ShowLevelSelect()
     wiinfo.maxfrags = 0;
     wiinfo.partime = 0;
     wiinfo.pnum = 0;
-
-    if (gamemode == commercial && !level_lines[0][0].f)
-    {
-        for (int i = 0; i < ap_map_count; ++i)
-        {
-            for (int j = 0; j < 3; ++j)
-            {
-                hu_textline_t* level_line = &level_lines[i][j];
-
-                HUlib_initTextLine(
-                    level_line,
-                    level_line->x = 26 + (i / 16) * ORIGWIDTH / 2, 
-                    level_line->y = 20 + (i % 16) * 11,
-		            hu_font,
-		            HU_FONTSTART);
-            
-                char map_name[20];
-                if (j == 0) // Locked
-                    sprintf(map_name, "MAP%02i", i + 1);
-                else if (j == 1) // Unlocked
-                    sprintf(map_name, "~2MAP%02i", i + 1);
-                else // Completed
-                    sprintf(map_name, "~3MAP%02i", i + 1);
-                char* m = map_name;
-	            while (*m)
-	                HUlib_addCharToTextLine(level_line, *(m++));
-            }
-        }
-    }
     
     restart_wi_anims();
     bcnt = 0;
@@ -582,11 +555,13 @@ void DrawEpisodicLevelSelectStats()
 {
     int x, y;
     const int key_spacing = 8;
+    const int key_h_spacing = 12;
     const int start_y_offset = 10;
 
-    for (int i = 0; i < ap_map_count; ++i)
+    int map_count = ap_get_map_count(selected_ep + 1);
+    for (int i = 0; i < map_count; ++i)
     {
-        level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
+        level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
         ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
         ap_level_state_t* ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);
 
@@ -599,6 +574,17 @@ void DrawEpisodicLevelSelectStats()
                 key_count++;
 
         const int key_start_offset = -key_spacing * key_count / 2;
+
+        int img_w = 0;
+
+        // Level custom icon
+        if (level_pos->img)
+        {
+            patch_t* patch = W_CacheLumpName(level_pos->img, PU_CACHE);
+            img_w = patch->width;
+            V_DrawPatch(x + level_pos->img_x_offset, y + level_pos->img_y_offset, patch);
+            if (img_w) img_w += level_pos->img_x_offset;
+        }
         
         // Level complete splash
         if (ap_level_state->completed)
@@ -611,36 +597,68 @@ void DrawEpisodicLevelSelectStats()
         // Keys
         const char* key_lump_names[] = {"STKEYS0", "STKEYS1", "STKEYS2"};
         const char* key_skull_lump_names[] = {"STKEYS3", "STKEYS4", "STKEYS5"};
-        int key_y = y + key_start_offset;
-        int key_x = x + level_pos->keys_offset;
-        for (int k = 0; k < 3; ++k)
+
+        int key_x = 0;
+        int key_y = 0;
+
+        if (level_pos->h_key_alignement)
         {
-            if (ap_level_info->keys[k])
+            key_x = x + img_w + 3 + level_pos->h_key_x_offset;
+            key_y = y - 3 + level_pos->h_key_y_offset;
+            for (int k = 0; k < 3; ++k)
             {
-                const char* key_lump_name = key_lump_names[k];
-                if (ap_level_info->use_skull[k])
-                    key_lump_name = key_skull_lump_names[k];
-                V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
-                V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
-                if (ap_level_state->keys[k])
+                if (ap_level_info->keys[k])
                 {
-                    if (level_pos->keys_offset < 0)
-                    {
-                        V_DrawPatch(key_x - 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
-                    }
-                    else
-                    {
-                        V_DrawPatch(key_x + 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
-                    }
+                    const char* key_lump_name = key_lump_names[k];
+                    if (ap_level_info->use_skull[k])
+                        key_lump_name = key_skull_lump_names[k];
+                    V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
+                    if (ap_level_state->keys[k])
+                        V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
+                    key_x += key_h_spacing;
                 }
-                key_y += key_spacing;
+            }
+        }
+        else
+        {
+            key_x = x + level_pos->keys_offset;
+            key_y = y + key_start_offset;
+            for (int k = 0; k < 3; ++k)
+            {
+                if (ap_level_info->keys[k])
+                {
+                    const char* key_lump_name = key_lump_names[k];
+                    if (ap_level_info->use_skull[k])
+                        key_lump_name = key_skull_lump_names[k];
+                    V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
+                    V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
+                    if (ap_level_state->keys[k])
+                    {
+                        if (level_pos->keys_offset < 0)
+                        {
+                            V_DrawPatch(key_x - 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
+                        }
+                        else
+                        {
+                            V_DrawPatch(key_x + 12, key_y - 1, W_CacheLumpName("CHECKMRK", PU_CACHE));
+                        }
+                    }
+                    key_y += key_spacing;
+                }
             }
         }
 
         // Progress
-        print_right_aligned_yellow_digit(x - 4, y + start_y_offset, ap_level_state->check_count);
-        V_DrawPatch(x - 3, y + start_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(x + 4, y + start_y_offset, ap_level_info->check_count - ap_level_info->sanity_check_count);
+        int progress_x = x - 4;
+        int progress_y = y + start_y_offset;
+        if (level_pos->h_key_alignement)
+        {
+            progress_x = key_x + 8;
+            progress_y = key_y + 2;
+        }
+        print_right_aligned_yellow_digit(progress_x, progress_y, ap_level_state->check_count);
+        V_DrawPatch(progress_x + 1, progress_y, W_CacheLumpName("STYSLASH", PU_CACHE));
+        print_left_aligned_yellow_digit(progress_x + 8, progress_y, ap_level_info->check_count - ap_level_info->sanity_check_count);
 
         // "You are here"
         if (i == selected_level[selected_ep] && urh_anim < 25)
@@ -668,12 +686,30 @@ void DrawEpisodicLevelSelectStats()
     }
 
     // Level name
-    char name[9];
-    snprintf(name, 9, "WILV%d%d", selected_ep, selected_level[selected_ep]);
-    if (W_CheckNumForName(name) != -1)
+    if (gamemode != commercial)
     {
-        patch_t* finished = W_CacheLumpName(name, PU_STATIC);
-        V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
+        char name[9];
+        if (gamemode == commercial)
+        {
+            int map = 0;
+            for (int ep = 0; ep < ap_episode_count; ++ep)
+            {
+                if (ep == selected_ep)
+                {
+                    map += selected_level[selected_ep];
+                    break;
+                }
+                map += ap_get_map_count(ep + 1);
+            }
+            snprintf(name, 9, "CWILV%02i", map);
+        }
+        else
+            snprintf(name, 9, "WILV%d%d", selected_ep, selected_level[selected_ep]);
+        if (W_CheckNumForName(name) != -1)
+        {
+            patch_t* finished = W_CacheLumpName(name, PU_STATIC);
+            V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
+        }
     }
 
     // Mouse Cursor
@@ -691,73 +727,9 @@ void DrawEpisodicLevelSelectStats()
 }
 
 
-void DrawNonEpisodicLevelSelectStats()
-{
-    ap_level_info_t* ap_level_info;
-    ap_level_state_t* ap_level_state;
-    hu_textline_t* level_line;
-
-    for (int i = 0; i < ap_map_count; ++i)
-    {
-        ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
-        ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);
-
-        // Map id
-        level_line = &level_lines[i][ap_level_state->completed ? 2 : ap_level_state->unlocked];
-        HUlib_drawTextLine(level_line, false);
-        
-        // Progress
-        int progress_offset = 58;
-        print_right_aligned_yellow_digit(level_line->x + progress_offset - 4, level_line->y + 1, ap_level_state->check_count);
-        V_DrawPatch(level_line->x + progress_offset - 3, level_line->y + 1, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(level_line->x + progress_offset + 4, level_line->y + 1, ap_level_info->check_count);
-
-        // Keys
-        const char* key_lump_names[] = {"STKEYS0", "STKEYS1", "STKEYS2"};
-        const char* key_skull_lump_names[] = {"STKEYS3", "STKEYS4", "STKEYS5"};
-        int key_x = level_line->x + 80;
-        int key_y = level_line->y - 1;
-        for (int k = 0; k < 3; ++k)
-        {
-            if (ap_level_info->keys[k])
-            {
-                const char* key_lump_name = key_lump_names[k];
-                if (ap_level_info->use_skull[k])
-                    key_lump_name = key_skull_lump_names[k];
-                V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
-                if (ap_level_state->keys[k])
-                {
-                    V_DrawPatch(key_x + 2, key_y + 1, W_CacheLumpName(key_lump_name, PU_CACHE));
-                }
-                key_x += 12;
-            }
-        }
-    }
-
-    ap_level_state = ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1);
-    level_line = &level_lines[selected_level[selected_ep]][ap_level_state->completed ? 2 : ap_level_state->unlocked];
-
-    // Cursor
-    patch_t* cursor = W_CacheLumpName(urh_anim < 16 ? "M_SKULL1" : "M_SKULL2", PU_STATIC);
-    V_DrawPatch(level_line->x - 24, level_line->y - 8, cursor);
-
-    // Level name
-    char name[9];
-    snprintf(name, 9, "CWILV%02i", selected_level[selected_ep]);
-    if (W_CheckNumForName(name) != -1)
-    {
-        patch_t* finished = W_CacheLumpName(name, PU_STATIC);
-        V_DrawPatch((ORIGWIDTH - finished->width) / 2, 2, finished);
-    }
-}
-
-
 void DrawLevelSelectStats()
 {
-    if (gamemode == commercial)
-        DrawNonEpisodicLevelSelectStats();
-    else
-        DrawEpisodicLevelSelectStats();
+    DrawEpisodicLevelSelectStats();
 }
 
 
@@ -768,12 +740,18 @@ static const char* WIN_MAPS[4] = {
     "WIMAP3"
 };
 
-static const char* D2_WIN_MAP = "INTERPIC";
+
+static const char* WIN_MAPS_D2[4] = {
+    "INTERPIC",
+    "D2INTER2",
+    "BOSSBACK",
+    "D2INTER3"
+};
 
 
 const char* get_win_map(int ep)
 {
-    if (gamemode == commercial) return D2_WIN_MAP;
+    if (gamemode == commercial) return WIN_MAPS_D2[ep];
     else return WIN_MAPS[ep];
 }
 

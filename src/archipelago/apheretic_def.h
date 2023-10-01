@@ -1396,7 +1396,7 @@ const std::map<int64_t, ap_item_t> ap_heretic_item_table = {
 };
 
 
-ap_level_info_t ap_heretic_level_infos[5][9] = 
+std::vector<std::vector<ap_level_info_t>> ap_heretic_level_infos = 
 {
     {
         {"The Docks (E1M1)", {true, false, false}, {0, 0, 0}, 6, 242, {

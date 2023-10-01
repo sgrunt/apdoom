@@ -181,11 +181,11 @@ ap_state_t ap_state;
 int ap_is_in_game = 0;
 ap_game_t ap_game;
 int ap_episode_count = -1;
-int ap_map_count = -1;
 int ap_weapon_count = -1;
 int ap_ammo_count = -1;
 int ap_powerup_count = -1;
 int ap_inventory_count = -1;
+int max_map_count = -1;
 
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
@@ -242,15 +242,15 @@ static int get_original_music_for_level(int ep, int map)
 			};
 
 			if (ep == 4) return ep4_music[map - 1];
-			return 1 + (ep - 1) * ap_map_count + (map - 1);
+			return 1 + (ep - 1) * ap_get_map_count(ep) + (map - 1);
 		}
 		case ap_game_t::doom2:
 		{
-			return map;
+			return 1;
 		}
 		case ap_game_t::heretic:
 		{
-			return (ep - 1) * ap_map_count + (map - 1);
+			return (ep - 1) * ap_get_map_count(ep) + (map - 1);
 		}
 	}
 
@@ -259,20 +259,40 @@ static int get_original_music_for_level(int ep, int map)
 }
 
 
-ap_level_info_t* ap_get_level_info(int ep, int map)
+static std::vector<std::vector<ap_level_info_t>>& get_level_info_table()
 {
 	switch (ap_game)
 	{
-		case ap_game_t::doom: return &ap_doom_level_infos[ep - 1][map - 1];
-		case ap_game_t::doom2: return &ap_doom2_level_infos[ep - 1][map - 1];
-		case ap_game_t::heretic: return &ap_heretic_level_infos[ep - 1][map - 1];
+		case ap_game_t::doom: return ap_doom_level_infos;
+		case ap_game_t::doom2: return ap_doom2_level_infos;
+		case ap_game_t::heretic: return ap_heretic_level_infos;
 	}
+}
+
+
+int ap_get_map_count(int ep)
+{
+	--ep;
+	auto& level_info_table = get_level_info_table();
+	if (ep < 0 || ep >= (int)level_info_table.size()) return -1;
+	return (int)level_info_table[ep].size();
+}
+
+
+ap_level_info_t* ap_get_level_info(int ep, int map)
+{
+	--ep;
+	--map;
+	auto& level_info_table = get_level_info_table();
+	if (ep < 0 || ep >= (int)level_info_table.size()) return nullptr;
+	if (map < 0 || map >= (int)level_info_table[ep].size()) return nullptr;
+	return &level_info_table[ep][map];
 }
 
 
 ap_level_state_t* ap_get_level_state(int ep, int map)
 {
-	return &ap_state.level_states[(ep - 1) * ap_map_count + (map - 1)];
+	return &ap_state.level_states[(ep - 1) * max_map_count + (map - 1)];
 }
 
 
@@ -362,8 +382,6 @@ int apdoom_init(ap_settings_t* settings)
 	if (strcmp(settings->game, "DOOM 1993") == 0)
 	{
 		ap_game = ap_game_t::doom;
-		ap_episode_count = 4;
-		ap_map_count = 9;
 		ap_weapon_count = 9;
 		ap_ammo_count = 4;
 		ap_powerup_count = 6;
@@ -372,8 +390,6 @@ int apdoom_init(ap_settings_t* settings)
 	else if (strcmp(settings->game, "DOOM II") == 0)
 	{
 		ap_game = ap_game_t::doom2;
-		ap_episode_count = 1;
-		ap_map_count = 32;
 		ap_weapon_count = 9;
 		ap_ammo_count = 4;
 		ap_powerup_count = 6;
@@ -382,8 +398,6 @@ int apdoom_init(ap_settings_t* settings)
 	else if (strcmp(settings->game, "Heretic") == 0)
 	{
 		ap_game = ap_game_t::heretic;
-		ap_episode_count = 5;
-		ap_map_count = 9;
 		ap_weapon_count = 9;
 		ap_ammo_count = 6;
 		ap_powerup_count = 9;
@@ -395,9 +409,17 @@ int apdoom_init(ap_settings_t* settings)
 		return 0;
 	}
 
+	const auto& level_info_table = get_level_info_table();
+	ap_episode_count = (int)level_info_table.size();
+	max_map_count = 0; // That's really the map count
+	for (const auto& episode_level_info : level_info_table)
+	{
+		max_map_count = max(max_map_count, (int)episode_level_info.size());
+	}
+
 	printf("APDOOM: Initializing Game: \"%s\", Server: %s, Slot: %s\n", settings->game, settings->ip, settings->player_name);
 
-	ap_state.level_states = new ap_level_state_t[ap_episode_count * ap_map_count];
+	ap_state.level_states = new ap_level_state_t[ap_episode_count * max_map_count];
 	ap_state.episodes = new int[ap_episode_count];
 	ap_state.player_state.powers = new int[ap_powerup_count];
 	ap_state.player_state.weapon_owned = new int[ap_weapon_count];
@@ -405,7 +427,7 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.max_ammo = new int[ap_ammo_count];
 	ap_state.player_state.inventory = ap_inventory_count ? new ap_inventory_slot_t[ap_inventory_count] : nullptr;
 
-	memset(ap_state.level_states, 0, sizeof(ap_level_state_t) * ap_episode_count * ap_map_count);
+	memset(ap_state.level_states, 0, sizeof(ap_level_state_t) * ap_episode_count * max_map_count);
 	memset(ap_state.episodes, 0, sizeof(int) * ap_episode_count);
 	memset(ap_state.player_state.powers, 0, sizeof(int) * ap_powerup_count);
 	memset(ap_state.player_state.weapon_owned, 0, sizeof(int) * ap_weapon_count);
@@ -424,11 +446,12 @@ int apdoom_init(ap_settings_t* settings)
 		ap_state.player_state.max_ammo[i] = max_ammos[i];
 	for (int ep = 0; ep < ap_episode_count; ++ep)
 	{
-		for (int map = 0; map < ap_map_count; ++map)
+		int map_count = ap_get_map_count(ep + 1);
+		for (int map = 0; map < map_count; ++map)
 		{
 			for (int k = 0; k < AP_CHECK_MAX; ++k)
 			{
-				ap_state.level_states[ep * ap_map_count + map].checks[k] = -1;
+				ap_state.level_states[ep * max_map_count + map].checks[k] = -1;
 			}
 			auto level_info = ap_get_level_info(ep + 1, map + 1);
 			level_info->sanity_check_count = 0;
@@ -557,21 +580,30 @@ int apdoom_init(ap_settings_t* settings)
 	{
 		printf("APDOOM: All levels flipped\n");
 		for (int ep = 0; ep < ap_episode_count; ++ep)
-			for (int map = 0; map < ap_map_count; ++map)
-				ap_state.level_states[ep * ap_map_count + map].flipped = 1;
+		{
+			int map_count = ap_get_map_count(ep + 1);
+			for (int map = 0; map < map_count; ++map)
+				ap_state.level_states[ep * max_map_count + map].flipped = 1;
+		}
 	}
 	else if (ap_state.flip_levels == 2)
 	{
 		printf("APDOOM: Levels randomly flipped\n");
 		for (int ep = 0; ep < ap_episode_count; ++ep)
-			for (int map = 0; map < ap_map_count; ++map)
-				ap_state.level_states[ep * ap_map_count + map].flipped = rand() % 2;
+		{
+			int map_count = ap_get_map_count(ep + 1);
+			for (int map = 0; map < map_count; ++map)
+				ap_state.level_states[ep * max_map_count + map].flipped = rand() % 2;
+		}
 	}
 
 	// Map original music to every level to start
 	for (int ep = 0; ep < ap_episode_count; ++ep)
-		for (int map = 0; map < ap_map_count; ++map)
-			ap_state.level_states[ep * ap_map_count + map].music = get_original_music_for_level(ep + 1, map + 1);
+	{
+		int map_count = ap_get_map_count(ep + 1);
+		for (int map = 0; map < map_count; ++map)
+			ap_state.level_states[ep * max_map_count + map].music = get_original_music_for_level(ep + 1, map + 1);
+	}
 
 	// Randomly shuffle music 
 	if (ap_state.random_music > 0)
@@ -579,9 +611,14 @@ int apdoom_init(ap_settings_t* settings)
 		// Collect music for all selected levels
 		std::vector<int> music_pool;
 		for (int ep = 0; ep < ap_episode_count; ++ep)
+		{
 			if (ap_state.episodes[ep] || ap_state.random_music == 2)
-				for (int map = 0; map < ap_map_count; ++map)
-					music_pool.push_back(ap_state.level_states[ep * ap_map_count + map].music);
+			{
+				int map_count = ap_get_map_count(ep + 1);
+				for (int map = 0; map < map_count; ++map)
+					music_pool.push_back(ap_state.level_states[ep * max_map_count + map].music);
+			}
+		}
 
 		// Shuffle
 		printf("APDOOM: Random Music:\n");
@@ -589,23 +626,24 @@ int apdoom_init(ap_settings_t* settings)
 		{
 			if (ap_state.episodes[ep])
 			{
-				for (int map = 0; map < ap_map_count; ++map)
+				int map_count = ap_get_map_count(ep + 1);
+				for (int map = 0; map < map_count; ++map)
 				{
 					int rnd = rand() % (int)music_pool.size();
 					int mus = music_pool[rnd];
 					music_pool.erase(music_pool.begin() + rnd);
-					ap_state.level_states[ep * ap_map_count + map].music = mus;
+					ap_state.level_states[ep * max_map_count + map].music = mus;
 
 					switch (ap_game)
 					{
 						case ap_game_t::doom:
-							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, ((mus - 1) / ap_map_count) + 1, ((mus - 1) % ap_map_count) + 1);
+							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, ((mus - 1) / max_map_count) + 1, ((mus - 1) % max_map_count) + 1);
 							break;
 						case ap_game_t::doom2:
 							printf("  MAP%02i = MAP%02i\n", map + 1, mus);
 							break;
 						case ap_game_t::heretic:
-							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, (mus / ap_map_count) + 1, (mus % ap_map_count) + 1);
+							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, (mus / max_map_count) + 1, (mus % max_map_count) + 1);
 							break;
 					}
 				}
@@ -822,7 +860,8 @@ void load_state()
 	// Level states
 	for (int i = 0; i < ap_episode_count; ++i)
 	{
-		for (int j = 0; j < ap_map_count; ++j)
+		int map_count = ap_get_map_count(i + 1);
+		for (int j = 0; j < map_count; ++j)
 		{
 			auto level_state = ap_get_level_state(i + 1, j + 1);
 			json_get_bool_or(json["episodes"][i][j]["completed"], level_state->completed);
@@ -910,7 +949,8 @@ std::vector<ap_level_index_t> get_level_indices()
 
 	for (int i = 0; i < ap_episode_count; ++i)
 	{
-		for (int j = 0; j < ap_map_count; ++j)
+		int map_count = ap_get_map_count(i + 1);
+		for (int j = 0; j < map_count; ++j)
 		{
 			ret.push_back({i + 1, j + 1});
 		}
@@ -979,7 +1019,8 @@ void save_state()
 	for (int i = 0; i < ap_episode_count; ++i)
 	{
 		Json::Value json_levels(Json::arrayValue);
-		for (int j = 0; j < ap_map_count; ++j)
+		int map_count = ap_get_map_count(i + 1);
+		for (int j = 0; j < map_count; ++j)
 		{
 			json_levels.append(serialize_level(i + 1, j + 1));
 		}
@@ -1405,8 +1446,9 @@ void apdoom_check_victory()
 	for (int ep = 0; ep < ap_episode_count; ++ep)
 	{
 		if (!ap_state.episodes[ep]) continue;
-
-		for (int map = 0; map < ap_map_count; ++map)
+		
+		int map_count = ap_get_map_count(ep + 1);
+		for (int map = 0; map < map_count; ++map)
 		{
 			if (!ap_get_level_state(ep + 1, map + 1)->completed) return;
 		}

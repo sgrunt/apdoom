@@ -4,9 +4,8 @@
 #include "apdoom.h"
 #include "apdoom_def_types.h"
 #include <map>
-
-
 #include <string>
+#include <vector>
 
 
 const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_doom_location_table = {
@@ -763,7 +762,7 @@ const std::map<int64_t, ap_item_t> ap_doom_item_table = {
 };
 
 
-ap_level_info_t ap_doom_level_infos[4][9] = 
+std::vector<std::vector<ap_level_info_t>> ap_doom_level_infos = 
 {
     {
         {"Hangar (E1M1)", {false, false, false}, {0, 0, 0}, 3, 143, {
