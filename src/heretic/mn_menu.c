@@ -2049,18 +2049,20 @@ boolean MN_Responder(event_t * event)
                     break;
 
                 case 3:
-                    P_SetMessage(&players[consoleplayer],
-                                 "QUICKSAVING....", false);
-                    FileMenuKeySteal = true;
-                    SCSaveGame(quicksave - 1);
-                    BorderNeedRefresh = true;
+                    // AP Not allowed in AP
+                    //P_SetMessage(&players[consoleplayer],
+                    //             "QUICKSAVING....", false);
+                    //FileMenuKeySteal = true;
+                    //SCSaveGame(quicksave - 1);
+                    //BorderNeedRefresh = true;
                     break;
 
                 case 4:
-                    P_SetMessage(&players[consoleplayer],
-                                 "QUICKLOADING....", false);
-                    SCLoadGame(quickload - 1);
-                    BorderNeedRefresh = true;
+                    // AP Not allowed in AP
+                    //P_SetMessage(&players[consoleplayer],
+                    //             "QUICKLOADING....", false);
+                    //SCLoadGame(quickload - 1);
+                    //BorderNeedRefresh = true;
                     break;
 
                 case 5:
@@ -2130,38 +2132,40 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_save)           // F2 (save game)
         {
-            if (gamestate == GS_LEVEL && !demoplayback)
-            {
-                MenuActive = true;
-                FileMenuKeySteal = false;
-                MenuTime = 0;
-                CurrentMenu = &SaveMenu;
-                CurrentItPos = CurrentMenu->oldItPos;
-                if (!netgame && !demoplayback)
-                {
-                    paused = true;
-                }
-                S_StartSound(NULL, sfx_dorcls);
-                slottextloaded = false;     //reload the slot text, when needed
-            }
+            // AP Not allowed in AP
+            //if (gamestate == GS_LEVEL && !demoplayback)
+            //{
+            //    MenuActive = true;
+            //    FileMenuKeySteal = false;
+            //    MenuTime = 0;
+            //    CurrentMenu = &SaveMenu;
+            //    CurrentItPos = CurrentMenu->oldItPos;
+            //    if (!netgame && !demoplayback)
+            //    {
+            //        paused = true;
+            //    }
+            //    S_StartSound(NULL, sfx_dorcls);
+            //    slottextloaded = false;     //reload the slot text, when needed
+            //}
             return true;
         }
         else if (key == key_menu_load)           // F3 (load game)
         {
-            if (SCNetCheck(2))
-            {
-                MenuActive = true;
-                FileMenuKeySteal = false;
-                MenuTime = 0;
-                CurrentMenu = &LoadMenu;
-                CurrentItPos = CurrentMenu->oldItPos;
-                if (!netgame && !demoplayback)
-                {
-                    paused = true;
-                }
-                S_StartSound(NULL, sfx_dorcls);
-                slottextloaded = false;     //reload the slot text, when needed
-            }
+            // AP Not allowed in AP
+            //if (SCNetCheck(2))
+            //{
+            //    MenuActive = true;
+            //    FileMenuKeySteal = false;
+            //    MenuTime = 0;
+            //    CurrentMenu = &LoadMenu;
+            //    CurrentItPos = CurrentMenu->oldItPos;
+            //    if (!netgame && !demoplayback)
+            //    {
+            //        paused = true;
+            //    }
+            //    S_StartSound(NULL, sfx_dorcls);
+            //    slottextloaded = false;     //reload the slot text, when needed
+            //}
             return true;
         }
         else if (key == key_menu_volume)         // F4 (volume)
@@ -2186,45 +2190,47 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_qsave)           // F6 (quicksave)
         {
-            if (gamestate == GS_LEVEL && !demoplayback)
-            {
-                if (!quicksave || quicksave == -1)
-                {
-                    MenuActive = true;
-                    FileMenuKeySteal = false;
-                    MenuTime = 0;
-                    CurrentMenu = &SaveMenu;
-                    CurrentItPos = CurrentMenu->oldItPos;
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    S_StartSound(NULL, sfx_dorcls);
-                    slottextloaded = false; //reload the slot text, when needed
-                    quicksave = -1;
-                    P_SetMessage(&players[consoleplayer],
-                                 "CHOOSE A QUICKSAVE SLOT", true);
-                }
-                else
-                {
-                    askforquit = true;
-                    typeofask = 3;
-                    if (!netgame && !demoplayback)
-                    {
-                        paused = true;
-                    }
-                    S_StartSound(NULL, sfx_chat);
-                }
-            }
+            // AP Not allowed in AP
+            //if (gamestate == GS_LEVEL && !demoplayback)
+            //{
+            //    if (!quicksave || quicksave == -1)
+            //    {
+            //        MenuActive = true;
+            //        FileMenuKeySteal = false;
+            //        MenuTime = 0;
+            //        CurrentMenu = &SaveMenu;
+            //        CurrentItPos = CurrentMenu->oldItPos;
+            //        if (!netgame && !demoplayback)
+            //        {
+            //            paused = true;
+            //        }
+            //        S_StartSound(NULL, sfx_dorcls);
+            //        slottextloaded = false; //reload the slot text, when needed
+            //        quicksave = -1;
+            //        P_SetMessage(&players[consoleplayer],
+            //                     "CHOOSE A QUICKSAVE SLOT", true);
+            //    }
+            //    else
+            //    {
+            //        askforquit = true;
+            //        typeofask = 3;
+            //        if (!netgame && !demoplayback)
+            //        {
+            //            paused = true;
+            //        }
+            //        S_StartSound(NULL, sfx_chat);
+            //    }
+            //}
             return true;
         }
         else if (key == key_menu_endgame)         // F7 (end game)
         {
-            if (gamestate == GS_LEVEL && !demoplayback)
-            {
-                S_StartSound(NULL, sfx_chat);
-                SCEndGame(0);
-            }
+            // AP Not allowed in AP
+            //if (gamestate == GS_LEVEL && !demoplayback)
+            //{
+            //    S_StartSound(NULL, sfx_chat);
+            //    SCEndGame(0);
+            //}
             return true;
         }
         else if (key == key_menu_messages)        // F8 (toggle messages)
@@ -2234,42 +2240,44 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_qload)           // F9 (quickload)
         {
-            if (!quickload || quickload == -1)
-            {
-                MenuActive = true;
-                FileMenuKeySteal = false;
-                MenuTime = 0;
-                CurrentMenu = &LoadMenu;
-                CurrentItPos = CurrentMenu->oldItPos;
-                if (!netgame && !demoplayback)
-                {
-                    paused = true;
-                }
-                S_StartSound(NULL, sfx_dorcls);
-                slottextloaded = false;     //reload the slot text, when needed
-                quickload = -1;
-                P_SetMessage(&players[consoleplayer],
-                             "CHOOSE A QUICKLOAD SLOT", true);
-            }
-            else
-            {
-                askforquit = true;
-                if (!netgame && !demoplayback)
-                {
-                    paused = true;
-                }
-                typeofask = 4;
-                S_StartSound(NULL, sfx_chat);
-            }
+            // AP Not allowed in AP
+            //if (!quickload || quickload == -1)
+            //{
+            //    MenuActive = true;
+            //    FileMenuKeySteal = false;
+            //    MenuTime = 0;
+            //    CurrentMenu = &LoadMenu;
+            //    CurrentItPos = CurrentMenu->oldItPos;
+            //    if (!netgame && !demoplayback)
+            //    {
+            //        paused = true;
+            //    }
+            //    S_StartSound(NULL, sfx_dorcls);
+            //    slottextloaded = false;     //reload the slot text, when needed
+            //    quickload = -1;
+            //    P_SetMessage(&players[consoleplayer],
+            //                 "CHOOSE A QUICKLOAD SLOT", true);
+            //}
+            //else
+            //{
+            //    askforquit = true;
+            //    if (!netgame && !demoplayback)
+            //    {
+            //        paused = true;
+            //    }
+            //    typeofask = 4;
+            //    S_StartSound(NULL, sfx_chat);
+            //}
             return true;
         }
         else if (key == key_menu_quit)            // F10 (quit)
         {
-            if (gamestate == GS_LEVEL)
-            {
-                SCQuitGame(0);
-                S_StartSound(NULL, sfx_chat);
-            }
+            // AP Not allowed in AP
+            //if (gamestate == GS_LEVEL)
+            //{
+            //    SCQuitGame(0);
+            //    S_StartSound(NULL, sfx_chat);
+            //}
             return true;
         }
         else if (key == key_menu_gamma)           // F11 (gamma correction)
@@ -2284,16 +2292,17 @@ boolean MN_Responder(event_t * event)
         }
         // [crispy] those two can be considered as shortcuts for the ENGAGE cheat
         // and should be treated as such, i.e. add "if (!netgame)"
-        else if (!netgame && key != 0 && key == key_menu_reloadlevel)
-        {
-	    if (G_ReloadLevel())
-		return true;
-        }
-        else if (!netgame && key != 0 && key == key_menu_nextlevel)
-        {
-	    if (G_GotoNextLevel())
-		return true;
-        }
+            // AP Not allowed in AP
+  //      else if (!netgame && key != 0 && key == key_menu_reloadlevel)
+  //      {
+	 //   if (G_ReloadLevel())
+		//return true;
+  //      }
+  //      else if (!netgame && key != 0 && key == key_menu_nextlevel)
+  //      {
+	 //   if (G_GotoNextLevel())
+		//return true;
+  //      }
 
     }
 

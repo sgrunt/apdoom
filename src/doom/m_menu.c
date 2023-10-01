@@ -1128,6 +1128,7 @@ void M_QuickSaveResponse(int key)
 
 void M_QuickSave(void)
 {
+    return; // AP Not allowed in AP
     if (!usergame)
     {
 	S_StartSoundOptional(NULL, sfx_mnuerr, sfx_oof); // [NS] Optional menu sounds.
@@ -1165,6 +1166,7 @@ void M_QuickLoadResponse(int key)
 
 void M_QuickLoad(void)
 {
+    return; // AP Not allowed in AP
     // [crispy] allow quickloading game while multiplayer demo playback
     if (netgame && !demoplayback)
     {
@@ -2796,16 +2798,18 @@ boolean M_Responder (event_t* ev)
 	}
         else if (key == key_menu_save)     // Save
         {
-	    M_StartControlPanel();
-	    S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
-	    M_SaveGame(0);
+        // AP not allowed
+	    //M_StartControlPanel();
+	    //S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
+	    //M_SaveGame(0);
 	    return true;
         }
         else if (key == key_menu_load)     // Load
         {
-	    M_StartControlPanel();
-	    S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
-	    M_LoadGame(0);
+        // AP not allowed
+	    //M_StartControlPanel();
+	    //S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
+	    //M_LoadGame(0);
 	    return true;
         }
         else if (key == key_menu_volume)   // Sound Volume
@@ -2824,14 +2828,15 @@ boolean M_Responder (event_t* ev)
         }
         else if (key == key_menu_qsave)    // Quicksave
         {
-	    S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
-	    M_QuickSave();
+	    //S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
+	    //M_QuickSave();
 	    return true;
         }
         else if (key == key_menu_endgame)  // End game
         {
-	    S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
-	    M_EndGame(0);
+            // AP Not allowed in AP
+	    //S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
+	    //M_EndGame(0);
 	    return true;
         }
         else if (key == key_menu_messages) // Toggle messages
@@ -2842,14 +2847,15 @@ boolean M_Responder (event_t* ev)
         }
         else if (key == key_menu_qload)    // Quickload
         {
-	    S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
-	    M_QuickLoad();
+	    //S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
+	    //M_QuickLoad();
 	    return true;
         }
         else if (key == key_menu_quit)     // Quit DOOM
         {
-	    S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
-	    M_QuitDOOM(0);
+            // AP Not allowed in AP
+	    //S_StartSoundOptional(NULL, sfx_mnuopn, sfx_swtchn); // [NS] Optional menu sounds.
+	    //M_QuitDOOM(0);
 	    return true;
         }
         else if (key == key_menu_gamma)    // gamma toggle
@@ -2874,16 +2880,17 @@ boolean M_Responder (event_t* ev)
 	}
         // [crispy] those two can be considered as shortcuts for the IDCLEV cheat
         // and should be treated as such, i.e. add "if (!netgame)"
-        else if (!netgame && key != 0 && key == key_menu_reloadlevel)
-        {
-	    if (G_ReloadLevel())
-		return true;
-        }
-        else if (!netgame && key != 0 && key == key_menu_nextlevel)
-        {
-	    if (G_GotoNextLevel())
-		return true;
-        }
+            // AP Not allowed in AP
+  //      else if (!netgame && key != 0 && key == key_menu_reloadlevel)
+  //      {
+	 //   if (G_ReloadLevel())
+		//return true;
+  //      }
+  //      else if (!netgame && key != 0 && key == key_menu_nextlevel)
+  //      {
+	 //   if (G_GotoNextLevel())
+		//return true;
+  //      }
 
     }
 
