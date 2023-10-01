@@ -38,6 +38,8 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+#include "apdoom.h"
+
 // when to clip out sounds
 // Does not fit the large outdoor areas.
 
@@ -401,36 +403,41 @@ void S_Start(void)
     }
     else
     {
-        int spmus[]=
+        ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+        mnum = level_state->music;
+        if (!mnum)
         {
-            // Song - Who? - Where?
-
-            mus_e3m4,        // American     e4m1
-            mus_e3m2,        // Romero       e4m2
-            mus_e3m3,        // Shawn        e4m3
-            mus_e1m5,        // American     e4m4
-            mus_e2m7,        // Tim          e4m5
-            mus_e2m4,        // Romero       e4m6
-            mus_e2m6,        // J.Anderson   e4m7 CHIRON.WAD
-            mus_e2m5,        // Shawn        e4m8
-            mus_e1m9,        // Tim          e4m9
-        };
-
-        if (gameepisode < 4 || gameepisode == 5) // [crispy] Sigil
-        {
-            mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
-        }
-        else
-        {
-            mnum = spmus[gamemap-1];
-
-            // [crispy] support dedicated music tracks for the 4th episode
+            int spmus[]=
             {
-                const int sp_mnum = mus_e1m1 + 3 * 9 + gamemap - 1;
+                // Song - Who? - Where?
 
-                if (S_music[sp_mnum].lumpnum > 0)
+                mus_e3m4,        // American     e4m1
+                mus_e3m2,        // Romero       e4m2
+                mus_e3m3,        // Shawn        e4m3
+                mus_e1m5,        // American     e4m4
+                mus_e2m7,        // Tim          e4m5
+                mus_e2m4,        // Romero       e4m6
+                mus_e2m6,        // J.Anderson   e4m7 CHIRON.WAD
+                mus_e2m5,        // Shawn        e4m8
+                mus_e1m9,        // Tim          e4m9
+            };
+
+            if (gameepisode < 4 || gameepisode == 5) // [crispy] Sigil
+            {
+                mnum = mus_e1m1 + (gameepisode-1)*9 + gamemap-1;
+            }
+            else
+            {
+                mnum = spmus[gamemap-1];
+
+                // [crispy] support dedicated music tracks for the 4th episode
                 {
-                    mnum = sp_mnum;
+                    const int sp_mnum = mus_e1m1 + 3 * 9 + gamemap - 1;
+
+                    if (S_music[sp_mnum].lumpnum > 0)
+                    {
+                        mnum = sp_mnum;
+                    }
                 }
             }
         }

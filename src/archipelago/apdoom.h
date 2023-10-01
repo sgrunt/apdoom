@@ -71,6 +71,7 @@ typedef struct
     int checks[AP_CHECK_MAX];
     int special; // Berzerk or Wings
     int flipped;
+    int music;
 
 } ap_level_state_t;
 
@@ -110,6 +111,7 @@ typedef struct
     int difficulty;
     int random_monsters;
     int random_items;
+    int random_music;
     int two_ways_keydoors;
     int* episodes;
     int victory;
@@ -133,6 +135,7 @@ typedef struct
     int override_skill; int skill;
     int override_monster_rando; int monster_rando;
     int override_item_rando; int item_rando;
+    int override_music_rando; int music_rando;
     int override_flip_levels; int flip_levels;
     int force_deathlink_off;
     int override_reset_level_on_death; int reset_level_on_death;

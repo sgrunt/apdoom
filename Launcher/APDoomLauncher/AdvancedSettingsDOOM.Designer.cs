@@ -58,6 +58,10 @@ namespace APDoomLauncher
             this.panel7 = new System.Windows.Forms.Panel();
             this.label7 = new System.Windows.Forms.Label();
             this.chkFastMonsters = new System.Windows.Forms.CheckBox();
+            this.panel4 = new System.Windows.Forms.Panel();
+            this.label8 = new System.Windows.Forms.Label();
+            this.chkMusicRando_userServer = new System.Windows.Forms.CheckBox();
+            this.cboMusicRando = new System.Windows.Forms.ComboBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -65,13 +69,14 @@ namespace APDoomLauncher
             this.panel5.SuspendLayout();
             this.panel6.SuspendLayout();
             this.panel7.SuspendLayout();
+            this.panel4.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnClose.Location = new System.Drawing.Point(744, 328);
+            this.btnClose.Location = new System.Drawing.Point(744, 364);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 31);
             this.btnClose.TabIndex = 0;
@@ -169,7 +174,7 @@ namespace APDoomLauncher
             "Vanilla",
             "Flipped",
             "Randomly flipped"});
-            this.cboFlipLevels.Location = new System.Drawing.Point(557, 154);
+            this.cboFlipLevels.Location = new System.Drawing.Point(556, 7);
             this.cboFlipLevels.Name = "cboFlipLevels";
             this.cboFlipLevels.Size = new System.Drawing.Size(227, 24);
             this.cboFlipLevels.TabIndex = 13;
@@ -300,10 +305,11 @@ namespace APDoomLauncher
             // 
             this.pnlFlipLevels.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pnlFlipLevels.BackColor = System.Drawing.SystemColors.Control;
+            this.pnlFlipLevels.BackColor = System.Drawing.SystemColors.ControlLight;
             this.pnlFlipLevels.Controls.Add(this.chkFlipLevels_userServer);
+            this.pnlFlipLevels.Controls.Add(this.cboFlipLevels);
             this.pnlFlipLevels.Controls.Add(this.label4);
-            this.pnlFlipLevels.Location = new System.Drawing.Point(1, 148);
+            this.pnlFlipLevels.Location = new System.Drawing.Point(1, 184);
             this.pnlFlipLevels.Name = "pnlFlipLevels";
             this.pnlFlipLevels.Size = new System.Drawing.Size(855, 37);
             this.pnlFlipLevels.TabIndex = 18;
@@ -312,10 +318,10 @@ namespace APDoomLauncher
             // 
             this.panel5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel5.BackColor = System.Drawing.SystemColors.Control;
+            this.panel5.BackColor = System.Drawing.SystemColors.ControlLight;
             this.panel5.Controls.Add(this.chkDeathLink);
             this.panel5.Controls.Add(this.label5);
-            this.panel5.Location = new System.Drawing.Point(1, 218);
+            this.panel5.Location = new System.Drawing.Point(1, 256);
             this.panel5.Name = "panel5";
             this.panel5.Size = new System.Drawing.Size(855, 37);
             this.panel5.TabIndex = 18;
@@ -324,11 +330,11 @@ namespace APDoomLauncher
             // 
             this.panel6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel6.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.panel6.BackColor = System.Drawing.SystemColors.Control;
             this.panel6.Controls.Add(this.chkResetLevels);
             this.panel6.Controls.Add(this.label6);
             this.panel6.Controls.Add(this.chkResetLevel_useServer);
-            this.panel6.Location = new System.Drawing.Point(1, 184);
+            this.panel6.Location = new System.Drawing.Point(1, 220);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(855, 37);
             this.panel6.TabIndex = 18;
@@ -345,7 +351,7 @@ namespace APDoomLauncher
             // btnDefaults
             // 
             this.btnDefaults.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnDefaults.Location = new System.Drawing.Point(40, 328);
+            this.btnDefaults.Location = new System.Drawing.Point(40, 364);
             this.btnDefaults.Name = "btnDefaults";
             this.btnDefaults.Size = new System.Drawing.Size(137, 31);
             this.btnDefaults.TabIndex = 0;
@@ -374,10 +380,10 @@ namespace APDoomLauncher
             // 
             this.panel7.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel7.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.panel7.BackColor = System.Drawing.SystemColors.Control;
             this.panel7.Controls.Add(this.chkFastMonsters);
             this.panel7.Controls.Add(this.label7);
-            this.panel7.Location = new System.Drawing.Point(1, 253);
+            this.panel7.Location = new System.Drawing.Point(1, 292);
             this.panel7.Name = "panel7";
             this.panel7.Size = new System.Drawing.Size(855, 37);
             this.panel7.TabIndex = 18;
@@ -401,14 +407,63 @@ namespace APDoomLauncher
             this.chkFastMonsters.Text = "On";
             this.chkFastMonsters.UseVisualStyleBackColor = true;
             // 
+            // panel4
+            // 
+            this.panel4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel4.BackColor = System.Drawing.SystemColors.Control;
+            this.panel4.Controls.Add(this.cboMusicRando);
+            this.panel4.Controls.Add(this.chkMusicRando_userServer);
+            this.panel4.Controls.Add(this.label8);
+            this.panel4.Location = new System.Drawing.Point(1, 148);
+            this.panel4.Name = "panel4";
+            this.panel4.Size = new System.Drawing.Size(855, 37);
+            this.panel4.TabIndex = 18;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(53, 10);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(101, 17);
+            this.label8.TabIndex = 5;
+            this.label8.Text = "Random music";
+            // 
+            // chkMusicRando_userServer
+            // 
+            this.chkMusicRando_userServer.AutoSize = true;
+            this.chkMusicRando_userServer.Checked = true;
+            this.chkMusicRando_userServer.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMusicRando_userServer.Location = new System.Drawing.Point(310, 9);
+            this.chkMusicRando_userServer.Name = "chkMusicRando_userServer";
+            this.chkMusicRando_userServer.Size = new System.Drawing.Size(145, 21);
+            this.chkMusicRando_userServer.TabIndex = 13;
+            this.chkMusicRando_userServer.Text = "Use server setting";
+            this.chkMusicRando_userServer.UseVisualStyleBackColor = true;
+            this.chkMusicRando_userServer.CheckedChanged += new System.EventHandler(this.chkMusicRando_userServer_CheckedChanged);
+            // 
+            // cboMusicRando
+            // 
+            this.cboMusicRando.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboMusicRando.Enabled = false;
+            this.cboMusicRando.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cboMusicRando.FormattingEnabled = true;
+            this.cboMusicRando.Items.AddRange(new object[] {
+            "Vanilla",
+            "Shuffle Selected",
+            "Shuffle Game"});
+            this.cboMusicRando.Location = new System.Drawing.Point(556, 7);
+            this.cboMusicRando.Name = "cboMusicRando";
+            this.cboMusicRando.Size = new System.Drawing.Size(227, 24);
+            this.cboMusicRando.TabIndex = 14;
+            // 
             // AdvancedSettingsDOOM
             // 
             this.AcceptButton = this.btnClose;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(857, 387);
+            this.ClientSize = new System.Drawing.Size(857, 423);
             this.Controls.Add(this.panel7);
-            this.Controls.Add(this.cboFlipLevels);
             this.Controls.Add(this.cboItemRando);
             this.Controls.Add(this.chkItemRando_userServer);
             this.Controls.Add(this.cboMonsterRando);
@@ -417,6 +472,7 @@ namespace APDoomLauncher
             this.Controls.Add(this.panel6);
             this.Controls.Add(this.panel5);
             this.Controls.Add(this.pnlFlipLevels);
+            this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
@@ -439,6 +495,8 @@ namespace APDoomLauncher
             this.panel6.PerformLayout();
             this.panel7.ResumeLayout(false);
             this.panel7.PerformLayout();
+            this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -474,5 +532,9 @@ namespace APDoomLauncher
         private System.Windows.Forms.Panel panel7;
         private System.Windows.Forms.CheckBox chkFastMonsters;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Panel panel4;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.ComboBox cboMusicRando;
+        private System.Windows.Forms.CheckBox chkMusicRando_userServer;
     }
 }

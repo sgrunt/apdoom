@@ -206,6 +206,7 @@ void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
+void f_random_music(int);
 void f_flip_levels(int);
 void f_check_sanity(int);
 void f_reset_level_on_death(int);
@@ -218,6 +219,36 @@ void f_two_ways_keydoors(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
+
+
+static int get_original_music_for_level(int ep, int map)
+{
+	switch (ap_game)
+	{
+		case ap_game_t::doom:
+		{
+			int ep4_music[] = {
+				// Song - Who? - Where?
+
+				2 * 9 + 3 + 1, //mus_e3m4,        // American     e4m1
+				2 * 9 + 1 + 1, //mus_e3m2,        // Romero       e4m2
+				2 * 9 + 2 + 1, //mus_e3m3,        // Shawn        e4m3
+				0 * 9 + 4 + 1, //mus_e1m5,        // American     e4m4
+				1 * 9 + 6 + 1, //mus_e2m7,        // Tim          e4m5
+				1 * 9 + 3 + 1, //mus_e2m4,        // Romero       e4m6
+				1 * 9 + 5 + 1, //mus_e2m6,        // J.Anderson   e4m7 CHIRON.WAD
+				1 * 9 + 4 + 1, //mus_e2m5,        // Shawn        e4m8
+				0 * 9 + 8 + 1  //mus_e1m9,        // Tim          e4m9
+			};
+
+			if (ep == 4) return ep4_music[map - 1];
+			return 1 + (ep - 1) * ap_map_count + (map - 1);
+		}
+	}
+
+	// For now for doom and heretic
+	return 0;
+}
 
 
 ap_level_info_t* ap_get_level_info(int ep, int map)
@@ -409,6 +440,8 @@ int apdoom_init(ap_settings_t* settings)
 		ap_state.random_monsters = ap_settings.monster_rando;
 	if (ap_settings.override_item_rando)
 		ap_state.random_items = ap_settings.item_rando;
+	if (ap_settings.override_music_rando)
+		ap_state.random_music = ap_settings.music_rando;
 	if (ap_settings.override_flip_levels)
 		ap_state.flip_levels = ap_settings.flip_levels;
 	if (ap_settings.override_reset_level_on_death)
@@ -425,6 +458,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
+	AP_RegisterSlotDataIntCallback("random_music", f_random_music);
 	AP_RegisterSlotDataIntCallback("flip_levels", f_flip_levels);
 	AP_RegisterSlotDataIntCallback("check_sanity", f_check_sanity);
 	AP_RegisterSlotDataIntCallback("reset_level_on_death", f_reset_level_on_death);
@@ -505,6 +539,11 @@ int apdoom_init(ap_settings_t* settings)
 		ap_state.episodes[0] = 1;
 	}
 
+	// Seed for random features
+	auto ap_seed = apdoom_get_seed();
+	unsigned long long seed = hash_seed(ap_seed);
+	srand(seed);
+
 	// Randomly flip levels based on the seed
 	if (ap_state.flip_levels == 1)
 	{
@@ -516,12 +555,43 @@ int apdoom_init(ap_settings_t* settings)
 	else if (ap_state.flip_levels == 2)
 	{
 		printf("APDOOM: Levels randomly flipped\n");
-		auto ap_seed = apdoom_get_seed();
-		unsigned long long seed = hash_seed(ap_seed);
-		srand(seed);
 		for (int ep = 0; ep < ap_episode_count; ++ep)
 			for (int map = 0; map < ap_map_count; ++map)
 				ap_state.level_states[ep * ap_map_count + map].flipped = rand() % 2;
+	}
+
+	// Map original music to every level to start
+	for (int ep = 0; ep < ap_episode_count; ++ep)
+		for (int map = 0; map < ap_map_count; ++map)
+			ap_state.level_states[ep * ap_map_count + map].music = get_original_music_for_level(ep + 1, map + 1);
+
+	// Randomly shuffle music 
+	if (ap_state.random_music > 0)
+	{
+		// Collect music for all selected levels
+		std::vector<int> music_pool;
+		for (int ep = 0; ep < ap_episode_count; ++ep)
+			if (ap_state.episodes[ep] || ap_state.random_music == 2)
+				for (int map = 0; map < ap_map_count; ++map)
+					music_pool.push_back(ap_state.level_states[ep * ap_map_count + map].music);
+
+		// Shuffle
+		printf("APDOOM: Random Music:\n");
+		for (int ep = 0; ep < ap_episode_count; ++ep)
+		{
+			if (ap_state.episodes[ep])
+			{
+				for (int map = 0; map < ap_map_count; ++map)
+				{
+					int rnd = rand() % (int)music_pool.size();
+					int mus = music_pool[rnd];
+					music_pool.erase(music_pool.begin() + rnd);
+					ap_state.level_states[ep * ap_map_count + map].music = mus;
+					if (ap_game == ap_game_t::doom)
+						printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, ((mus - 1) / ap_map_count) + 1, ((mus - 1) % ap_map_count) + 1);
+				}
+			}
+		}
 	}
 
 	// Scout locations to see which are progressive
@@ -1171,6 +1241,15 @@ void f_random_items(int random_items)
 		return;
 
 	ap_state.random_items = random_items;
+}
+
+
+void f_random_music(int random_music)
+{
+	if (ap_settings.override_music_rando)
+		return;
+
+	ap_state.random_music = random_music;
 }
 
 

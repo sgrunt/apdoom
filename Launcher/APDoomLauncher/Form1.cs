@@ -75,6 +75,7 @@ namespace APDoomLauncher
             if (Settings.Default.OverrideDifficulty) command_line += " -skill " + (Settings.Default.Difficulty + 1);
             if (Settings.Default.OverrideMonsterRando) command_line += " -apmonsterrando " + Settings.Default.MonsterRando;
             if (Settings.Default.OverrideItemRando) command_line += " -apitemrando " + Settings.Default.ItemRando;
+            if (Settings.Default.OverrideMusicRando) command_line += " -apmusicrando " + Settings.Default.MusicRando;
             if (Settings.Default.OverrideFlipLevels) command_line += " -apfliplevels " + Settings.Default.FlipLevels;
             if (Settings.Default.OverrideResetLevel) command_line += " -apresetlevelondeath " + (Settings.Default.ResetLevels ? 1 : 0);
             if (Settings.Default.ForceDeathLinkOff) command_line += " -apdeathlinkoff";

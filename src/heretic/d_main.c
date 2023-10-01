@@ -1360,6 +1360,13 @@ void D_DoomMain(void)
         ap_settings.item_rando = atoi(myargv[item_rando_id + 1]);
     }
 
+    int music_rando_id = M_CheckParmWithArgs("-apmusicrando", 1);
+    if (music_rando_id)
+    {
+        ap_settings.override_music_rando = 1;
+        ap_settings.music_rando = atoi(myargv[music_rando_id + 1]);
+    }
+
     // Not supported by heretic
     //int flip_levels_id = M_CheckParmWithArgs("-apfliplevels", 1);
     //if (flip_levels_id)

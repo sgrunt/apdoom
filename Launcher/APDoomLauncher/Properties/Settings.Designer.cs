@@ -262,5 +262,29 @@ namespace APDoomLauncher.Properties {
                 this["OverrideResetLevel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int MusicRando {
+            get {
+                return ((int)(this["MusicRando"]));
+            }
+            set {
+                this["MusicRando"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideMusicRando {
+            get {
+                return ((bool)(this["OverrideMusicRando"]));
+            }
+            set {
+                this["OverrideMusicRando"] = value;
+            }
+        }
     }
 }
