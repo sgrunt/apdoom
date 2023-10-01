@@ -1372,7 +1372,10 @@ void HU_Ticker(void)
 	while (*s)
 	    HUlib_addCharToTextLine(&w_kills, *(s++));
 
-	crispy_statsline(str, sizeof(str), "I\t", plr->itemcount, totalitems, 0);
+    // AP replaced items with AP items
+    ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
+    const ap_level_info_t* level_info = ap_get_level_info(ap_make_level_index(gameepisode, gamemap));
+	crispy_statsline(str, sizeof(str), "I\t", level_state->check_count, level_info->check_count - level_info->sanity_check_count, 0);
 	HUlib_clearTextLine(&w_items);
 	s = str;
 	while (*s)
