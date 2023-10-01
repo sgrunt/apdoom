@@ -818,7 +818,7 @@ void G_DoLoadLevel (void)
 { 
     int             i; 
 
-    crispy->fliplevels = ap_get_level_state(gameepisode, gamemap)->flipped ? true : false;
+    crispy->fliplevels = ap_get_level_state(ap_make_level_index(gameepisode, gamemap))->flipped ? true : false;
     crispy->flipweapons = crispy->fliplevels;
     S_UpdateStereoSeparation();
     setsizeneeded = true;
@@ -1207,7 +1207,7 @@ void set_ap_player_states()
     //p->secretcount = ap_state.player_state.secret_count;
     for (int i = 0; i < NUMPOWERS; ++i)
         p->powers[i] = ap_state.player_state.powers[i];
-    p->powers[pw_allmap] = ap_get_level_state(gameepisode, gamemap)->has_map;
+    p->powers[pw_allmap] = ap_get_level_state(ap_make_level_index(gameepisode, gamemap))->has_map;
     for (int i = 0; i < NUMWEAPONS; ++i)
         p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
     for (int i = 0; i < NUMAMMO; ++i)
@@ -1216,8 +1216,8 @@ void set_ap_player_states()
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 
     // Cards
-    ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
-    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
+    ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
+    ap_level_info_t* level_info = ap_get_level_info(ap_make_level_index(gameepisode, gamemap));
 
     p->cards[0] = level_state->keys[0] && !level_info->use_skull[0];
     p->cards[1] = level_state->keys[1] && !level_info->use_skull[1];
@@ -2001,7 +2001,7 @@ void G_DoCompleted (void)
 
     // [AP]
     cache_ap_player_state();
-    apdoom_complete_level(gameepisode, gamemap);
+    apdoom_complete_level(ap_make_level_index(gameepisode, gamemap));
     apdoom_save_state();
     G_DoSaveGame();
 

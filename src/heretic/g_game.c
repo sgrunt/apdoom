@@ -1776,7 +1776,7 @@ void set_ap_player_states()
         if (i == pw_flight || i == pw_allmap) continue;
         p->powers[i] = ap_state.player_state.powers[i];
     }
-    p->powers[pw_allmap] = ap_get_level_state(gameepisode, gamemap)->has_map;
+    p->powers[pw_allmap] = ap_get_level_state(ap_make_level_index(gameepisode, gamemap))->has_map;
     for (int i = 0; i < NUMWEAPONS; ++i)
         p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
     for (int i = 0; i < NUMAMMO; ++i)
@@ -1802,8 +1802,8 @@ void set_ap_player_states()
     }
 
     // Cards
-    ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
-    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
+    ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
+    ap_level_info_t* level_info = ap_get_level_info(ap_make_level_index(gameepisode, gamemap));
 
     p->keys[0] = level_state->keys[0];
     p->keys[1] = level_state->keys[1];
@@ -1926,7 +1926,7 @@ void G_DoCompleted(void)
 
     // [AP]
     cache_ap_player_state();
-    apdoom_complete_level(gameepisode, gamemap);
+    apdoom_complete_level(ap_make_level_index(gameepisode, gamemap));
     apdoom_save_state();
     G_DoSaveGame();
 

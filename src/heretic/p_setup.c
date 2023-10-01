@@ -944,7 +944,7 @@ void P_LoadThings(int lump)
         if (is_heretic_type_ap_location(spawnthing.type))
         {
             // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
-            int ret = ap_validate_doom_location(gameepisode - 1, gamemap - 1, spawnthing.type, i);
+            int ret = ap_validate_doom_location(ap_make_level_index(gameepisode, gamemap), spawnthing.type, i);
             if (ret == -1)
             {
                 I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get HERETIC.WAD from the steam releases.");
@@ -955,12 +955,12 @@ void P_LoadThings(int lump)
             }
             else if (ret == 1)
             {
-                if (apdoom_is_location_progression(gameepisode, gamemap, i))
+                if (apdoom_is_location_progression(ap_make_level_index(gameepisode, gamemap), i))
                     spawnthing.type = 20001;
                 else
                     spawnthing.type = 20000;
                 int skip = 0;
-                ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+                ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
                 for (j = 0; j < level_state->check_count; ++j)
                 {
                     if (level_state->checks[j] == i)

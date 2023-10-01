@@ -719,9 +719,11 @@ P_TouchSpecialThing
 
 	case SPR_APJI:
 	case SPR_APPI:
-		apdoom_check_location(gameepisode, gamemap, special->index);
+	{
+		apdoom_check_location(ap_make_level_index(gameepisode, gamemap), special->index);
 		do_evil_grin();
 		break;
+	}
 
 	case SPR_LVST:
 		// Teleport back to level select!

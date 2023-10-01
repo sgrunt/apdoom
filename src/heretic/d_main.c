@@ -124,7 +124,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
 {
     player_t* player = &players[consoleplayer];
     int sound = sfx_itemup;
-    ap_level_info_t* level_info = ap_get_level_info(gameepisode, gamemap);
+    ap_level_info_t* level_info = ap_get_level_info(ap_make_level_index(gameepisode, gamemap));
 
     switch (doom_type)
     {

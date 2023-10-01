@@ -400,7 +400,7 @@ void select_map_dir(int dir)
 
 static void level_select_nav_enter()
 {
-    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
+    if (ap_get_level_state(ap_make_level_index(selected_ep + 1, selected_level[selected_ep] + 1))->unlocked)
     {
         S_StartSound(NULL, sfx_dorcls);
         play_level(selected_ep, selected_level[selected_ep]);
@@ -545,8 +545,8 @@ void DrawEpisodicLevelSelectStats()
     for (int i = 0; i < map_count; ++i)
     {
         level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
-        ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
-        ap_level_state_t* ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);
+        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(selected_ep + 1, i + 1));
+        ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(selected_ep + 1, i + 1));
 
         x = level_pos->x;
         y = level_pos->y;

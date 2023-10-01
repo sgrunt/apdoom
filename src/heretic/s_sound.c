@@ -62,7 +62,7 @@ void S_Start(void)
     int i;
     int mnum;
 
-    ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+    ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
     mnum = level_state->music;
 
     S_StartSong(mnum, true);

@@ -75,7 +75,7 @@ static wchar_t *ConvertMultiByteToWide(const char *str, UINT code_page)
     return wstr;
 }
 
-wchar_t *AP_ConvertUtf8ToWide(const char *str)
+static wchar_t *AP_ConvertUtf8ToWide(const char *str)
 {
     return ConvertMultiByteToWide(str, CP_UTF8);
 }
@@ -87,7 +87,7 @@ wchar_t *AP_ConvertUtf8ToWide(const char *str)
 // Create a directory
 //
 
-void AP_MakeDirectory(const char *path)
+static void AP_MakeDirectory(const char *path)
 {
 #ifdef _WIN32
     wchar_t *wdir;
@@ -108,7 +108,7 @@ void AP_MakeDirectory(const char *path)
 }
 
 
-FILE *AP_fopen(const char *filename, const char *mode)
+static FILE *AP_fopen(const char *filename, const char *mode)
 {
 #ifdef _WIN32
     FILE *file;
@@ -142,7 +142,7 @@ FILE *AP_fopen(const char *filename, const char *mode)
 }
 
 
-int AP_FileExists(const char *filename)
+static int AP_FileExists(const char *filename)
 {
     FILE *fstream;
 
@@ -163,12 +163,6 @@ int AP_FileExists(const char *filename)
 }
 
 
-struct ap_level_index_t
-{
-	int ep;
-	int map;
-};
-
 enum class ap_game_t
 {
 	doom,
@@ -179,14 +173,14 @@ enum class ap_game_t
 
 ap_state_t ap_state;
 int ap_is_in_game = 0;
-ap_game_t ap_game;
 int ap_episode_count = -1;
-int ap_weapon_count = -1;
-int ap_ammo_count = -1;
-int ap_powerup_count = -1;
-int ap_inventory_count = -1;
-int max_map_count = -1;
 
+static ap_game_t ap_game;
+static int ap_weapon_count = -1;
+static int ap_ammo_count = -1;
+static int ap_powerup_count = -1;
+static int ap_inventory_count = -1;
+static int max_map_count = -1;
 static ap_settings_t ap_settings;
 static AP_RoomInfo ap_room_info;
 static std::vector<int64_t> ap_item_queue; // We queue when we're in the menu.
@@ -279,20 +273,18 @@ int ap_get_map_count(int ep)
 }
 
 
-ap_level_info_t* ap_get_level_info(int ep, int map)
+ap_level_info_t* ap_get_level_info(ap_level_index_t idx)
 {
-	--ep;
-	--map;
 	auto& level_info_table = get_level_info_table();
-	if (ep < 0 || ep >= (int)level_info_table.size()) return nullptr;
-	if (map < 0 || map >= (int)level_info_table[ep].size()) return nullptr;
-	return &level_info_table[ep][map];
+	if (idx.ep < 0 || idx.ep >= (int)level_info_table.size()) return nullptr;
+	if (idx.map < 0 || idx.map >= (int)level_info_table[idx.ep].size()) return nullptr;
+	return &level_info_table[idx.ep][idx.map];
 }
 
 
-ap_level_state_t* ap_get_level_state(int ep, int map)
+ap_level_state_t* ap_get_level_state(ap_level_index_t idx)
 {
-	return &ap_state.level_states[(ep - 1) * max_map_count + (map - 1)];
+	return &ap_state.level_states[idx.ep * max_map_count + idx.map];
 }
 
 
@@ -364,9 +356,9 @@ const int* get_max_ammos()
 }
 
 
-int validate_doom_location(int ep, int map, int index)
+int validate_doom_location(ap_level_index_t idx, int index)
 {
-    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
+    ap_level_info_t* level_info = ap_get_level_info(idx);
     if (index >= level_info->thing_count) return 0;
     return level_info->thing_infos[index].check_sanity == 0 || ap_state.check_sanity == 1;
 }
@@ -453,7 +445,7 @@ int apdoom_init(ap_settings_t* settings)
 			{
 				ap_state.level_states[ep * max_map_count + map].checks[k] = -1;
 			}
-			auto level_info = ap_get_level_info(ep + 1, map + 1);
+			auto level_info = ap_get_level_info(ap_level_index_t{ep, map});
 			level_info->sanity_check_count = 0;
 			for (int k = 0; k < level_info->thing_count; ++k)
 			{
@@ -671,7 +663,7 @@ int apdoom_init(ap_settings_t* settings)
 						int tmp;
 						tmp = 5;
 					}
-					if (validate_doom_location(kv1.first - 1, kv2.first - 1, kv3.first))
+					if (validate_doom_location({kv1.first - 1, kv2.first - 1}, kv3.first))
 					{
 						location_scouts.push_back(kv3.second);
 					}
@@ -707,9 +699,9 @@ int apdoom_init(ap_settings_t* settings)
 }
 
 
-static bool is_loc_checked(int ep, int map, int index)
+static bool is_loc_checked(ap_level_index_t idx, int index)
 {
-	auto level_state = ap_get_level_state(ep, map);
+	auto level_state = ap_get_level_state(idx);
 	for (int i = 0; i < level_state->check_count; ++i)
 	{
 		if (level_state->checks[i] == index) return true;
@@ -863,7 +855,7 @@ void load_state()
 		int map_count = ap_get_map_count(i + 1);
 		for (int j = 0; j < map_count; ++j)
 		{
-			auto level_state = ap_get_level_state(i + 1, j + 1);
+			auto level_state = ap_get_level_state(ap_level_index_t{i, j});
 			json_get_bool_or(json["episodes"][i][j]["completed"], level_state->completed);
 			json_get_bool_or(json["episodes"][i][j]["keys0"], level_state->keys[0]);
 			json_get_bool_or(json["episodes"][i][j]["keys1"], level_state->keys[1]);
@@ -915,9 +907,9 @@ void load_state()
 }
 
 
-Json::Value serialize_level(int ep, int map)
+static Json::Value serialize_level(int ep, int map)
 {
-	auto level_state = ap_get_level_state(ep, map);
+	auto level_state = ap_get_level_state(ap_level_index_t{ep, map});
 
 	Json::Value json_level;
 
@@ -1130,10 +1122,12 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	if (it == item_type_table.end())
 		return; // Skip
 	ap_item_t item = it->second;
+	ap_level_index_t idx = {item.ep - 1, item.map - 1};
+	ap_level_info_t* level_info = ap_get_level_info(idx);
 
 	std::string notif_text;
 
-	auto level_state = ap_get_level_state(item.ep, item.map);
+	auto level_state = ap_get_level_state(idx);
 
 	// Key?
 	const auto& keys_map = get_keys_map();
@@ -1141,14 +1135,14 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	if (key_it != keys_map.end())
 	{
 		level_state->keys[key_it->second] = 1;
-		notif_text = get_exmx_name(ap_get_level_info(item.ep, item.map)->name);
+		notif_text = get_exmx_name(level_info->name);
 	}
 
 	// Map?
 	if (item.doom_type == get_map_doom_type())
 	{
 		level_state->has_map = 1;
-		notif_text = get_exmx_name(ap_get_level_info(item.ep, item.map)->name);
+		notif_text = get_exmx_name(level_info->name);
 	}
 
 	// Backpack?
@@ -1172,7 +1166,7 @@ void f_itemrecv(int64_t item_id, bool notify_player)
 	if (item.doom_type == -1)
 	{
 		level_state->unlocked = 1;
-		notif_text = get_exmx_name(ap_get_level_info(item.ep, item.map)->name);
+		notif_text = get_exmx_name(level_info->name);
 	}
 
 	// Level complete?
@@ -1257,11 +1251,13 @@ void f_locrecv(int64_t loc_id)
 		return; // Loc not found
 	}
 
+	ap_level_index_t idx = {ep - 1, map - 1};
+
 	// Make sure we didn't already check it
-	if (is_loc_checked(ep, map, index)) return;
+	if (is_loc_checked(idx, index)) return;
 	if (index < 0) return;
 
-	auto level_state = ap_get_level_state(ep, map);
+	auto level_state = ap_get_level_state(idx);
 	level_state->checks[level_state->check_count] = index;
 	level_state->check_count++;
 }
@@ -1379,15 +1375,15 @@ const char* apdoom_get_seed()
 }
 
 
-void apdoom_check_location(int ep, int map, int index)
+void apdoom_check_location(ap_level_index_t idx, int index)
 {
 	int64_t id = 0;
 	const auto& loc_table = get_location_table();
 
-	auto it1 = loc_table.find(ep);
+	auto it1 = loc_table.find(idx.ep + 1);
 	if (it1 == loc_table.end()) return;
 
-	auto it2 = it1->second.find(map);
+	auto it2 = it1->second.find(idx.map + 1);
 	if (it2 == it1->second.end()) return;
 
 	auto it3 = it2->second.find(index);
@@ -1397,7 +1393,7 @@ void apdoom_check_location(int ep, int map, int index)
 
 	if (index >= 0)
 	{
-		if (is_loc_checked(ep, map, index))
+		if (is_loc_checked(idx, index))
 		{
 			printf("APDOOM: Location already checked\n");
 		}
@@ -1412,14 +1408,14 @@ void apdoom_check_location(int ep, int map, int index)
 }
 
 
-int apdoom_is_location_progression(int ep, int map, int index)
+int apdoom_is_location_progression(ap_level_index_t idx, int index)
 {
 	const auto& loc_table = get_location_table();
 
-	auto it1 = loc_table.find(ep);
+	auto it1 = loc_table.find(idx.ep + 1);
 	if (it1 == loc_table.end()) return 0;
 
-	auto it2 = it1->second.find(map);
+	auto it2 = it1->second.find(idx.map + 1);
 	if (it2 == it1->second.end()) return 0;
 
 	auto it3 = it2->second.find(index);
@@ -1430,12 +1426,48 @@ int apdoom_is_location_progression(int ep, int map, int index)
 	return (ap_progressive_locations.find(id) != ap_progressive_locations.end()) ? 1 : 0;
 }
 
-
-void apdoom_complete_level(int ep, int map)
+void apdoom_complete_level(ap_level_index_t idx)
 {
 	//if (ap_state.level_states[ep - 1][map - 1].completed) return; // Already completed
-    ap_get_level_state(ep, map)->completed = 1;
-	apdoom_check_location(ep, map, -1); // -1 is complete location
+    ap_get_level_state(idx)->completed = 1;
+	apdoom_check_location(idx, -1); // -1 is complete location
+}
+
+
+ap_level_index_t ap_make_level_index(int ep /* 1-based */, int map /* 1-based */)
+{
+	if (ap_game != ap_game_t::doom2) return { ep - 1, map - 1 };
+
+	// In Doom2, every map is ep = 1
+	ap_level_index_t ret = { 0, map - 1 };
+	const auto& table = get_level_info_table();
+	while (ret.map >= (int)table[ret.ep].size())
+	{
+		ret.map -= (int)table[ret.ep].size();
+		ret.ep++;
+	}
+
+	return ret;
+}
+
+
+int ap_index_to_ep(ap_level_index_t idx)
+{
+	if (ap_game != ap_game_t::doom2) return idx.ep + 1;
+	return 1;
+}
+
+
+int ap_index_to_map(ap_level_index_t idx)
+{
+	if (ap_game != ap_game_t::doom2) return idx.map + 1;
+
+	const auto& table = get_level_info_table();
+	for (int ep = 0; ep < idx.ep; ++ep)
+	{
+		idx.map += (int)table[ep].size();
+	}
+	return idx.map + 1;
 }
 
 
@@ -1450,7 +1482,7 @@ void apdoom_check_victory()
 		int map_count = ap_get_map_count(ep + 1);
 		for (int map = 0; map < map_count; ++map)
 		{
-			if (!ap_get_level_state(ep + 1, map + 1)->completed) return;
+			if (!ap_get_level_state(ap_level_index_t{ep, map})->completed) return;
 		}
 	}
 
@@ -1506,9 +1538,9 @@ int ap_get_highest_episode()
 }
 
 
-int ap_validate_doom_location(int ep, int map, int doom_type, int index)
+int ap_validate_doom_location(ap_level_index_t idx, int doom_type, int index)
 {
-    ap_level_info_t* level_info = ap_get_level_info(ep + 1, map + 1);
+	ap_level_info_t* level_info = ap_get_level_info(idx);
     if (index >= level_info->thing_count) return -1;
 	if (level_info->thing_infos[index].doom_type != doom_type) return -1;
     return level_info->thing_infos[index].check_sanity == 0 || ap_state.check_sanity == 1;

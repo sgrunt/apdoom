@@ -259,9 +259,17 @@ void HU_ClearAPMessages();
 
 void play_level(int ep, int lvl)
 {
+    ap_level_index_t idx = { ep, lvl };
+    ep = ap_index_to_ep(idx);
+    lvl = ap_index_to_map(idx);
+
     // Check if level has a save file first
     char filename[260];
-    snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep + 1, lvl + 1);
+    if (gamemode != commercial)
+        snprintf(filename, 260, "%s/save_E%iM%i.dsg", apdoom_get_seed(), ep, lvl);
+    else
+        snprintf(filename, 260, "%s/save_MAP%02i.dsg", apdoom_get_seed(), lvl);
+
     if (M_FileExists(filename))
     {
         // We load
@@ -274,7 +282,7 @@ void play_level(int ep, int lvl)
     else
     {
         // If none, load it fresh
-        G_DeferedInitNew(gameskill, ep + 1, lvl + 1);
+        G_DeferedInitNew(gameskill, ep, lvl);
     }
 
     HU_ClearAPMessages();
@@ -299,7 +307,7 @@ void select_map_dir(int dir)
     int map_count = ap_get_map_count(selected_ep + 1);
     for (int i = 0; i < map_count; ++i)
     {
-        level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
+        const level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
         if (level_pos->y < top_most)
         {
             top_most = level_pos->y;
@@ -442,7 +450,7 @@ static void level_select_next_episode()
 
 static void level_select_nav_enter()
 {
-    if (ap_get_level_state(selected_ep + 1, selected_level[selected_ep] + 1)->unlocked)
+    if (ap_get_level_state(ap_make_level_index(selected_ep + 1, selected_level[selected_ep] + 1))->unlocked)
     {
         S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
         play_level(selected_ep, selected_level[selected_ep]);
@@ -586,9 +594,9 @@ void DrawEpisodicLevelSelectStats()
     int map_count = ap_get_map_count(selected_ep + 1);
     for (int i = 0; i < map_count; ++i)
     {
-        level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
-        ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
-        ap_level_state_t* ap_level_state = ap_get_level_state(selected_ep + 1, i + 1);
+        const level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
+        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(selected_ep + 1, i + 1));
+        ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(selected_ep + 1, i + 1));
 
         x = level_pos->x;
         y = level_pos->y;

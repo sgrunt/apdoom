@@ -465,7 +465,7 @@ boolean P_GiveArtifact(player_t * player, artitype_t arti, mobj_t * mo)
 
     if (arti == arti_fly)
     {
-        ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+        ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
         level_state->special = 1;
     }
 
@@ -902,7 +902,7 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
             break;
 	    case SPR_APJI:
 	    case SPR_APPI:
-		    apdoom_check_location(gameepisode, gamemap, special->index);
+		    apdoom_check_location(ap_make_level_index(gameepisode, gamemap), special->index);
 		    break;
 
 	    case SPR_LVST:
