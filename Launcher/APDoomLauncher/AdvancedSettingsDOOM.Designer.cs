@@ -243,9 +243,9 @@ namespace APDoomLauncher
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(53, 10);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(98, 17);
+            this.label3.Size = new System.Drawing.Size(113, 17);
             this.label3.TabIndex = 5;
-            this.label3.Text = "Random items";
+            this.label3.Text = "Random pickups";
             // 
             // label4
             // 

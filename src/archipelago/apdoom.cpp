@@ -244,10 +244,18 @@ static int get_original_music_for_level(int ep, int map)
 			if (ep == 4) return ep4_music[map - 1];
 			return 1 + (ep - 1) * ap_map_count + (map - 1);
 		}
+		case ap_game_t::doom2:
+		{
+			return map;
+		}
+		case ap_game_t::heretic:
+		{
+			return (ep - 1) * ap_map_count + (map - 1);
+		}
 	}
 
 	// For now for doom and heretic
-	return 0;
+	return -1;
 }
 
 
@@ -587,8 +595,19 @@ int apdoom_init(ap_settings_t* settings)
 					int mus = music_pool[rnd];
 					music_pool.erase(music_pool.begin() + rnd);
 					ap_state.level_states[ep * ap_map_count + map].music = mus;
-					if (ap_game == ap_game_t::doom)
-						printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, ((mus - 1) / ap_map_count) + 1, ((mus - 1) % ap_map_count) + 1);
+
+					switch (ap_game)
+					{
+						case ap_game_t::doom:
+							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, ((mus - 1) / ap_map_count) + 1, ((mus - 1) % ap_map_count) + 1);
+							break;
+						case ap_game_t::doom2:
+							printf("  MAP%02i = MAP%02i\n", map + 1, mus);
+							break;
+						case ap_game_t::heretic:
+							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, (mus / ap_map_count) + 1, (mus % ap_map_count) + 1);
+							break;
+					}
 				}
 			}
 		}

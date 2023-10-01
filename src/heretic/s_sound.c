@@ -30,6 +30,8 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+#include "apdoom.h"
+
 /*
 ===============================================================================
 
@@ -58,8 +60,12 @@ int AmbChan;
 void S_Start(void)
 {
     int i;
+    int mnum;
 
-    S_StartSong((gameepisode - 1) * 9 + gamemap - 1, true);
+    ap_level_state_t* level_state = ap_get_level_state(gameepisode, gamemap);
+    mnum = level_state->music;
+
+    S_StartSong(mnum, true);
 
     //stop all sounds
     for (i = 0; i < snd_Channels; i++)
