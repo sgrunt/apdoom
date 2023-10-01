@@ -325,10 +325,25 @@ void select_map_dir(int dir)
     float fromy = (float)level_pos_infos[selected_ep][from].y;
 
     int best = from;
+    int top_most = 200;
+    int top_most_idx = -1;
+    int bottom_most = 0;
+    int bottom_most_idx = -1;
     float best_score = 0.0f;
-
-    for (int i = 0; i < ap_map_count; ++i)
+    
+    int map_count = ap_get_map_count(selected_ep + 1);
+    for (int i = 0; i < map_count; ++i)
     {
+        if (level_pos_infos[selected_ep][i].y < top_most)
+        {
+            top_most = level_pos_infos[selected_ep][i].y;
+            top_most_idx = i;
+        }
+        if (level_pos_infos[selected_ep][i].y > bottom_most)
+        {
+            bottom_most = level_pos_infos[selected_ep][i].y;
+            bottom_most_idx = i;
+        }
         if (i == from) continue;
 
         float tox = (float)level_pos_infos[selected_ep][i].x;
@@ -362,6 +377,16 @@ void select_map_dir(int dir)
             best_score = score;
             best = i;
         }
+    }
+
+    // Are we at the top? go to the bottom
+    if (from == top_most_idx && dir == 2)
+    {
+        best = bottom_most_idx;
+    }
+    else if (from == bottom_most_idx && dir == 3)
+    {
+        best = top_most_idx;
     }
 
     if (best != from)
@@ -515,8 +540,9 @@ void DrawEpisodicLevelSelectStats()
     int x, y;
     const int key_spacing = 5;
     const int stat_y_offset = 8;
-
-    for (int i = 0; i < ap_map_count; ++i)
+    
+    int map_count = ap_get_map_count(selected_ep + 1);
+    for (int i = 0; i < map_count; ++i)
     {
         level_pos_t* level_pos = &level_pos_infos[selected_ep][i];
         ap_level_info_t* ap_level_info = ap_get_level_info(selected_ep + 1, i + 1);
