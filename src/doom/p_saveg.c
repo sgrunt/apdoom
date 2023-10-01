@@ -1483,6 +1483,7 @@ boolean P_ReadSaveGameHeader(void)
 	return false;				// bad version 
 
     gameskill = saveg_read8();
+    gameskill = (skill_t)ap_state.difficulty; // AP override that right away;
     gameepisode = saveg_read8();
     gamemap = saveg_read8();
 

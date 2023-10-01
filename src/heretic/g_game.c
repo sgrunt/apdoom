@@ -2073,6 +2073,7 @@ void G_DoLoadGame(void)
         return;
     }
     gameskill = SV_ReadByte();
+    gameskill = (skill_t)ap_state.difficulty; // AP override that right away;
     gameepisode = SV_ReadByte();
     gamemap = SV_ReadByte();
     for (i = 0; i < MAXPLAYERS; i++)
