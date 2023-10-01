@@ -31,6 +31,8 @@ static crispy_t crispy_s = {
 	.truecolor = 1,
 #endif
 	.vsync = 1,
+	.ap_automapicons = 1,
+	.ap_levelselectmusic = 1
 };
 crispy_t *const crispy = &crispy_s;
 

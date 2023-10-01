@@ -526,7 +526,10 @@ void ShowLevelSelect()
     if (gamestate == GS_LEVEL)
         G_DoSaveGame(); 
 
-    S_ChangeMusic(mus_read_m, true);
+    if (crispy->ap_levelselectmusic)
+        S_ChangeMusic(mus_read_m, true);
+    else
+        S_StopMusic();
 
     gameaction = ga_nothing;
     gamestate = GS_LEVEL_SELECT;

@@ -85,6 +85,10 @@ typedef struct
 	int vsync;
 	int widescreen;
 
+	// "APiness" config variables
+	int ap_automapicons;
+	int ap_levelselectmusic;
+
 	// [crispy] in-game switches and variables
 	int screenshotmsg;
 	int snowflakes;
@@ -190,6 +194,14 @@ enum
     DEMOTIMER_PLAYBACK,
     DEMOTIMER_BOTH,
     NUM_DEMOTIMERS
+};
+
+enum
+{
+    AP_AUTOMAPICON_OFF,
+    AP_AUTOMAPICON_COMPUTER_AREA_MAP,
+    AP_AUTOMAPICON_ALWAYS,
+    NUM_AP_AUTOMAPICON
 };
 
 enum

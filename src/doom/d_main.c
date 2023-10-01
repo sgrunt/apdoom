@@ -710,6 +710,8 @@ void D_BindVariables(void)
     M_BindIntVariable("crispy_defaultskill",    &crispy->defaultskill);
     M_BindIntVariable("crispy_demobar",         &crispy->demobar);
     M_BindIntVariable("crispy_demotimer",       &crispy->demotimer);
+    M_BindIntVariable("crispy_ap_automapicons", &crispy->ap_automapicons);
+    M_BindIntVariable("crispy_ap_levelselectmusic", &crispy->ap_levelselectmusic);
     M_BindIntVariable("crispy_demotimerdir",    &crispy->demotimerdir);
     M_BindIntVariable("crispy_extautomap",      &crispy->extautomap);
     M_BindIntVariable("crispy_flipcorpses",     &crispy->flipcorpses);

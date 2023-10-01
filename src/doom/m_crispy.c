@@ -95,6 +95,13 @@ multiitem_t multiitem_demotimer[NUM_DEMOTIMERS] =
     {DEMOTIMER_BOTH, "both"},
 };
 
+multiitem_t multiitem_ap_automapicons[NUM_AP_AUTOMAPICON] =
+{
+    {AP_AUTOMAPICON_OFF, "off"},
+    {AP_AUTOMAPICON_COMPUTER_AREA_MAP, "computer area map"},
+    {AP_AUTOMAPICON_ALWAYS, "always"}
+};
+
 multiitem_t multiitem_demotimerdir[] =
 {
     {0, "none"},
@@ -286,6 +293,25 @@ void M_CrispyToggleDemoBar(int choice)
 void M_CrispyToggleDemoTimer(int choice)
 {
     ChangeSettingEnum(&crispy->demotimer, choice, NUM_DEMOTIMERS);
+}
+
+void M_CrispyToggleAPAutomapIcons(int choice)
+{
+    ChangeSettingEnum(&crispy->ap_automapicons, choice, NUM_AP_AUTOMAPICON);
+}
+
+void M_CrispyToggleAPLevelSelectMusic(int choice)
+{
+    choice = 0;
+    crispy->ap_levelselectmusic = !crispy->ap_levelselectmusic;
+
+    if (gamestate == GS_LEVEL_SELECT)
+    {
+        if (crispy->ap_levelselectmusic)
+            S_ChangeMusic(mus_read_m, true);
+        else
+            S_StopMusic();
+    }
 }
 
 void M_CrispyToggleDemoTimerDir(int choice)

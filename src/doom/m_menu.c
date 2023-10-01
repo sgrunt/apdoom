@@ -653,6 +653,11 @@ enum
     crispness_demousetimer,
     crispness_sep_demos_,
 
+    crispness_sep_ap,
+    crispness_ap_automapicons,
+    crispness_ap_levelselectmusic,
+    crispness_sep_ap_,
+
     crispness4_next,
     crispness4_prev,
     crispness4_end
@@ -671,6 +676,10 @@ static menuitem_t Crispness4Menu[]=
     {3,"",	M_CrispyToggleDemoTimerDir,'a'},
     {3,"",	M_CrispyToggleDemoBar,'w'},
     {3,"",	M_CrispyToggleDemoUseTimer,'u'},
+    {-1,"",0,'\0'},
+    {-1,"",0,'\0'},
+    {3,"",	M_CrispyToggleAPAutomapIcons,'v'},
+    {3,"",	M_CrispyToggleAPLevelSelectMusic,'a'},
     {-1,"",0,'\0'},
     {1,"",	M_CrispnessNext,'n'},
     {1,"",	M_CrispnessPrev,'p'},
@@ -1722,17 +1731,19 @@ static void M_DrawCrispness4(void)
     M_DrawCrispnessHeader("Crispness 4/4");
 
     M_DrawCrispnessSeparator(crispness_sep_physical, "Physical");
-
     M_DrawCrispnessMultiItem(crispness_freeaim, "Vertical Aiming", multiitem_freeaim, crispy->freeaim, crispy->singleplayer);
     M_DrawCrispnessMultiItem(crispness_jumping, "Allow Jumping", multiitem_jump, crispy->jump, crispy->singleplayer);
     M_DrawCrispnessItem(crispness_overunder, "Walk over/under Monsters", crispy->overunder, crispy->singleplayer);
 
     M_DrawCrispnessSeparator(crispness_sep_demos, "Demos");
-
     M_DrawCrispnessMultiItem(crispness_demotimer, "Show Demo Timer", multiitem_demotimer, crispy->demotimer, true);
     M_DrawCrispnessMultiItem(crispness_demotimerdir, "Playback Timer Direction", multiitem_demotimerdir, crispy->demotimerdir + 1, crispy->demotimer & DEMOTIMER_PLAYBACK);
     M_DrawCrispnessItem(crispness_demobar, "Show Demo Progress Bar", crispy->demobar, true);
     M_DrawCrispnessItem(crispness_demousetimer, "\"Use\" Button Timer", crispy->btusetimer, true);
+
+    M_DrawCrispnessSeparator(crispness_sep_ap, "Archipelago");
+    M_DrawCrispnessMultiItem(crispness_ap_automapicons, "Automap AP Icons", multiitem_ap_automapicons, crispy->ap_automapicons, true);
+    M_DrawCrispnessItem(crispness_ap_levelselectmusic, "Level Select Music", crispy->ap_levelselectmusic, true);
 
     M_DrawCrispnessGoto(crispness4_next, "First Page >");
     M_DrawCrispnessGoto(crispness4_prev, "< Prev Page");
