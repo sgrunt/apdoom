@@ -1207,6 +1207,7 @@ void D_IdentifyVersion(void)
         else
         {
             gamemode = shareware;
+            I_Error("APDOOM is not compable with the shareware version.");
         }
     }
     else

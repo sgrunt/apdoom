@@ -1633,6 +1633,7 @@ void D_DoomMain(void)
     if (W_CheckNumForName(DEH_String("E2M1")) == -1)
     {
         gamemode = shareware;
+        I_Error("APDOOM is not compable with the shareware version.");
         gamedescription = "Heretic (shareware)";
     }
     else if (W_CheckNumForName("EXTENDED") != -1)
