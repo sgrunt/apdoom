@@ -33,7 +33,6 @@ namespace APDoomLauncher
             this.label1 = new System.Windows.Forms.Label();
             this.txtWidth = new System.Windows.Forms.TextBox();
             this.txtHeight = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
             this.chkFullscreen = new System.Windows.Forms.CheckBox();
             this.btnLaunchDOOM = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -49,6 +48,7 @@ namespace APDoomLauncher
             this.label4 = new System.Windows.Forms.Label();
             this.txtPlayer = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.btnOverrideSettings = new System.Windows.Forms.Button();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -64,9 +64,9 @@ namespace APDoomLauncher
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(48, 98);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(44, 17);
+            this.label1.Size = new System.Drawing.Size(75, 17);
             this.label1.TabIndex = 1;
-            this.label1.Text = "Width";
+            this.label1.Text = "Resolution";
             // 
             // txtWidth
             // 
@@ -79,21 +79,12 @@ namespace APDoomLauncher
             // 
             // txtHeight
             // 
-            this.txtHeight.Location = new System.Drawing.Point(197, 123);
+            this.txtHeight.Location = new System.Drawing.Point(303, 95);
             this.txtHeight.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtHeight.Name = "txtHeight";
             this.txtHeight.Size = new System.Drawing.Size(100, 22);
             this.txtHeight.TabIndex = 3;
             this.txtHeight.Text = "720";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(48, 126);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(49, 17);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Height";
             // 
             // chkFullscreen
             // 
@@ -120,6 +111,7 @@ namespace APDoomLauncher
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnOverrideSettings);
             this.groupBox1.Controls.Add(this.cboGame);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.label6);
@@ -127,13 +119,12 @@ namespace APDoomLauncher
             this.groupBox1.Controls.Add(this.txtWidth);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.chkFullscreen);
-            this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.txtHeight);
             this.groupBox1.Location = new System.Drawing.Point(101, 292);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.groupBox1.Size = new System.Drawing.Size(467, 201);
+            this.groupBox1.Size = new System.Drawing.Size(467, 211);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Game Settings";
@@ -141,6 +132,7 @@ namespace APDoomLauncher
             // cboGame
             // 
             this.cboGame.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboGame.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cboGame.FormattingEnabled = true;
             this.cboGame.Items.AddRange(new object[] {
             "Ultimate DOOM",
@@ -148,7 +140,7 @@ namespace APDoomLauncher
             "Heretic"});
             this.cboGame.Location = new System.Drawing.Point(197, 39);
             this.cboGame.Name = "cboGame";
-            this.cboGame.Size = new System.Drawing.Size(205, 24);
+            this.cboGame.Size = new System.Drawing.Size(206, 24);
             this.cboGame.TabIndex = 0;
             this.cboGame.SelectedIndexChanged += new System.EventHandler(this.cboGame_SelectedIndexChanged);
             // 
@@ -164,7 +156,7 @@ namespace APDoomLauncher
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(48, 154);
+            this.label6.Location = new System.Drawing.Point(48, 130);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(102, 17);
             this.label6.TabIndex = 6;
@@ -172,10 +164,10 @@ namespace APDoomLauncher
             // 
             // txtCommandLine
             // 
-            this.txtCommandLine.Location = new System.Drawing.Point(197, 151);
+            this.txtCommandLine.Location = new System.Drawing.Point(197, 127);
             this.txtCommandLine.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtCommandLine.Name = "txtCommandLine";
-            this.txtCommandLine.Size = new System.Drawing.Size(204, 22);
+            this.txtCommandLine.Size = new System.Drawing.Size(206, 22);
             this.txtCommandLine.TabIndex = 4;
             // 
             // groupBox2
@@ -186,7 +178,7 @@ namespace APDoomLauncher
             this.groupBox2.Controls.Add(this.label3);
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Controls.Add(this.txtPlayer);
-            this.groupBox2.Location = new System.Drawing.Point(101, 507);
+            this.groupBox2.Location = new System.Drawing.Point(101, 525);
             this.groupBox2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
@@ -201,7 +193,7 @@ namespace APDoomLauncher
             this.txtPassword.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.PasswordChar = '*';
-            this.txtPassword.Size = new System.Drawing.Size(203, 22);
+            this.txtPassword.Size = new System.Drawing.Size(204, 22);
             this.txtPassword.TabIndex = 7;
             // 
             // label5
@@ -218,7 +210,7 @@ namespace APDoomLauncher
             this.txtServer.Location = new System.Drawing.Point(199, 39);
             this.txtServer.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtServer.Name = "txtServer";
-            this.txtServer.Size = new System.Drawing.Size(203, 22);
+            this.txtServer.Size = new System.Drawing.Size(204, 22);
             this.txtServer.TabIndex = 5;
             this.txtServer.Text = "archipelago.gg:";
             // 
@@ -245,7 +237,7 @@ namespace APDoomLauncher
             this.txtPlayer.Location = new System.Drawing.Point(199, 66);
             this.txtPlayer.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtPlayer.Name = "txtPlayer";
-            this.txtPlayer.Size = new System.Drawing.Size(203, 22);
+            this.txtPlayer.Size = new System.Drawing.Size(204, 22);
             this.txtPlayer.TabIndex = 6;
             // 
             // label7
@@ -256,6 +248,16 @@ namespace APDoomLauncher
             this.label7.Size = new System.Drawing.Size(155, 17);
             this.label7.TabIndex = 9;
             this.label7.Text = "APDOOM 0.13.2 (beta)";
+            // 
+            // btnOverrideSettings
+            // 
+            this.btnOverrideSettings.Location = new System.Drawing.Point(197, 158);
+            this.btnOverrideSettings.Name = "btnOverrideSettings";
+            this.btnOverrideSettings.Size = new System.Drawing.Size(206, 30);
+            this.btnOverrideSettings.TabIndex = 8;
+            this.btnOverrideSettings.Text = "Advanced settings";
+            this.btnOverrideSettings.UseVisualStyleBackColor = true;
+            this.btnOverrideSettings.Click += new System.EventHandler(this.btnOverrideSettings_Click);
             // 
             // pictureBox3
             // 
@@ -330,7 +332,6 @@ namespace APDoomLauncher
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtWidth;
         private System.Windows.Forms.TextBox txtHeight;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox chkFullscreen;
         private System.Windows.Forms.Button btnLaunchDOOM;
         private System.Windows.Forms.GroupBox groupBox1;
@@ -348,6 +349,7 @@ namespace APDoomLauncher
         private System.Windows.Forms.ComboBox cboGame;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.PictureBox pictureBox3;
+        private System.Windows.Forms.Button btnOverrideSettings;
     }
 }
 

@@ -403,10 +403,21 @@ int apdoom_init(ap_settings_t* settings)
 
 	ap_settings = *settings;
 
+	if (ap_settings.override_skill)
+		ap_state.difficulty = ap_settings.skill;
+	if (ap_settings.override_monster_rando)
+		ap_state.random_monsters = ap_settings.monster_rando;
+	if (ap_settings.override_item_rando)
+		ap_state.random_items = ap_settings.item_rando;
+	if (ap_settings.override_flip_levels)
+		ap_state.flip_levels = ap_settings.flip_levels;
+	if (ap_settings.override_reset_level_on_death)
+		ap_state.reset_level_on_death = ap_settings.reset_level_on_death;
+
 	AP_NetworkVersion version = {0, 4, 1};
 	AP_SetClientVersion(&version);
     AP_Init(ap_settings.ip, ap_settings.game, ap_settings.player_name, ap_settings.passwd);
-	AP_SetDeathLinkSupported(true);
+	AP_SetDeathLinkSupported(ap_settings.force_deathlink_off ? false : true);
 	AP_SetItemClearCallback(f_itemclr);
 	AP_SetItemRecvCallback(f_itemrecv);
 	AP_SetLocationCheckedCallback(f_locrecv);
@@ -1138,24 +1149,36 @@ void f_locinfo(std::vector<AP_NetworkItem> loc_infos)
 
 void f_difficulty(int difficulty)
 {
+	if (ap_settings.override_skill)
+		return;
+
 	ap_state.difficulty = difficulty;
 }
 
 
 void f_random_monsters(int random_monsters)
 {
+	if (ap_settings.override_monster_rando)
+		return;
+
 	ap_state.random_monsters = random_monsters;
 }
 
 
 void f_random_items(int random_items)
 {
+	if (ap_settings.override_item_rando)
+		return;
+
 	ap_state.random_items = random_items;
 }
 
 
 void f_flip_levels(int flip_levels)
 {
+	if (ap_settings.override_flip_levels)
+		return;
+
 	ap_state.flip_levels = flip_levels;
 }
 
@@ -1168,6 +1191,9 @@ void f_check_sanity(int check_sanity)
 
 void f_reset_level_on_death(int reset_level_on_death)
 {
+	if (ap_settings.override_reset_level_on_death)
+		return;
+
 	ap_state.reset_level_on_death = reset_level_on_death;
 }
 

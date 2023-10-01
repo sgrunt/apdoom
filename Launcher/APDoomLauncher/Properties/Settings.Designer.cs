@@ -118,5 +118,149 @@ namespace APDoomLauncher.Properties {
                 this["Game"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int Difficulty {
+            get {
+                return ((int)(this["Difficulty"]));
+            }
+            set {
+                this["Difficulty"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int MonsterRando {
+            get {
+                return ((int)(this["MonsterRando"]));
+            }
+            set {
+                this["MonsterRando"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int ItemRando {
+            get {
+                return ((int)(this["ItemRando"]));
+            }
+            set {
+                this["ItemRando"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int FlipLevels {
+            get {
+                return ((int)(this["FlipLevels"]));
+            }
+            set {
+                this["FlipLevels"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ResetLevels {
+            get {
+                return ((bool)(this["ResetLevels"]));
+            }
+            set {
+                this["ResetLevels"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ForceDeathLinkOff {
+            get {
+                return ((bool)(this["ForceDeathLinkOff"]));
+            }
+            set {
+                this["ForceDeathLinkOff"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FastMonsters {
+            get {
+                return ((bool)(this["FastMonsters"]));
+            }
+            set {
+                this["FastMonsters"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideDifficulty {
+            get {
+                return ((bool)(this["OverrideDifficulty"]));
+            }
+            set {
+                this["OverrideDifficulty"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideMonsterRando {
+            get {
+                return ((bool)(this["OverrideMonsterRando"]));
+            }
+            set {
+                this["OverrideMonsterRando"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideItemRando {
+            get {
+                return ((bool)(this["OverrideItemRando"]));
+            }
+            set {
+                this["OverrideItemRando"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideFlipLevels {
+            get {
+                return ((bool)(this["OverrideFlipLevels"]));
+            }
+            set {
+                this["OverrideFlipLevels"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideResetLevel {
+            get {
+                return ((bool)(this["OverrideResetLevel"]));
+            }
+            set {
+                this["OverrideResetLevel"] = value;
+            }
+        }
     }
 }

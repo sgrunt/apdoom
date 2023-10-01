@@ -129,6 +129,13 @@ typedef struct
     void (*message_callback)(const char*);
     void (*give_item_callback)(int doom_type, int ep, int map);
     void (*victory_callback)();
+
+    int override_skill; int skill;
+    int override_monster_rando; int monster_rando;
+    int override_item_rando; int item_rando;
+    int override_flip_levels; int flip_levels;
+    int force_deathlink_off;
+    int override_reset_level_on_death; int reset_level_on_death;
 } ap_settings_t;
 
 

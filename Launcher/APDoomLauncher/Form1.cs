@@ -71,6 +71,15 @@ namespace APDoomLauncher
             }
             if (txtCommandLine.Text != "") command_line += " " + txtCommandLine.Text;
 
+            // Apply advanced settings
+            if (Settings.Default.OverrideDifficulty) command_line += " -skill " + (Settings.Default.Difficulty + 1);
+            if (Settings.Default.OverrideMonsterRando) command_line += " -apmonsterrando " + Settings.Default.MonsterRando;
+            if (Settings.Default.OverrideItemRando) command_line += " -apitemrando " + Settings.Default.ItemRando;
+            if (Settings.Default.OverrideFlipLevels) command_line += " -apfliplevels " + Settings.Default.FlipLevels;
+            if (Settings.Default.OverrideResetLevel) command_line += " -apresetlevelondeath " + (Settings.Default.ResetLevels ? 1 : 0);
+            if (Settings.Default.ForceDeathLinkOff) command_line += " -apdeathlinkoff";
+            if (Settings.Default.FastMonsters) command_line += " -fast";
+
             switch (cboGame.SelectedIndex)
             {
                 case 0:
@@ -129,6 +138,12 @@ namespace APDoomLauncher
                 case 1: pictureBox2.Visible = true; break;
                 case 2: pictureBox3.Visible = true; break;
             }
+        }
+
+        private void btnOverrideSettings_Click(object sender, EventArgs e)
+        {
+            AdvancedSettingsDOOM settingsForm = new AdvancedSettingsDOOM(cboGame.SelectedIndex);
+            settingsForm.ShowDialog();
         }
     }
 }

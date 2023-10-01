@@ -1142,6 +1142,8 @@ void D_DoomMain(void)
     int p;
     char file[256];
     char demolumpname[9];
+    ap_settings_t ap_settings;
+    memset(&ap_settings, 0, sizeof(ap_settings));
 
     I_PrintBanner(PACKAGE_STRING);
 
@@ -1299,7 +1301,9 @@ void D_DoomMain(void)
     if (p)
     {
         startskill = myargv[p + 1][0] - '1';
-        autostart = true;
+        //autostart = true; // Not in AP
+        ap_settings.override_skill = 1;
+        ap_settings.skill = startskill;
     }
 
     DEH_printf("Z_Init: Init zone memory allocation daemon.\n");
@@ -1342,11 +1346,42 @@ void D_DoomMain(void)
         if (strcmp(game_name, "heretic") == 0) mission = heretic;
     }
 
+    int monster_rando_id = M_CheckParmWithArgs("-apmonsterrando", 1);
+    if (monster_rando_id)
+    {
+        ap_settings.override_monster_rando = 1;
+        ap_settings.monster_rando = atoi(myargv[monster_rando_id + 1]);
+    }
+
+    int item_rando_id = M_CheckParmWithArgs("-apitemrando", 1);
+    if (item_rando_id)
+    {
+        ap_settings.override_item_rando = 1;
+        ap_settings.item_rando = atoi(myargv[item_rando_id + 1]);
+    }
+
+    // Not supported by heretic
+    //int flip_levels_id = M_CheckParmWithArgs("-apfliplevels", 1);
+    //if (flip_levels_id)
+    //{
+    //    ap_settings.override_flip_levels = 1;
+    //    ap_settings.flip_levels = myargv[flip_levels_id + 1];
+    //}
+
+    if (M_CheckParm("-apdeathlinkoff"))
+        ap_settings.force_deathlink_off = 1;
+
+    int reset_level_on_death_id = M_CheckParmWithArgs("-apresetlevelondeath", 1);
+    if (reset_level_on_death_id)
+    {
+        ap_settings.override_reset_level_on_death = 1;
+        ap_settings.reset_level_on_death = atoi(myargv[reset_level_on_death_id + 1]) ? 1 : 0;
+    }
+
     // Initialize AP
-    ap_settings_t settings;
-    settings.ip = myargv[apserver_arg_id + 1];
+    ap_settings.ip = myargv[apserver_arg_id + 1];
     if (mission == heretic)
-        settings.game = "Heretic";
+        ap_settings.game = "Heretic";
 
     char* player_name = myargv[applayer_arg_id + 1];
     if (player_is_hex)
@@ -1360,13 +1395,13 @@ void D_DoomMain(void)
         }
         player_name[len] = '\0';
     }
-    settings.player_name = player_name;
+    ap_settings.player_name = player_name;
 
-    settings.passwd = password;
-    settings.message_callback = on_ap_message;
-    settings.give_item_callback = on_ap_give_item;
-    settings.victory_callback = on_ap_victory;
-    if (!apdoom_init(&settings))
+    ap_settings.passwd = password;
+    ap_settings.message_callback = on_ap_message;
+    ap_settings.give_item_callback = on_ap_give_item;
+    ap_settings.victory_callback = on_ap_victory;
+    if (!apdoom_init(&ap_settings))
     {
 	    I_Error("Failed to initialize Archipelago.");
     }
