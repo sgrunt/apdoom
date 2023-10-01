@@ -4,9 +4,8 @@
 #include "apdoom.h"
 #include "apdoom_def_types.h"
 #include <map>
-
-
 #include <string>
+#include <vector>
 
 
 const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, int64_t /* loc id */>>> ap_heretic_location_table = {
