@@ -299,14 +299,15 @@ void select_map_dir(int dir)
     int map_count = ap_get_map_count(selected_ep + 1);
     for (int i = 0; i < map_count; ++i)
     {
-        if (level_pos_infos[selected_ep][i].y < top_most)
+        level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
+        if (level_pos->y < top_most)
         {
-            top_most = level_pos_infos[selected_ep][i].y;
+            top_most = level_pos->y;
             top_most_idx = i;
         }
-        if (level_pos_infos[selected_ep][i].y > bottom_most)
+        if (level_pos->y > bottom_most)
         {
-            bottom_most = level_pos_infos[selected_ep][i].y;
+            bottom_most = level_pos->y;
             bottom_most_idx = i;
         }
         if (i == from) continue;
