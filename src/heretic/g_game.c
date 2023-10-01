@@ -1681,6 +1681,31 @@ void G_DeathMatchSpawnPlayer(int playernum)
 extern int leveltimesinceload;
 boolean killed_from_menu = false;
 
+void on_spawn_ap_states()
+{
+    set_ap_player_states();
+    player_t* p = &players[consoleplayer];
+    for (int i = 0; i < NUMWEAPONS; ++i)
+    {
+        p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+        if (p->weaponowned[i])
+        {
+            switch (i)
+            {
+                case wp_goldwand: p->ammo[am_goldwand] = max(p->ammo[am_goldwand], 50); break;
+                case wp_crossbow: p->ammo[am_crossbow] = max(p->ammo[am_crossbow], 30); break;
+                case wp_blaster: p->ammo[am_blaster] = max(p->ammo[am_blaster], 50); break;
+                case wp_skullrod: p->ammo[am_skullrod] = max(p->ammo[am_skullrod], 150); break;
+                case wp_phoenixrod: p->ammo[am_phoenixrod] = max(p->ammo[am_phoenixrod], 10); break;
+                case wp_mace: p->ammo[am_mace] = max(p->ammo[am_mace], 150); break;
+            }
+        }
+    }
+    p->health = 100;
+    if (p->mo) p->mo->health = p->health;
+    leveltimesinceload = min(leveltimesinceload, 175);
+}
+
 void G_DoReborn(int playernum)
 {
     int i;
@@ -1704,27 +1729,7 @@ void G_DoReborn(int playernum)
         if (G_CheckSpot(playernum, &playerstarts[playernum]))
         {
             P_SpawnPlayer(&playerstarts[playernum]);
-            set_ap_player_states();
-            player_t* p = &players[consoleplayer];
-            for (i = 0; i < NUMWEAPONS; ++i)
-            {
-                p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
-                if (p->weaponowned[i])
-                {
-                    switch (i)
-                    {
-                        case wp_goldwand: p->ammo[am_goldwand] = max(p->ammo[am_goldwand], 50); break;
-                        case wp_crossbow: p->ammo[am_crossbow] = max(p->ammo[am_crossbow], 30); break;
-                        case wp_blaster: p->ammo[am_blaster] = max(p->ammo[am_blaster], 50); break;
-                        case wp_skullrod: p->ammo[am_skullrod] = max(p->ammo[am_skullrod], 150); break;
-                        case wp_phoenixrod: p->ammo[am_phoenixrod] = max(p->ammo[am_phoenixrod], 10); break;
-                        case wp_mace: p->ammo[am_mace] = max(p->ammo[am_mace], 150); break;
-                    }
-                }
-            }
-            p->health = 100;
-            if (p->mo) p->mo->health = p->health;
-            leveltimesinceload = min(leveltimesinceload, 175);
+            on_spawn_ap_states();
             return;
         }
         // try to spawn at one of the other players spots
@@ -1734,10 +1739,12 @@ void G_DoReborn(int playernum)
                 playerstarts[i].type = playernum + 1;   // fake as other player
                 P_SpawnPlayer(&playerstarts[i]);
                 playerstarts[i].type = i + 1;   // restore
+                on_spawn_ap_states();
                 return;
             }
         // he's going to be inside something.  Too bad.
         P_SpawnPlayer(&playerstarts[playernum]);
+        on_spawn_ap_states();
     }
 }
 
