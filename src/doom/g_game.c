@@ -1737,6 +1737,31 @@ static inline void G_ClearSavename ()
     M_StringCopy(savename, "", sizeof(savename));
 }
 
+
+void on_spawn_ap_states()
+{
+    set_ap_player_states();
+    player_t* p = &players[consoleplayer];
+    for (int i = 0; i < NUMWEAPONS; ++i)
+    {
+        p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
+        if (p->weaponowned[i])
+        {
+            switch (i)
+            {
+                case wp_pistol: p->ammo[am_clip] = max(p->ammo[am_clip], deh_initial_bullets); break;
+                case wp_shotgun: p->ammo[am_shell] = max(p->ammo[am_shell], 30); break;
+                case wp_missile: p->ammo[am_misl] = max(p->ammo[am_misl], 10); break;
+                case wp_plasma: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
+                case wp_bfg: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
+            }
+        }
+    }
+    p->neghealth = p->health = deh_initial_health;
+    if (p->mo) p->mo->health = p->health;
+    leveltimesinceload = min(leveltimesinceload, 175);
+}
+
 //
 // G_DoReborn 
 // 
@@ -1774,29 +1799,10 @@ void G_DoReborn (int playernum)
 	    return; 
 	} 
 		 
-	if (G_CheckSpot (playernum, &playerstarts[playernum]) ) 
+	if (G_CheckSpot (playernum, &playerstarts[playernum]) )
 	{ 
-	    P_SpawnPlayer (&playerstarts[playernum]); 
-        set_ap_player_states();
-        player_t* p = &players[consoleplayer];
-        for (i = 0; i < NUMWEAPONS; ++i)
-        {
-            p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
-            if (p->weaponowned[i])
-            {
-                switch (i)
-                {
-                    case wp_pistol: p->ammo[am_clip] = max(p->ammo[am_clip], deh_initial_bullets); break;
-                    case wp_shotgun: p->ammo[am_shell] = max(p->ammo[am_shell], 30); break;
-                    case wp_missile: p->ammo[am_misl] = max(p->ammo[am_misl], 10); break;
-                    case wp_plasma: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
-                    case wp_bfg: p->ammo[am_cell] = max(p->ammo[am_cell], 150); break;
-                }
-            }
-        }
-        p->neghealth = p->health = deh_initial_health;
-        if (p->mo) p->mo->health = p->health;
-        leveltimesinceload = min(leveltimesinceload, 175);
+	    P_SpawnPlayer (&playerstarts[playernum]);
+        on_spawn_ap_states();
 	    return; 
 	}
 	
@@ -1808,11 +1814,15 @@ void G_DoReborn (int playernum)
 		playerstarts[i].type = playernum+1;	// fake as other player 
 		P_SpawnPlayer (&playerstarts[i]); 
 		playerstarts[i].type = i+1;		// restore 
+        on_spawn_ap_states();
 		return; 
 	    }	    
 	    // he's going to be inside something.  Too bad.
 	}
+
+    // Force spawn here then?
 	P_SpawnPlayer (&playerstarts[playernum]); 
+    on_spawn_ap_states();
     } 
 } 
  
