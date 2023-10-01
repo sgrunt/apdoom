@@ -75,6 +75,7 @@ typedef enum
     MENU_MOUSE,
     MENU_CRISPNESS1,
     MENU_CRISPNESS2,
+    MENU_CRISPNESS3,
     MENU_INGAME,
     MENU_NONE
 } MenuType_t;
@@ -144,6 +145,8 @@ static boolean CrispyDefaultskill(int option);
 static boolean CrispyUncapped(int option);
 static boolean CrispyFpsLimit(int option);
 static boolean CrispyVsync(int option);
+static boolean CrispyAPAutomapIcons(int option);
+static boolean CrispyAPLevelSelectMusic(int option);
 static boolean CrispyNextPage(int option);
 static boolean CrispyPrevPage(int option);
 static void DrawInGameMenu(void);
@@ -162,6 +165,7 @@ static void DrawMouseMenu(void);
 static void DrawCrispness(void);
 static void DrawCrispness1(void);
 static void DrawCrispness2(void);
+static void DrawCrispness3(void);
 void MN_LoadSlotText(void);
 static boolean SCLevelSelect(int option);
 static boolean SCKill(int option);
@@ -370,7 +374,7 @@ static Menu_t Options2Menu = {
 
 static int crispnessmenupage;
 
-#define NUM_CRISPNESS_MENUS 2
+#define NUM_CRISPNESS_MENUS 3
 
 static MenuItem_t Crispness1Items[] = {
     {ITT_LRFUNC2, "HIGH RESOLUTION RENDERING:", CrispyHires, 0, MENU_NONE},
@@ -411,13 +415,29 @@ static MenuItem_t Crispness2Items[] = {
     {ITT_LRFUNC2, "WEAPON ATTACK ALIGNMENT:", CrispyCenterWeapon, 0, MENU_NONE},
     {ITT_LRFUNC2, "DEFAULT DIFFICULTY:", CrispyDefaultskill, 0, MENU_NONE},
     {ITT_EMPTY, NULL, NULL, 0, MENU_NONE},
+    {ITT_EFUNC, "NEXT PAGE", CrispyNextPage, 0, MENU_NONE},
     {ITT_EFUNC, "PREV PAGE", CrispyPrevPage, 0, MENU_NONE},
 };
 
 static Menu_t Crispness2Menu = {
     68, 35,
     DrawCrispness,
-    13, Crispness2Items,
+    14, Crispness2Items,
+    0,
+    MENU_OPTIONS
+};
+
+static MenuItem_t Crispness3Items[] = {
+    {ITT_LRFUNC2, "SCROLL MAP ICONS:", CrispyAPAutomapIcons, 0, MENU_NONE},
+    {ITT_LRFUNC2, "LEVEL SELECT MUSIC:", CrispyAPLevelSelectMusic, 0, MENU_NONE},
+    {ITT_EMPTY, NULL, NULL, 0, MENU_NONE},
+    {ITT_EFUNC, "PREV PAGE", CrispyPrevPage, 0, MENU_NONE},
+};
+
+static Menu_t Crispness3Menu = {
+    68, 35,
+    DrawCrispness,
+    4, Crispness3Items,
     0,
     MENU_OPTIONS
 };
@@ -425,11 +445,13 @@ static Menu_t Crispness2Menu = {
 static void (*CrispnessMenuDrawers[])(void) = {
     &DrawCrispness1,
     &DrawCrispness2,
+    &DrawCrispness3,
 };
 
 static MenuType_t CrispnessMenus[] = {
     MENU_CRISPNESS1,
     MENU_CRISPNESS2,
+    MENU_CRISPNESS3,
 };
 
 static const multiitem_t multiitem_bobfactor[NUM_BOBFACTORS] =
@@ -500,6 +522,13 @@ static const multiitem_t multiitem_sndchannels[3] =
     {32, "32"},
 };
 
+static const multiitem_t multiitem_ap_automapicons[NUM_AP_AUTOMAPICON] =
+{
+    {AP_AUTOMAPICON_OFF, "off"},
+    {AP_AUTOMAPICON_COMPUTER_AREA_MAP, "map scroll"},
+    {AP_AUTOMAPICON_ALWAYS, "always"}
+};
+
 static Menu_t *Menus[] = {
     &MainMenu,
     &EpisodeMenu,
@@ -512,6 +541,7 @@ static Menu_t *Menus[] = {
     &MouseMenu,
     &Crispness1Menu,
     &Crispness2Menu,
+    &Crispness3Menu
 };
 
 // [crispy] reload current level / go to next level
@@ -1837,6 +1867,29 @@ static boolean CrispyMouselook(int option)
     return true;
 }
 
+static boolean CrispyAPAutomapIcons(int option)
+{
+    ChangeSettingEnum(&crispy->ap_automapicons, option, NUM_AP_AUTOMAPICON);
+    return true;
+}
+
+static boolean CrispyAPLevelSelectMusic(int option)
+{
+    crispy->ap_levelselectmusic = !crispy->ap_levelselectmusic;
+    if (gamestate == GS_LEVEL_SELECT)
+    {
+        if (crispy->ap_levelselectmusic)
+            S_StartSong(mus_intr, true);
+        else
+        {
+            extern int mus_song;
+            mus_song = -1;
+            I_StopSong();
+        }
+    }
+    return true;
+}
+
 static boolean CrispyBobfactor(int option)
 {
     ChangeSettingEnum(&crispy->bobfactor, option, NUM_BOBFACTORS);
@@ -2910,7 +2963,7 @@ static void DrawCrispnessNumericItem(int item, int x, int y, const char *zero,
 
 static void DrawCrispness1(void)
 {
-    DrawCrispnessHeader("CRISPNESS 1/2");
+    DrawCrispnessHeader("CRISPNESS 1/3");
 
     DrawCrispnessSubheader("RENDERING", 25);
 
@@ -2948,7 +3001,7 @@ static void DrawCrispness1(void)
 
 static void DrawCrispness2(void)
 {
-    DrawCrispnessHeader("CRISPNESS 2/2");
+    DrawCrispnessHeader("CRISPNESS 2/3");
 
     DrawCrispnessSubheader("NAVIGATIONAL", 25);
 
@@ -2980,4 +3033,18 @@ static void DrawCrispness2(void)
 
     // Default difficulty
     DrawCrispnessMultiItem(crispy->defaultskill, 200, 135, multiitem_difficulties, false);
+}
+
+
+static void DrawCrispness3(void)
+{
+    DrawCrispnessHeader("CRISPNESS 3/3");
+
+    DrawCrispnessSubheader("ARCHIPELAGO", 25);
+
+    // Show AP icons in automap
+    DrawCrispnessMultiItem(crispy->ap_automapicons, 190, 35, multiitem_ap_automapicons, false);
+
+    // Play music in level select screen
+    DrawCrispnessItem(crispy->ap_levelselectmusic, 200, 45);
 }

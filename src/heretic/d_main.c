@@ -1108,6 +1108,8 @@ void D_BindVariables(void)
     M_BindIntVariable("crispy_uncapped",        &crispy->uncapped);
     M_BindIntVariable("crispy_vsync",           &crispy->vsync);
     M_BindIntVariable("crispy_widescreen",      &crispy->widescreen);
+    M_BindIntVariable("crispy_ap_automapicons", &crispy->ap_automapicons);
+    M_BindIntVariable("crispy_ap_levelselectmusic", &crispy->ap_levelselectmusic);
 }
 
 // 

@@ -1994,7 +1994,7 @@ void AM_Drawer(void)
     if (cheating == 2)
         AM_drawThings(THINGCOLORS, THINGRANGE);
 
-    if (plr->powers[pw_allmap] && !crispy->automapoverlay)
+    if (((plr->powers[pw_allmap] && crispy->ap_automapicons == 1) || crispy->ap_automapicons == 2) && !crispy->automapoverlay)
         AM_drawLocations();
 
 //  AM_drawCrosshair(XHAIRCOLORS);
