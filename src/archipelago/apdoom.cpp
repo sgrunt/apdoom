@@ -909,7 +909,7 @@ void load_state()
 
 static Json::Value serialize_level(int ep, int map)
 {
-	auto level_state = ap_get_level_state(ap_level_index_t{ep, map});
+	auto level_state = ap_get_level_state(ap_level_index_t{ep - 1, map - 1});
 
 	Json::Value json_level;
 
