@@ -1495,9 +1495,115 @@ void apdoom_check_victory()
 
 void apdoom_send_message(const char* msg)
 {
+	std::string smsg = msg;
+	if (strnicmp(msg, "!hint ", 6) == 0)
+	{
+		// Make the hint easier.
+		// Find an E#M# in the text
+		for (size_t i = 6; i < smsg.size() - 4; ++i)
+		{
+			ap_level_info_t* level_info = nullptr;
+
+			if (toupper(smsg[i]) == 'E' &&
+				toupper(smsg[i + 2]) == 'M' &&
+				(smsg[i + 1] - '0') >= 1 && (smsg[i + 1] - '0') <= 9 &&
+				(smsg[i + 3] - '0') >= 1 && (smsg[i + 3] - '0') <= 9)
+			{
+				// Find the level name
+				int ep = smsg[i + 1] - '1';
+				int map = smsg[i + 3] - '1';
+				level_info = ap_get_level_info(ap_level_index_t{ep, map});
+			}
+
+			if (toupper(smsg[i]) == 'M' &&
+				toupper(smsg[i + 1]) == 'A' &&
+				toupper(smsg[i + 2]) == 'P' &&
+				(smsg[i + 3] - '0') >= 0 && (smsg[i + 3] - '0') <= 3 &&
+				(smsg[i + 4] - '0') >= 0 && (smsg[i + 4] - '0') <= 9)
+			{
+				// Find the level name
+				int ep = 1;
+				int map = smsg[i + 4] + (smsg[i + 3] - '0') * 10;
+				level_info = ap_get_level_info(ap_make_level_index(ep, map));
+			}
+
+			if (level_info)
+			{
+				std::string level_name = level_info->name;
+
+				// Check what it's looking for. Computer area map? map scroll?
+				if (smsg.find("map") != std::string::npos || smsg.find("MAP") != std::string::npos)
+				{
+					switch (ap_game)
+					{
+						case ap_game_t::doom:
+						case ap_game_t::doom2:
+							smsg = "!hint " + level_name + " - Computer area map";
+							break;
+						case ap_game_t::heretic:
+							smsg = "!hint " + level_name + " - Map scroll";
+							break;
+					}
+				}
+				else if (smsg.find("blue") != std::string::npos || smsg.find("BLUE") != std::string::npos)
+				{
+					switch (ap_game)
+					{
+						case ap_game_t::doom:
+						case ap_game_t::doom2:
+							smsg = "!hint " + level_name + " - Blue " + (level_info->use_skull[0] ? "skull key" : "keycard");
+							break;
+						case ap_game_t::heretic:
+							smsg = "!hint " + level_name + " - Blue key";
+							break;
+					}
+				}
+				else if (smsg.find("yellow") != std::string::npos || smsg.find("YELLOW") != std::string::npos)
+				{
+					switch (ap_game)
+					{
+						case ap_game_t::doom:
+						case ap_game_t::doom2:
+							smsg = "!hint " + level_name + " - Yellow " + (level_info->use_skull[1] ? "skull key" : "keycard");
+							break;
+						case ap_game_t::heretic:
+							smsg = "!hint " + level_name + " - Yellow key";
+							break;
+					}
+				}
+				else if (smsg.find("red") != std::string::npos || smsg.find("RED") != std::string::npos)
+				{
+					switch (ap_game)
+					{
+						case ap_game_t::doom:
+						case ap_game_t::doom2:
+							smsg = "!hint " + level_name + " - Red " + (level_info->use_skull[0] ? "skull key" : "keycard");
+							break;
+						case ap_game_t::heretic:
+							break;
+					}
+				}
+				else if (smsg.find("green") != std::string::npos || smsg.find("GREEN") != std::string::npos)
+				{
+					switch (ap_game)
+					{
+						case ap_game_t::doom:
+						case ap_game_t::doom2:
+							break;
+						case ap_game_t::heretic:
+							smsg = "!hint " + level_name + " - Green key";
+							break;
+					}
+				}
+
+				break;
+			}
+		}
+	}
+
 	Json::Value say_packet;
 	say_packet[0]["cmd"] = "Say";
-	say_packet[0]["text"] = msg;
+	say_packet[0]["text"] = smsg;
 	Json::FastWriter writer;
 	APSend(writer.write(say_packet));
 }
