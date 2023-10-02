@@ -959,8 +959,9 @@ void P_LoadThings(int lump)
         spawnthing.type = SHORT(things_type_remap[i]);
         spawnthing.options = SHORT(mt->options);
 
-        // [AP] Cannot spawn player at the top of the waterfalls, no way to come back
+        // [AP] Rarely, but sometimes we need to move the spawning at the bottom of a clift.
         if (spawnthing.type == 1 && gamemap == 3 && gameepisode == 3) spawnthing.y = -1088;
+        if (spawnthing.type == 1 && gamemap == 5 && gameepisode == 5) spawnthing.x = 320;
         
         int type_before = spawnthing.type;
 

@@ -177,20 +177,20 @@ static level_pos_t level_pos_infos[5][9] =
 
     // Episode 5
     {
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 },
-        { 0, 0, "IN_YAH", 0, 0, 1 }
+        { 40, 15 + 21 * 0, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 1, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 2, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 3, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 4, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 5, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 6, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 7, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 8, "IN_YAH", 0, 0, 1 }
     }
 };
 
 
-int selected_level[4] = {0};
+int selected_level[5] = {0};
 int selected_ep = 0;
 int prev_ep = 0;
 int ep_anim = 0;
@@ -700,8 +700,8 @@ static const char* WIN_MAPS[5] = {
     "MAPE1",
     "MAPE2",
     "MAPE3",
-    "INTER4",
-    "INTER4"
+    "MAPE4",
+    "MAPE5"
 };
 
 
