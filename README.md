@@ -15,9 +15,21 @@ To be used with [Archipelago](archipelago.gg).
 5. Run APDoomLauncher.exe.
 6. Rip and tear!
 
-### DOOM.WAD
+### WAD files
 
-The rules were built using the WAD file found in the Steam release of DOOM. It wasn't tested with other WAD files, but if the levels are identical, it should work. Shareware DOOM1.WAD won't work yet. Episode selection options still not implemented.
+The rules were built using the WAD file found in the Steam release of DOOM 1993, DOOM II and Heretic. It wasn't tested with other WAD files, but if the levels are identical, it should work. Shareware (i.e.: DOOM1.WAD) won't work.
+
+### Hinting
+
+To hint from in game, open the chat (Default key: 'T'). Hinting from DOOM and Heretic can be difficult because names are rather long, with special characters. For example:
+```
+!hint Toxin Refinery (E1M3) - Computer area map
+```
+The game has a hint helper implemented, where you can simply type this:
+```
+!hint e1m3 map
+```
+For this to work, include the map short name (`E1M1`, `MAP01`), followed by one of the keywords: `map`, `blue`, `yellow`, `red`, `green`.
 
 ## Archiving a Release
 
