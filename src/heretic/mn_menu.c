@@ -734,27 +734,29 @@ void MN_DrTextA(const char *text, int x, int y)
 
 int MN_TextAWidth(const char *text)
 {
-    char c;
+    char c, C;
     int width;
     patch_t *p;
 
     width = 0;
-    while ((c = *text++) != 0)
+    while ((c = *text) != 0)
     {
         if (c == '~')
         {
-            text++;
+            text += 2;
             continue;
         }
-        if (c < 33)
+        C = toupper(c);
+        if (c < 33 || C > 91)
         {
-            width += 5;
+            width += 4;
         }
         else
         {
-            p = W_CacheLumpNum(FontABaseLump + c - 33, PU_CACHE);
+            p = W_CacheLumpNum(FontABaseLump + C - 33, PU_CACHE);
             width += SHORT(p->width) - 1;
         }
+        text++;
     }
     return (width);
 }
@@ -762,27 +764,31 @@ int MN_TextAWidth(const char *text)
 
 int MN_TextAWidth_len(const char *text, int len)
 {
-    char c;
+    char c, C;
     int width;
     patch_t *p;
 
     width = 0;
-    while ((c = *text++) != 0 && len-- != 0)
+    while ((c = *text) != 0 && len > 0)
     {
         if (c == '~')
         {
-            text++;
+            text += 2;
+            len -= 2;
             continue;
         }
-        if (c < 33)
+        C = toupper(c);
+        if (c < 33 || C > 91)
         {
-            width += 5;
+            width += 4;
         }
         else
         {
-            p = FontAColoredLumps[0][c - '!'];
+            p = W_CacheLumpNum(FontABaseLump + C - 33, PU_CACHE);
             width += SHORT(p->width) - 1;
         }
+        text++;
+        len--;
     }
     return (width);
 }
