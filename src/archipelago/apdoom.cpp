@@ -197,6 +197,7 @@ void f_itemclr();
 void f_itemrecv(int64_t item_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
 void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
+void f_goal(int);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
@@ -478,6 +479,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetItemRecvCallback(f_itemrecv);
 	AP_SetLocationCheckedCallback(f_locrecv);
 	AP_SetLocationInfoCallback(f_locinfo);
+	AP_RegisterSlotDataIntCallback("goal", f_goal);
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
@@ -1273,6 +1275,12 @@ void f_locinfo(std::vector<AP_NetworkItem> loc_infos)
 }
 
 
+void f_goal(int goal)
+{
+	ap_state.goal = goal;
+}
+
+
 void f_difficulty(int difficulty)
 {
 	if (ap_settings.override_skill)
@@ -1475,14 +1483,26 @@ void apdoom_check_victory()
 {
 	if (ap_state.victory) return;
 
-	for (int ep = 0; ep < ap_episode_count; ++ep)
+	if (ap_state.goal == 1 && ap_game == ap_game_t::doom)
 	{
-		if (!ap_state.episodes[ep]) continue;
-		
-		int map_count = ap_get_map_count(ep + 1);
-		for (int map = 0; map < map_count; ++map)
+		for (int ep = 0; ep < ap_episode_count; ++ep)
 		{
-			if (!ap_get_level_state(ap_level_index_t{ep, map})->completed) return;
+			if (!ap_state.episodes[ep]) continue;
+			if (!ap_get_level_state(ap_level_index_t{ep, 7})->completed) return;
+		}
+	}
+	else
+	{
+		// All levels
+		for (int ep = 0; ep < ap_episode_count; ++ep)
+		{
+			if (!ap_state.episodes[ep]) continue;
+		
+			int map_count = ap_get_map_count(ep + 1);
+			for (int map = 0; map < map_count; ++map)
+			{
+				if (!ap_get_level_state(ap_level_index_t{ep, map})->completed) return;
+			}
 		}
 	}
 

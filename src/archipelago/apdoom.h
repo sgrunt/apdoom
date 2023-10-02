@@ -118,6 +118,7 @@ typedef struct
     int flip_levels;
     int check_sanity;
     int reset_level_on_death;
+    int goal;
     
 } ap_state_t;
 
