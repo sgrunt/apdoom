@@ -38,6 +38,7 @@ typedef struct
     char* urhere_lump_name;
     int urhere_x_offset;
     int urhere_y_offset;
+    int display_as_line;
 } level_pos_t;
 
 
@@ -163,28 +164,28 @@ static level_pos_t level_pos_infos[5][9] =
 
     // Episode 4
     {
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 }
+        { 40, 15 + 21 * 0, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 1, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 2, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 3, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 4, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 5, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 6, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 7, "IN_YAH", 0, 0, 1 },
+        { 40, 15 + 21 * 8, "IN_YAH", 0, 0, 1 }
     },
 
     // Episode 5
     {
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 },
-        { 0, 0, "IN_YAH", 0, 0 }
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 },
+        { 0, 0, "IN_YAH", 0, 0, 1 }
     }
 };
 
@@ -478,6 +479,8 @@ void G_DoSaveGame(void);
 
 void ShowLevelSelect()
 {
+    HU_ClearAPMessages();
+
     // If in a level, save current level
     if (gamestate == GS_LEVEL)
         G_DoSaveGame(); 
@@ -565,54 +568,115 @@ void DrawEpisodicLevelSelectStats()
 
         const int key_start_offset = -key_spacing * key_count / 2 + (3 - key_count) * 2;
         
-        // Level complete splash
-        if (ap_level_state->completed)
-            V_DrawPatch(x, y, W_CacheLumpName("IN_X", PU_CACHE));
-
-        // Lock
-        if (!ap_level_state->unlocked)
-            V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
-
-        // Keys
-        const char* key_lump_names[] = {"SELKEYY", "SELKEYG", "SELKEYB"};
-        int key_y = y + key_start_offset - 1;
-        int key_x = x + 9;
-        for (int k = 0; k < 3; ++k)
+        if (level_pos->display_as_line)
         {
-            if (ap_level_info->keys[k])
+            // Text
+            const char* level_name = level_names[selected_ep][i];
+
+            // Remove the '- E1M1' at the end
+            char name[80];
+            snprintf(name, 80, "%s", level_name);
+            for (int i = 0; i < 80; ++i)
             {
-                const char* key_lump_name = key_lump_names[k];
-                V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
-                if (ap_level_state->keys[k])
-                    V_DrawPatch(key_x, key_y, W_CacheLumpName(key_lump_name, PU_CACHE));
-                key_y += key_spacing;
+                if (name[i] == '-')
+                {
+                    name[i] = '\0';
+                    break;
+                }
             }
+
+            int text_w = MN_TextBWidth(name);
+            MN_DrTextB(name, x + 20, y - 10);
+        
+            // Level complete splash
+            if (ap_level_state->completed)
+                V_DrawPatch(x, y, W_CacheLumpName("IN_X", PU_CACHE));
+
+            // Lock
+            if (!ap_level_state->unlocked)
+                V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
+
+            // Keys
+            const char* key_lump_names[] = {"SELKEYY", "SELKEYG", "SELKEYB"};
+            int key_y = y + key_start_offset - 1;
+            int key_x = x + 9;
+            for (int k = 0; k < 3; ++k)
+            {
+                if (ap_level_info->keys[k])
+                {
+                    const char* key_lump_name = key_lump_names[k];
+                    V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
+                    if (ap_level_state->keys[k])
+                        V_DrawPatch(key_x, key_y, W_CacheLumpName(key_lump_name, PU_CACHE));
+                    key_y += key_spacing;
+                }
+            }
+
+            // Progress
+            print_right_aligned_yellow_digit(x + 30 + text_w - 4, y - 1, ap_level_state->check_count);
+            V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("STYSLASH", PU_CACHE));
+            print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+        }
+        else
+        {
+            // Level complete splash
+            if (ap_level_state->completed)
+                V_DrawPatch(x, y, W_CacheLumpName("IN_X", PU_CACHE));
+
+            // Lock
+            if (!ap_level_state->unlocked)
+                V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
+
+            // Keys
+            const char* key_lump_names[] = {"SELKEYY", "SELKEYG", "SELKEYB"};
+            int key_y = y + key_start_offset - 1;
+            int key_x = x + 9;
+            for (int k = 0; k < 3; ++k)
+            {
+                if (ap_level_info->keys[k])
+                {
+                    const char* key_lump_name = key_lump_names[k];
+                    V_DrawPatch(key_x, key_y, W_CacheLumpName("KEYBG", PU_CACHE));
+                    if (ap_level_state->keys[k])
+                        V_DrawPatch(key_x, key_y, W_CacheLumpName(key_lump_name, PU_CACHE));
+                    key_y += key_spacing;
+                }
+            }
+
+            // Progress
+            print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
+            V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
+            print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+        }
+    }
+
+    level_pos_t* selected_level_pos = &level_pos_infos[selected_ep][selected_level[selected_ep]];
+    if (!selected_level_pos->display_as_line)
+    {
+        // "You are here"
+        if (urh_anim < 25)
+        {
+            x = selected_level_pos->x;
+            y = selected_level_pos->y;
+            int x_offset = 2;
+            int y_offset = -2;
+            V_DrawPatch(x + x_offset + selected_level_pos->urhere_x_offset, 
+                        y + y_offset + selected_level_pos->urhere_y_offset, 
+                        W_CacheLumpName(selected_level_pos->urhere_lump_name, PU_CACHE));
         }
 
-        // Progress
-        print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
-        V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-        print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+        // Level name
+        const char* level_name = level_names[selected_ep][selected_level[selected_ep]];
+        int text_x = 160 - MN_TextBWidth(level_name) / 2;
+        int text_y = 200 - 20;
+        MN_DrTextB(level_name, text_x, text_y);
     }
-
-    // "You are here"
-    if (urh_anim < 25)
+    else
     {
-        level_pos_t* level_pos = &level_pos_infos[selected_ep][selected_level[selected_ep]];
-        x = level_pos->x;
-        y = level_pos->y;
-        int x_offset = 2;
-        int y_offset = -2;
-        V_DrawPatch(x + x_offset + level_pos->urhere_x_offset, 
-                    y + y_offset + level_pos->urhere_y_offset, 
-                    W_CacheLumpName(level_pos->urhere_lump_name, PU_CACHE));
+        x = selected_level_pos->x;
+        y = selected_level_pos->y;
+        V_DrawPatch(x - 20, y - 6, W_CacheLumpName("INVGEMR1", PU_CACHE));
     }
-
-    // Level name
-    const char* level_name = level_names[selected_ep][selected_level[selected_ep]];
-    int text_x = 160 - MN_TextBWidth(level_name) / 2;
-    int text_y = 200 - 20;
-    MN_DrTextB(level_name, text_x, text_y);
 
     // Legend
     //int lx = legendes[selected_ep].x;
@@ -636,8 +700,8 @@ static const char* WIN_MAPS[5] = {
     "MAPE1",
     "MAPE2",
     "MAPE3",
-    "AUTOPAGE",
-    "AUTOPAGE"
+    "INTER4",
+    "INTER4"
 };
 
 

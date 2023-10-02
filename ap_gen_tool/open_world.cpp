@@ -90,6 +90,7 @@ static OTextureRef ap_deathlogic_icon;
 static OTextureRef ap_unreachable_icon;
 static OTextureRef ap_check_sanity_icon;
 static OTextureRef ap_player_start_icon;
+static OTextureRef ap_wing_icon;
 static int mouse_hover_bb = -1;
 static int mouse_hover_sector = -1;
 static int moving_edge = -1;
@@ -522,6 +523,7 @@ void init()
     ap_unreachable_icon = OGetTexture("unreachable.png");
     ap_check_sanity_icon = OGetTexture("check_sanity.png");
     ap_player_start_icon = OGetTexture("player_start.png");
+    ap_wing_icon = OGetTexture("wings.png");
 
     init_data();
 
@@ -1780,6 +1782,10 @@ void draw_level(const level_index_t& idx, const Vector2& pos, float angle, bool 
         else if (thing.type == 1) // Player start
         {
             sb->drawSprite(ap_player_start_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.5f);
+        }
+        else if (thing.type == 83 && game->codename == "heretic") // Wings
+        {
+            sb->drawSprite(ap_wing_icon, Vector2(thing.x, -thing.y), Color::White, 0.0f, 2.5f);
         }
     }
     sb->end();

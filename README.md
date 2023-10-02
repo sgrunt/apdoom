@@ -21,7 +21,7 @@ The rules were built using the WAD file found in the Steam release of DOOM 1993,
 
 ### Hinting
 
-To hint from in game, open the chat (Default key: 'T'). Hinting from DOOM and Heretic can be difficult because names are rather long, with special characters. For example:
+To hint from in-game, use the chat (Default key: 'T'). Hinting from DOOM and Heretic can be difficult because names are rather long and contain special characters. For example:
 ```
 !hint Toxin Refinery (E1M3) - Computer area map
 ```

@@ -832,20 +832,21 @@ void MN_DrTextB(const char *text, int x, int y)
 
 int MN_TextBWidth(const char *text)
 {
-    char c;
+    char c, C;
     int width;
     patch_t *p;
 
     width = 0;
     while ((c = *text++) != 0)
     {
-        if (c < 33)
+        C = toupper(c);
+        if (c < 33 || C > 91)
         {
-            width += 5;
+            width += 7;
         }
         else
         {
-            p = W_CacheLumpNum(FontBBaseLump + c - 33, PU_CACHE);
+            p = W_CacheLumpNum(FontBBaseLump + C - 33, PU_CACHE);
             width += SHORT(p->width) - 1;
         }
     }
