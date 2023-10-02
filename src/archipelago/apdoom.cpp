@@ -1483,7 +1483,7 @@ void apdoom_check_victory()
 {
 	if (ap_state.victory) return;
 
-	if (ap_state.goal == 1 && ap_game == ap_game_t::doom)
+	if (ap_state.goal == 1 && (ap_game == ap_game_t::doom || ap_game == ap_game_t::heretic))
 	{
 		for (int ep = 0; ep < ap_episode_count; ++ep)
 		{
