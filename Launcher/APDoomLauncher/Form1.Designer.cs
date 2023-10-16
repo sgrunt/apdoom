@@ -36,6 +36,7 @@ namespace APDoomLauncher
             this.chkFullscreen = new System.Windows.Forms.CheckBox();
             this.btnLaunchDOOM = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnOverrideSettings = new System.Windows.Forms.Button();
             this.cboGame = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -48,7 +49,6 @@ namespace APDoomLauncher
             this.label4 = new System.Windows.Forms.Label();
             this.txtPlayer = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
-            this.btnOverrideSettings = new System.Windows.Forms.Button();
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -128,6 +128,16 @@ namespace APDoomLauncher
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Game Settings";
+            // 
+            // btnOverrideSettings
+            // 
+            this.btnOverrideSettings.Location = new System.Drawing.Point(197, 158);
+            this.btnOverrideSettings.Name = "btnOverrideSettings";
+            this.btnOverrideSettings.Size = new System.Drawing.Size(206, 30);
+            this.btnOverrideSettings.TabIndex = 8;
+            this.btnOverrideSettings.Text = "Advanced settings";
+            this.btnOverrideSettings.UseVisualStyleBackColor = true;
+            this.btnOverrideSettings.Click += new System.EventHandler(this.btnOverrideSettings_Click);
             // 
             // cboGame
             // 
@@ -245,19 +255,9 @@ namespace APDoomLauncher
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(12, 734);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(155, 17);
+            this.label7.Size = new System.Drawing.Size(105, 17);
             this.label7.TabIndex = 9;
-            this.label7.Text = "APDOOM 0.13.2 (beta)";
-            // 
-            // btnOverrideSettings
-            // 
-            this.btnOverrideSettings.Location = new System.Drawing.Point(197, 158);
-            this.btnOverrideSettings.Name = "btnOverrideSettings";
-            this.btnOverrideSettings.Size = new System.Drawing.Size(206, 30);
-            this.btnOverrideSettings.TabIndex = 8;
-            this.btnOverrideSettings.Text = "Advanced settings";
-            this.btnOverrideSettings.UseVisualStyleBackColor = true;
-            this.btnOverrideSettings.Click += new System.EventHandler(this.btnOverrideSettings_Click);
+            this.label7.Text = "APDOOM 1.0.1";
             // 
             // pictureBox3
             // 

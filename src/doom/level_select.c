@@ -598,8 +598,9 @@ void DrawEpisodicLevelSelectStats()
     for (int i = 0; i < map_count; ++i)
     {
         const level_pos_t* level_pos = get_level_pos_info(selected_ep, i);
-        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(selected_ep + 1, i + 1));
-        ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(selected_ep + 1, i + 1));
+        ap_level_index_t idx = {selected_ep, i};
+        ap_level_info_t* ap_level_info = ap_get_level_info(idx);
+        ap_level_state_t* ap_level_state = ap_get_level_state(idx);
 
         x = level_pos->x;
         y = level_pos->y;
