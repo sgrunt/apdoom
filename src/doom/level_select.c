@@ -450,7 +450,8 @@ static void level_select_next_episode()
 
 static void level_select_nav_enter()
 {
-    if (ap_get_level_state(ap_make_level_index(selected_ep + 1, selected_level[selected_ep] + 1))->unlocked)
+    ap_level_index_t idx = {selected_ep, selected_level[selected_ep]};
+    if (ap_get_level_state(idx)->unlocked)
     {
         S_StartSoundOptional(NULL, sfx_mnusli, sfx_swtchn);
         play_level(selected_ep, selected_level[selected_ep]);
