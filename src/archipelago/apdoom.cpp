@@ -194,7 +194,7 @@ static bool ap_check_sanity = false;
 
 
 void f_itemclr();
-void f_itemrecv(int64_t item_id, bool notify_player);
+void f_itemrecv(int64_t item_id, int player_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
 void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
 void f_goal(int);
@@ -1117,7 +1117,7 @@ std::string get_exmx_name(const std::string& name)
 }
 
 
-void f_itemrecv(int64_t item_id, bool notify_player)
+void f_itemrecv(int64_t item_id, int player_id, bool notify_player)
 {
 	const auto& item_type_table = get_item_type_table();
 	auto it = item_type_table.find(item_id);
@@ -1758,7 +1758,7 @@ void apdoom_update()
 		{
 			auto item_id = ap_item_queue.front();
 			ap_item_queue.erase(ap_item_queue.begin());
-			f_itemrecv(item_id, true);
+			f_itemrecv(item_id, 0, true);
 		}
 	}
 
