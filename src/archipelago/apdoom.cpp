@@ -518,13 +518,12 @@ int apdoom_init(ap_settings_t* settings)
 					printf("    %s = %i:\n", permission.first.c_str(), permission.second);
 				printf("  Hint cost: %i\n", ap_room_info.hint_cost);
 				printf("  Location check points: %i\n", ap_room_info.location_check_points);
-				printf("  Data package version: %i\n", ap_room_info.datapackage_version);
-				printf("  Data package versions: %i\n", ap_room_info.datapackage_version);
-				for (const auto& datapackage_version : ap_room_info.datapackage_versions)
-					printf("    %s = %i:\n", datapackage_version.first.c_str(), datapackage_version.second);
+				printf("  Data package checksums:\n");
+				for (const auto& kv : ap_room_info.datapackage_checksums)
+					printf("    %s = %s:\n", kv.first.c_str(), kv.second.c_str());
 				printf("  Seed name: %s\n", ap_room_info.seed_name.c_str());
 				printf("  Time: %f\n", ap_room_info.time);
-
+				
 				ap_was_connected = true;
 				ap_save_dir_name = "AP_" + ap_room_info.seed_name + "_" + string_to_hex(ap_settings.player_name);
 

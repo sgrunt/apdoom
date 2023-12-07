@@ -11,6 +11,7 @@ Release/libsndfile-1.dll
 Release/samplerate.dll
 Release/SDL2.dll
 Release/SDL2_mixer.dll
+Release/zlib1.dll
 Release/APDOOM.WAD
 Release/APHERETIC.WAD
 Release/credits-doom-1993.txt
