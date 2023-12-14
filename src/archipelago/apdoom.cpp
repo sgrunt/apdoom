@@ -24,6 +24,7 @@
 #endif
 #else
 #include <sys/types.h>
+#include <sys/stat.h>
 #endif
 
 
@@ -407,7 +408,7 @@ int apdoom_init(ap_settings_t* settings)
 	max_map_count = 0; // That's really the map count
 	for (const auto& episode_level_info : level_info_table)
 	{
-		max_map_count = max(max_map_count, (int)episode_level_info.size());
+		max_map_count = std::max(max_map_count, (int)episode_level_info.size());
 	}
 
 	printf("APDOOM: Initializing Game: \"%s\", Server: %s, Slot: %s\n", settings->game, settings->ip, settings->player_name);
@@ -1515,7 +1516,7 @@ void apdoom_check_victory()
 void apdoom_send_message(const char* msg)
 {
 	std::string smsg = msg;
-	if (strnicmp(msg, "!hint ", 6) == 0)
+	if (strncmp(msg, "!hint ", 6) == 0)
 	{
 		// Make the hint easier.
 		// Find an E#M# in the text
