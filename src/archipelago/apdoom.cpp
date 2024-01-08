@@ -25,6 +25,8 @@
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#define strnicmp strncasecmp
 #endif
 
 
@@ -1516,7 +1518,7 @@ void apdoom_check_victory()
 void apdoom_send_message(const char* msg)
 {
 	std::string smsg = msg;
-	if (strncmp(msg, "!hint ", 6) == 0)
+	if (strnicmp(msg, "!hint ", 6) == 0)
 	{
 		// Make the hint easier.
 		// Find an E#M# in the text
