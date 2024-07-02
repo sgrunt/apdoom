@@ -184,10 +184,8 @@ boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
 boolean is_in_level(int ep, int map)
 {
-    if (gamemode == commercial)
-        return map == gamemap;
-    else
-        return ep == gameepisode && map == gamemap;
+    ap_level_index_t idx = { ep - 1, map - 1 };
+    return gameepisode == ap_index_to_ep(idx) && gamemap == ap_index_to_map(idx);
 }
 
 
@@ -209,7 +207,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
                 {
                     player->cards[it_bluecard] = !level_info->use_skull[0];
                     player->cards[it_blueskull] = level_info->use_skull[0];
-                    player->message = DEH_String(GOTBLUECARD);
+                    player->message = DEH_String((level_info->use_skull[0]) ? GOTBLUESKUL : GOTBLUECARD);
                     sound = sfx_keyup;
                 }
             }
@@ -222,7 +220,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
                 {
                     player->cards[it_yellowcard] = !level_info->use_skull[1];
                     player->cards[it_yellowskull] = level_info->use_skull[1];
-	                player->message = DEH_String(GOTYELWCARD);
+	                player->message = DEH_String((level_info->use_skull[1]) ? GOTYELWSKUL : GOTYELWCARD);
                     sound = sfx_keyup;
                 }
             }
@@ -235,7 +233,7 @@ void on_ap_give_item(int doom_type, int ep, int map)
                 {
                     player->cards[it_redcard] = !level_info->use_skull[2];
                     player->cards[it_redskull] = level_info->use_skull[2];
-	                player->message = DEH_String(GOTREDCARD);
+	                player->message = DEH_String((level_info->use_skull[2]) ? GOTREDSKULL : GOTREDCARD);
                     sound = sfx_keyup;
                 }
             }
