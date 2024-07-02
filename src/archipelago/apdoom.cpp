@@ -582,6 +582,9 @@ int apdoom_init(ap_settings_t* settings)
 					AP_MakeDirectory(ap_save_dir_name.c_str());
 				}
 
+				// Make sure that ammo starts at correct base values no matter what
+				recalc_max_ammo();
+
 				load_state();
 				should_break = true;
 				break;
@@ -741,7 +744,6 @@ int apdoom_init(ap_settings_t* settings)
 		printf("APDOOM: Scout locations cached loaded\n");
 	}
 	
-	recalc_max_ammo();
 	printf("APDOOM: Initialized\n");
 	ap_initialized = true;
 	return 1;
@@ -861,7 +863,13 @@ void load_state()
 	for (int i = 0; i < ap_weapon_count; ++i)
 		json_get_bool_or(json["player"]["weapon_owned"][i], ap_state.player_state.weapon_owned[i]);
 	for (int i = 0; i < ap_ammo_count; ++i)
+	{
 		json_get_int(json["player"]["ammo"][i], ap_state.player_state.ammo[i]);
+
+		// This will get overwritten later,
+		// but it must be saved if the player is in game before all their items have been re-received.
+		json_get_int(json["player"]["max_ammo"][i], ap_state.player_state.max_ammo[i]);		
+	}
 	for (int i = 0; i < ap_inventory_count; ++i)
 	{
 		const auto& inventory_slot = json["player"]["inventory"][i];
@@ -887,7 +895,9 @@ void load_state()
 			printf("      %s\n", get_weapon_name(i));
 	printf("    Ammo:\n");
 	for (int i = 0; i < ap_ammo_count; ++i)
-		printf("      %s = %i\n", get_ammo_name(i), ap_state.player_state.ammo[i]);
+		printf("      %s = %i / %i\n", get_ammo_name(i),
+			ap_state.player_state.ammo[i],
+			ap_state.player_state.max_ammo[i]);
 
 	// Level states
 	for (int i = 0; i < ap_episode_count; ++i)
@@ -1030,6 +1040,11 @@ void save_state()
 	for (int i = 0; i < ap_ammo_count; ++i)
 		json_ammo.append(ap_state.player_state.ammo[i]);
 	json_player["ammo"] = json_ammo;
+
+	Json::Value json_max_ammo(Json::arrayValue);
+	for (int i = 0; i < ap_ammo_count; ++i)
+		json_max_ammo.append(ap_state.player_state.max_ammo[i]);
+	json_player["max_ammo"] = json_max_ammo;
 
 	Json::Value json_inventory(Json::arrayValue);
 	for (int i = 0; i < ap_inventory_count; ++i)
@@ -1432,73 +1447,85 @@ void f_two_ways_keydoors(int two_ways_keydoors)
 
 void f_ammo1start(int ammo_amt)
 {
-	ap_state.max_ammo_start[0] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[0] = ammo_amt;
 }
 
 
 void f_ammo2start(int ammo_amt)
 {
-	ap_state.max_ammo_start[1] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[1] = ammo_amt;
 }
 
 
 void f_ammo3start(int ammo_amt)
 {
-	ap_state.max_ammo_start[2] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[2] = ammo_amt;
 }
 
 
 void f_ammo4start(int ammo_amt)
 {
-	ap_state.max_ammo_start[3] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[3] = ammo_amt;
 }
 
 
 void f_ammo5start(int ammo_amt)
 {
-	ap_state.max_ammo_start[4] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[4] = ammo_amt;
 }
 
 
 void f_ammo6start(int ammo_amt)
 {
-	ap_state.max_ammo_start[5] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[5] = ammo_amt;
 }
 
 
 void f_ammo1add(int ammo_amt)
 {
-	ap_state.max_ammo_add[0] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[0] = ammo_amt;
 }
 
 
 void f_ammo2add(int ammo_amt)
 {
-	ap_state.max_ammo_add[1] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[1] = ammo_amt;
 }
 
 
 void f_ammo3add(int ammo_amt)
 {
-	ap_state.max_ammo_add[2] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[2] = ammo_amt;
 }
 
 
 void f_ammo4add(int ammo_amt)
 {
-	ap_state.max_ammo_add[3] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[3] = ammo_amt;
 }
 
 
 void f_ammo5add(int ammo_amt)
 {
-	ap_state.max_ammo_add[4] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[4] = ammo_amt;
 }
 
 
 void f_ammo6add(int ammo_amt)
 {
-	ap_state.max_ammo_add[5] = ammo_amt;
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[5] = ammo_amt;
 }
 
 
