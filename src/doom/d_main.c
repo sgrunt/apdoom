@@ -184,19 +184,8 @@ boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
 
 boolean is_in_level(int ep, int map)
 {
-    if (gamemode == commercial)
-    {
-        // AP items have "episodes" but the actual game does not
-        switch (ep)
-        {
-            case 2: return (map + 11) == gamemap;
-            case 3: return (map + 20) == gamemap;
-            case 4: return (map + 30) == gamemap;
-            default: return map == gamemap;
-        }
-    }
-    else
-        return ep == gameepisode && map == gamemap;
+    ap_level_index_t idx = { ep - 1, map - 1 };
+    return gameepisode == ap_index_to_ep(idx) && gamemap == ap_index_to_map(idx);
 }
 
 
