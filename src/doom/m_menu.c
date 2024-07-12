@@ -1367,6 +1367,9 @@ void M_APPlay(int choice)
     else
     {
         ShowLevelSelect();
+
+        // If victory was pending (someone else did the goal for us)
+        apdoom_check_victory();
     }
 }
 

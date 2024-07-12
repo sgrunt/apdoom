@@ -286,8 +286,6 @@ void play_level(int ep, int lvl)
     }
 
     HU_ClearAPMessages();
-
-    apdoom_check_victory(); // In case we had pending victory
 }
 
 
