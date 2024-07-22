@@ -152,6 +152,35 @@ void tick_sticky_msgs()
     HU_TickAPMessages();
 }
 
+void on_ap_message(const char* text) // This string is cached for several seconds
+{
+    //if (strncmp(text, "Now that you are connected", strlen("Now that you are connected")) == 0) return; // Ignore that message. It fills the screen
+    HU_AddAPMessage(text);
+    S_StartSound(NULL, SFX_CHAT);
+}
+
+
+void on_ap_victory()
+{
+    F_StartFinale();
+}
+
+
+//boolean P_GiveArmor(player_t* player, int armortype);
+//boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
+
+
+// Kind of a copy of P_TouchSpecialThing
+void on_ap_give_item(int doom_type, int ep, int map)
+{
+    player_t* player = &players[consoleplayer];
+    int sound = SFX_PICKUP_ITEM;
+    ap_level_info_t* level_info = ap_get_level_info(ap_make_level_index(gameepisode, gamemap));
+
+
+	S_StartSound(NULL, sound); // [NS] Fallback to itemup.
+}
+
 void D_BindVariables(void)
 {
     int i;
@@ -401,6 +430,9 @@ void D_DoomMain(void)
     GameMission_t gamemission;
     int p;
 
+    ap_settings_t ap_settings;
+    memset(&ap_settings, 0, sizeof(ap_settings));
+
     I_AtExit(D_HexenQuitMessage, false);
     startepisode = 1;
     autostart = false;
@@ -456,6 +488,109 @@ void D_DoomMain(void)
 
     ST_Message("Z_Init: Init zone memory allocation daemon.\n");
     Z_Init();
+    
+    // Grab parameters for AP
+    int apserver_arg_id = M_CheckParmWithArgs("-apserver", 1);
+    if (!apserver_arg_id)
+	    I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-apserver' parameter requires an argument.");
+
+    int player_is_hex = 0;
+    int applayer_arg_id = M_CheckParmWithArgs("-applayer", 1);
+    if (!applayer_arg_id)
+    {
+        applayer_arg_id = M_CheckParmWithArgs("-applayerhex", 1);
+        if (!applayer_arg_id)
+        {
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-applayer' parameter requires an argument.");
+        }
+        player_is_hex = 1;
+    }
+
+    const char* password = "";
+    if (M_CheckParm("-password"))
+    {
+        int password_arg_id = M_CheckParmWithArgs("-password", 1);
+        if (!password_arg_id)
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-password' parameter requires an argument.");
+        password = myargv[password_arg_id + 1];
+    }
+
+    GameMission_t mission = hexen;
+    if (M_CheckParm("-game"))
+    {
+        int game_arg_id = M_CheckParmWithArgs("-game", 1);
+        if (!game_arg_id)
+	        I_Error("Make sure to launch the game using APDoomLauncher.exe.\nThe '-game' parameter requires an argument.");
+        const char* game_name = myargv[game_arg_id + 1];
+        if (strcmp(game_name, "hexen") == 0) mission = hexen;
+    }
+
+    int monster_rando_id = M_CheckParmWithArgs("-apmonsterrando", 1);
+    if (monster_rando_id)
+    {
+        ap_settings.override_monster_rando = 1;
+        ap_settings.monster_rando = atoi(myargv[monster_rando_id + 1]);
+    }
+
+    int item_rando_id = M_CheckParmWithArgs("-apitemrando", 1);
+    if (item_rando_id)
+    {
+        ap_settings.override_item_rando = 1;
+        ap_settings.item_rando = atoi(myargv[item_rando_id + 1]);
+    }
+
+    int music_rando_id = M_CheckParmWithArgs("-apmusicrando", 1);
+    if (music_rando_id)
+    {
+        ap_settings.override_music_rando = 1;
+        ap_settings.music_rando = atoi(myargv[music_rando_id + 1]);
+    }
+
+    // Not supported by hexen 
+    //int flip_levels_id = M_CheckParmWithArgs("-apfliplevels", 1);
+    //if (flip_levels_id)
+    //{
+    //    ap_settings.override_flip_levels = 1;
+    //    ap_settings.flip_levels = myargv[flip_levels_id + 1];
+    //}
+
+    if (M_CheckParm("-apdeathlinkoff"))
+        ap_settings.force_deathlink_off = 1;
+
+    int reset_level_on_death_id = M_CheckParmWithArgs("-apresetlevelondeath", 1);
+    if (reset_level_on_death_id)
+    {
+        ap_settings.override_reset_level_on_death = 1;
+        ap_settings.reset_level_on_death = atoi(myargv[reset_level_on_death_id + 1]) ? 1 : 0;
+    }
+
+    // Initialize AP
+    ap_settings.ip = myargv[apserver_arg_id + 1];
+    if (mission == hexen)
+        ap_settings.game = "Hexen";
+
+    char* player_name = myargv[applayer_arg_id + 1];
+    if (player_is_hex)
+    {
+        int len = strlen(player_name) / 2;
+        char byte_str[3] = {0};
+        for (int i = 0; i < len; ++i)
+        {
+            memcpy(byte_str, player_name + (i * 2), 2);
+            player_name[i] = strtol(byte_str, NULL, 16);
+        }
+        player_name[len] = '\0';
+    }
+    ap_settings.player_name = player_name;
+
+    ap_settings.passwd = password;
+    ap_settings.message_callback = on_ap_message;
+    ap_settings.give_item_callback = on_ap_give_item;
+    ap_settings.victory_callback = on_ap_victory;
+    if (!apdoom_init(&ap_settings))
+    {
+	    I_Error("Failed to initialize Archipelago.");
+    }
 
     // haleyjd: removed WATCOMC
 
@@ -718,6 +853,9 @@ static void HandleArgs(void)
 
     // currently broken or unused:
     cmdfrag = M_ParmExists("-cmdfrag");
+
+    // Always merge Archipelago WAD
+    // W_MergeFile("APHERETIC.WAD");
 
     // Check WAD file command line options
     W_ParseCommandLine();

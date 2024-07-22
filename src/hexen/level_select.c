@@ -65,7 +65,7 @@ static level_pos_t level_pos_infos[5] =
 
 int selected_level = 0;
 int urh_anim = 0;
-int activating_level_select_anim = 200;
+int activating_level_select_anim = 0; //200;
 
 static int map_for_level[5] = { 1, 13, 27, 22, 35 };
 
@@ -154,7 +154,7 @@ void select_map_dir(int dir)
     float fromy = (float)level_pos_infos[from].y;
 
     int best = from;
-    int top_most = 200;
+    int top_most = 0; //200;
     int top_most_idx = -1;
     int bottom_most = 0;
     int bottom_most_idx = -1;
@@ -327,12 +327,14 @@ void ShowLevelSelect()
     ap_state.map = 0;
     players[consoleplayer].message[0] = '\0';
 
-    while (!ap_state.episodes[selected_level])
+    selected_level = 1;
+
+/*    while (!ap_state.episodes[selected_level])
     {
         selected_level = (selected_level + 1) % ap_episode_count;
         if (selected_level == 0) // oops;
             break;
-    }
+    } */
 }
 
 
@@ -378,13 +380,6 @@ void DrawEpisodicLevelSelectStats()
 
         x = level_pos->x;
         y = level_pos->y;
-
-        int key_count = 0;
-        for (int i = 0; i < 3; ++i)
-            if (ap_level_info->keys[i])
-                key_count++;
-
-        const int key_start_offset = -key_spacing * key_count / 2 + (3 - key_count) * 2;
         
         if (level_pos->display_as_line)
         {
@@ -408,31 +403,31 @@ void DrawEpisodicLevelSelectStats()
         
             // Level complete splash
             if (ap_level_state->completed)
-                V_DrawPatch(x, y, W_CacheLumpName("IN_X", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("FONTA56", PU_CACHE));
 
             // Lock
             if (!ap_level_state->unlocked)
-                V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("FONTAY03", PU_CACHE));
 
             // Progress
             print_right_aligned_yellow_digit(x + 30 + text_w - 4, y - 1, ap_level_state->check_count);
-            V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("STYSLASH", PU_CACHE));
-            print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+            V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("FONTA15", PU_CACHE));
+//            print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
         }
         else
         {
             // Level complete splash
             if (ap_level_state->completed)
-                V_DrawPatch(x, y, W_CacheLumpName("IN_X", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("FONTA56", PU_CACHE));
 
             // Lock
             if (!ap_level_state->unlocked)
-                V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("FONTAY03", PU_CACHE));
 
             // Progress
             print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
-            V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
-            print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+            V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("FONTA15", PU_CACHE));
+//            print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
         }
     }
 
@@ -495,7 +490,8 @@ void DrawLevelSelect()
         V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
     }
 
-    V_DrawPatch(x_offset, activating_level_select_anim, W_CacheLumpName(WIN_MAP, PU_CACHE));
+    V_DrawFullscreenRawOrPatch(W_GetNumForName("INTERPIC"));
+    //V_DrawPatch(x_offset, activating_level_select_anim, W_CacheLumpName(lump_name, PU_CACHE));
     if (activating_level_select_anim == 0)
         DrawLevelSelectStats();
 }

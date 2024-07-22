@@ -33,6 +33,7 @@
 #include "apdoom_def.h"
 #include "apdoom2_def.h"
 #include "apheretic_def.h"
+#include "aphexen_def.h"
 #include "Archipelago.h"
 #include <json/json.h>
 #include <memory.h>
@@ -170,7 +171,8 @@ enum class ap_game_t
 {
 	doom,
 	doom2,
-	heretic
+	heretic,
+	hexen
 };
 
 
@@ -264,6 +266,7 @@ static std::vector<std::vector<ap_level_info_t>>& get_level_info_table()
 		case ap_game_t::doom: return ap_doom_level_infos;
 		case ap_game_t::doom2: return ap_doom2_level_infos;
 		case ap_game_t::heretic: return ap_heretic_level_infos;
+		case ap_game_t::hexen: return ap_hexen_level_infos;
 	}
 }
 
@@ -299,6 +302,7 @@ static const std::map<int64_t, ap_item_t>& get_item_type_table()
 		case ap_game_t::doom: return ap_doom_item_table;
 		case ap_game_t::doom2: return ap_doom2_item_table;
 		case ap_game_t::heretic: return ap_heretic_item_table;
+		case ap_game_t::hexen: return ap_hexen_item_table;
 	}
 }
 
@@ -310,6 +314,7 @@ static const std::map<int /* ep */, std::map<int /* map */, std::map<int /* inde
 		case ap_game_t::doom: return ap_doom_location_table;
 		case ap_game_t::doom2: return ap_doom2_location_table;
 		case ap_game_t::heretic: return ap_heretic_location_table;
+		case ap_game_t::hexen: return ap_hexen_location_table;
 	}
 }
 
@@ -335,6 +340,7 @@ std::string string_to_hex(const char* str)
 static const int doom_max_ammos[] = {200, 50, 300, 50};
 static const int doom2_max_ammos[] = {200, 50, 300, 50};
 static const int heretic_max_ammos[] = {100, 50, 200, 200, 20, 150};
+static const int hexen_max_ammos[] = {200, 200};
 
 
 static unsigned long long hash_seed(const char *str)
@@ -356,6 +362,7 @@ const int* get_max_ammos()
 		case ap_game_t::doom: return doom_max_ammos;
 		case ap_game_t::doom2: return doom2_max_ammos;
 		case ap_game_t::heretic: return heretic_max_ammos;
+		case ap_game_t::hexen: return hexen_max_ammos;
 	}
 }
 
@@ -399,6 +406,14 @@ int apdoom_init(ap_settings_t* settings)
 		ap_ammo_count = 6;
 		ap_powerup_count = 9;
 		ap_inventory_count = 14;
+	}
+	else if (strcmp(settings->game, "Hexen") == 0)
+	{
+		ap_game = ap_game_t::hexen;
+		ap_weapon_count = 4;
+		ap_ammo_count = 2;
+		ap_powerup_count = 9;
+		ap_inventory_count = 33;
 	}
 	else
 	{
@@ -641,6 +656,9 @@ int apdoom_init(ap_settings_t* settings)
 							break;
 						case ap_game_t::heretic:
 							printf("  E%iM%i = E%iM%i\n", ep + 1, map + 1, (mus / max_map_count) + 1, (mus % max_map_count) + 1);
+							break;
+						case ap_game_t::hexen:
+							printf("  MAP%02i = MAP%02i\n", map + 1, mus);
 							break;
 					}
 				}
@@ -1061,6 +1079,7 @@ void f_itemclr()
 static const std::map<int, int> doom_keys_map = {{5, 0}, {40, 0}, {6, 1}, {39, 1}, {13, 2}, {38, 2}};
 static const std::map<int, int> doom2_keys_map = {{5, 0}, {40, 0}, {6, 1}, {39, 1}, {13, 2}, {38, 2}};
 static const std::map<int, int> heretic_keys_map = {{80, 0}, {73, 1}, {79, 2}};
+static const std::map<int, int> hexen_keys_map = {};
 
 
 const std::map<int, int>& get_keys_map()
@@ -1070,6 +1089,7 @@ const std::map<int, int>& get_keys_map()
 		case ap_game_t::doom: return doom_keys_map;
 		case ap_game_t::doom2: return doom2_keys_map;
 		case ap_game_t::heretic: return heretic_keys_map;
+		case ap_game_t::hexen: return hexen_keys_map;
 	}
 }
 
@@ -1081,6 +1101,7 @@ int get_map_doom_type()
 		case ap_game_t::doom: return 2026;
 		case ap_game_t::doom2: return 2026;
 		case ap_game_t::heretic: return 35;
+		case ap_game_t::hexen: return 35;
 	}
 }
 
@@ -1088,6 +1109,7 @@ int get_map_doom_type()
 static const std::map<int, int> doom_weapons_map = {{2001, 2}, {2002, 3}, {2003, 4}, {2004, 5}, {2006, 6}, {2005, 7}};
 static const std::map<int, int> doom2_weapons_map = {{2001, 2}, {2002, 3}, {2003, 4}, {2004, 5}, {2006, 6}, {2005, 7}, {82, 8}};
 static const std::map<int, int> heretic_weapons_map = {{2005, 7}, {2001, 2}, {53, 3}, {2003, 5}, {2002, 6}, {2004, 4}};
+static const std::map<int, int> hexen_weapons_map = {};
 
 
 const std::map<int, int>& get_weapons_map()
@@ -1097,6 +1119,7 @@ const std::map<int, int>& get_weapons_map()
 		case ap_game_t::doom: return doom_weapons_map;
 		case ap_game_t::doom2: return doom2_weapons_map;
 		case ap_game_t::heretic: return heretic_weapons_map;
+		case ap_game_t::hexen: return hexen_weapons_map;
 	}
 }
 
@@ -1108,6 +1131,7 @@ const std::map<int, std::string>& get_sprites()
 		case ap_game_t::doom: return ap_doom_type_sprites;
 		case ap_game_t::doom2: return ap_doom2_type_sprites;
 		case ap_game_t::heretic: return ap_heretic_type_sprites;
+		case ap_game_t::hexen: return ap_hexen_type_sprites;
 	}
 }
 
