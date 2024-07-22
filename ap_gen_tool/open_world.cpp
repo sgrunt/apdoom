@@ -419,7 +419,12 @@ void load(game_t* game)
 
 void update_window_title()
 {
+    auto level_info = get_meta(active_level);
+    if (level_info != nullptr) {
     oWindow->setCaption(get_meta(active_level)->name.c_str());
+    } else {
+    oWindow->setCaption("INVALID TITLE");
+    }
 }
 
 

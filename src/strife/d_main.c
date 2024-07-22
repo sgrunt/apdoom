@@ -163,6 +163,10 @@ boolean screenwipe;
 void D_ConnectNetGame(void);
 void D_CheckNetGame(void);
 
+void tick_sticky_msgs()
+{
+//    HU_TickAPMessages();
+}
 
 //
 // D_ProcessEvents

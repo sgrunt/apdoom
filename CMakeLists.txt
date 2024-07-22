@@ -69,6 +69,11 @@ endif()
 
 find_package(m)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
+include_directories(${JSONCPP_INCLUDE_DIRS})
+link_libraries(${JSONCPP_LIBRARIES})
+
 include(CheckSymbolExists)
 include(CheckIncludeFile)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)

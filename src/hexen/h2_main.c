@@ -139,6 +139,10 @@ static const char * const chat_macro_defaults[10] =
     HUSTR_CHATMACRO9,
 };
 
+void tick_sticky_msgs()
+{
+    //HU_TickAPMessages();
+}
 
 void D_BindVariables(void)
 {

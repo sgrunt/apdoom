@@ -120,6 +120,8 @@ if(MSVC)
          "${PROJECT_SOURCE_DIR}/win32/")
 endif()
 
+list(APPEND GAME_INCLUDE_DIRS "${JSONCPP_INCLUDE_DIRS}")
+
 set(DEHACKED_SOURCE_FILES
     deh_defs.h
     deh_io.c            deh_io.h
@@ -152,6 +154,7 @@ if(WIN32)
 	list(APPEND EXTRA_LIBS winmm)
 endif()
 list(APPEND EXTRA_LIBS archipelago)
+list(APPEND EXTRA_LIBS ${JSONCPP_LIBRARIES})
 
 if(WIN32)
     add_executable("${PROGRAM_PREFIX}doom" ${SOURCE_FILES_WITH_DEH} "${CMAKE_CURRENT_BINARY_DIR}/doom-res.rc")
