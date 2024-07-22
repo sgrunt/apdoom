@@ -30,6 +30,7 @@
 #include "m_misc.h"
 #include "p_local.h"
 #include "v_video.h"
+#include "apdoom.h"
 
 #define AM_STARTKEY	9
 
@@ -184,6 +185,38 @@ static int TempMap;
 
 boolean testcontrols = false;
 int testcontrols_mousespeed;
+
+void cache_ap_player_state(void)
+{
+    player_t* p = &players[consoleplayer];
+
+    ap_state.player_state.health = p->health;
+    ap_state.player_state.armor_points = p->armorpoints[0];
+    ap_state.player_state.armor_type = p->armorpoints[1];
+    ap_state.player_state.backpack = p->armorpoints[2];
+    ap_state.player_state.ready_weapon = p->readyweapon;
+    ap_state.player_state.kill_count = p->killcount;
+    ap_state.player_state.item_count = p->itemcount;
+    ap_state.player_state.secret_count = p->secretcount;
+    for (int i = 0; i < NUMPOWERS; ++i)
+        ap_state.player_state.powers[i] = p->powers[i];
+    for (int i = 0; i < NUMWEAPONS; ++i)
+        ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
+    for (int i = 0; i < NUMMANA; ++i)
+        ap_state.player_state.ammo[i] = p->mana[i];
+    ap_state.player_state.max_ammo[0] = p->armorpoints[3];
+    ap_state.player_state.max_ammo[1] = 0;
+    int inv_slot = 0;
+    memset(ap_state.player_state.inventory, 0, sizeof(ap_inventory_slot_t) * NUMINVENTORYSLOTS);
+    for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
+    {
+        if (p->inventory[i].type == arti_fly)
+            continue; // Skip wings
+        ap_state.player_state.inventory[inv_slot].type = i < p->inventorySlotNum ? p->inventory[i].type : 0;
+        ap_state.player_state.inventory[inv_slot].count = i < p->inventorySlotNum ? p->inventory[i].count : 0;
+        ++inv_slot;
+    }
+}
 
 //=============================================================================
 /*

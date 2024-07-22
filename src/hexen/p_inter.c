@@ -1282,8 +1282,8 @@ mobj_t *ActiveMinotaur(player_t * master)
 // PROC P_KillMobj
 //
 //---------------------------------------------------------------------------
-
-void P_KillMobj(mobj_t * source, mobj_t * target)
+void cache_ap_player_state(void);
+void P_KillMobj_Real(mobj_t * source, mobj_t * target, boolean send_death_link)
 {
     byte dummyArgs[3] = {0, 0, 0};
     mobj_t *master;
@@ -1345,6 +1345,10 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
         target->player->powers[pw_flight] = 0;
         target->player->playerstate = PST_DEAD;
         P_DropWeapon(target->player);
+        cache_ap_player_state(); // [Ap] Make sure we cache it's inventory
+
+	if (send_death_link)
+	    apdoom_on_death();
         if (target->flags2 & MF2_FIREDAMAGE)
         {                       // Player flame death
             switch (target->player->class)
@@ -1503,6 +1507,11 @@ void P_KillMobj(mobj_t * source, mobj_t * target)
     }
     target->tics -= P_Random() & 3;
 //      I_StartSound(&actor->r, actor->info->deathsound);
+}
+
+void P_KillMobj(mobj_t* source, mobj_t* target)
+{
+        P_KillMobj_Real(source, target, true);
 }
 
 //---------------------------------------------------------------------------

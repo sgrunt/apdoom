@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include "h2def.h"
 #include "doomkeys.h"
+#include "apdoom.h"
 #include "i_input.h"
 #include "i_system.h"
 #include "i_swap.h"
@@ -32,6 +33,7 @@
 #include "s_sound.h"
 #include "v_video.h"
 #include "am_map.h"
+#include "level_select.h" // ap
 
 #include "v_trans.h" // [crispy] dp_translation
 #include "crispy.h"
@@ -73,6 +75,7 @@ typedef enum
     MENU_MOUSE,
     MENU_CRISPNESS1,
     MENU_CRISPNESS2,
+    MENU_INGAME,
     MENU_NONE
 } MenuType_t;
 
@@ -151,6 +154,7 @@ static void SCSaveGame(int option);
 static void SCMessages(int option);
 static void SCEndGame(int option);
 static void SCInfo(int option);
+static void DrawInGameMenu(void);
 static void DrawMainMenu(void);
 static void DrawClassMenu(void);
 static void DrawSkillMenu(void);
@@ -167,6 +171,8 @@ static void DrawCrispnessMenu(void);
 static void DrawCrispness1(void);
 static void DrawCrispness2(void);
 void MN_LoadSlotText(void);
+static boolean SCLevelSelect(int option);
+static boolean SCKill(int option);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -210,9 +216,8 @@ static char numeric_entry_str[NUMERIC_ENTRY_NUMDIGITS + 1];
 static int numeric_entry_index;
 
 static MenuItem_t MainItems[] = {
-    {ITT_SETMENU, "NEW GAME", SCNetCheck2, 1, MENU_CLASS},
+    {ITT_EFUNC, "PLAY", SCLevelSelect, 0, MENU_NONE},
     {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
-    {ITT_SETMENU, "GAME FILES", NULL, 0, MENU_FILES},
     {ITT_EFUNC, "INFO", SCInfo, 0, MENU_NONE},
     {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
 };
@@ -221,6 +226,20 @@ static Menu_t MainMenu = {
     110, 56,
     DrawMainMenu,
     5, MainItems,
+    0,
+    MENU_NONE
+};
+
+static MenuItem_t InGameItems[] = {
+    {ITT_SETMENU, "OPTIONS", NULL, 0, MENU_OPTIONS},
+    {ITT_EFUNC, "KILL", SCKill, 0, MENU_NONE},
+    {ITT_EFUNC, "QUIT GAME", SCQuitGame, 0, MENU_NONE}
+};
+
+static Menu_t InGameMenu = {
+    110, 56,
+    DrawInGameMenu,
+    3, InGameItems,
     0,
     MENU_NONE
 };
@@ -486,6 +505,7 @@ static Menu_t *Menus[] = {
     &MouseMenu,
     &Crispness1Menu,
     &Crispness2Menu,
+    &InGameMenu,
 };
 
 // [crispy] intermediate gamma levels
@@ -856,6 +876,24 @@ static void DrawMainMenu(void)
     V_DrawPatch(278, 80, W_CacheLumpNum(MauloBaseLump + frame, PU_CACHE));
 }
 
+//---------------------------------------------------------------------------
+//
+// PROC DrawInGameMenu
+//
+//---------------------------------------------------------------------------
+
+static void DrawInGameMenu(void)
+{
+    int frame;
+
+    frame = (MenuTime / 5) % 7;
+    V_DrawPatch(88, 0, W_CacheLumpName("M_HTIC", PU_CACHE));
+// Old Gold skull positions: (40, 10) and (232, 10)
+    V_DrawPatch(37, 80, W_CacheLumpNum(MauloBaseLump + (frame + 2) % 7,
+                                       PU_CACHE));
+    V_DrawPatch(278, 80, W_CacheLumpNum(MauloBaseLump + frame, PU_CACHE));
+}
+
 //==========================================================================
 //
 // DrawClassMenu
@@ -1139,6 +1177,55 @@ static void SCMessages(int option)
         P_SetMessage(&players[consoleplayer], "MESSAGES OFF", true);
     }
     S_StartSound(NULL, SFX_CHAT);
+}
+
+
+//---------------------------------------------------------------------------
+//
+// PROC SCKill
+//
+//---------------------------------------------------------------------------
+
+void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean send_death_link);
+extern boolean killed_from_menu;
+
+static boolean SCKill(int option)
+{
+    if (players[consoleplayer].mo)
+    {
+        if (players[consoleplayer].mo->health > 0)
+        {
+            MN_DeactivateMenu();
+//            killed_from_menu = true;
+            P_KillMobj_Real(0, players[consoleplayer].mo, false);
+            return true;
+        }
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------
+//
+// PROC SCLevelSelect
+//
+//---------------------------------------------------------------------------
+
+static boolean SCLevelSelect(int option)
+{
+    MenuActive = false;
+
+    // Was the game quit during a level?
+    if (ap_state.map != 0)
+    {
+        play_level(ap_state.map - 1);
+    }
+    else
+    {
+        ShowLevelSelect();
+    }
+
+    return true;
 }
 
 //===========================================================================
@@ -2463,7 +2550,10 @@ void MN_ActivateMenu(void)
     MenuActive = true;
     FileMenuKeySteal = false;
     MenuTime = 0;
-    CurrentMenu = &MainMenu;
+    if (gamestate == 3)
+        CurrentMenu = &MainMenu;
+    else
+    	CurrentMenu = &InGameMenu;
     CurrentItPos = CurrentMenu->oldItPos;
     if (!netgame && !demoplayback)
     {
