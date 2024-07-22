@@ -120,7 +120,8 @@ typedef enum
     GS_LEVEL,
     GS_INTERMISSION,
     GS_FINALE,
-    GS_DEMOSCREEN
+    GS_DEMOSCREEN,
+    GS_LEVEL_SELECT
 } gamestate_t;
 
 typedef enum
@@ -1129,6 +1130,7 @@ void MN_Drawer(void);
 void MN_DrTextA(const char *text, int x, int y);
 void MN_DrTextAYellow(const char *text, int x, int y);
 int MN_TextAWidth(const char *text);
+int MN_TextAWidth_len(const char *text, int len);
 void MN_DrTextB(const char *text, int x, int y);
 int MN_TextBWidth(const char *text);
 

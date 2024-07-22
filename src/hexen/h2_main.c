@@ -46,6 +46,14 @@
 
 #include "hexen_icon.c"
 
+#include "apdoom.h"
+
+#include "level_select.h" // [ap]
+#include "ap_msg.h"
+#include "ap_notif.h"
+
+#define CT_KEY_GREEN    'g'
+
 // MACROS ------------------------------------------------------------------
 
 #define MAXWADFILES 20
@@ -141,7 +149,7 @@ static const char * const chat_macro_defaults[10] =
 
 void tick_sticky_msgs()
 {
-    //HU_TickAPMessages();
+    HU_TickAPMessages();
 }
 
 void D_BindVariables(void)
@@ -1054,6 +1062,9 @@ static void DrawAndBlit(void)
         case GS_DEMOSCREEN:
             PageDrawer();
             break;
+        case GS_LEVEL_SELECT:
+            DrawLevelSelect();
+            break;
     }
 
     if (testcontrols)
@@ -1075,7 +1086,8 @@ static void DrawAndBlit(void)
     }
 
     // Draw current message
-    DrawMessage();
+    if (gamestate != GS_LEVEL_SELECT)
+        DrawMessage();
 
     // Draw Menu
     MN_Drawer();

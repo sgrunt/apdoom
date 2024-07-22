@@ -1112,6 +1112,12 @@ boolean G_Responder(event_t * ev)
         }
     }
 
+    if (gamestate == GS_LEVEL_SELECT)
+    {
+        if (LevelSelectResponder(ev))
+            return true; // ate the event
+    }
+
     if (ev->type == ev_mouse)
     {
         testcontrols_mousespeed = abs(ev->data2);
@@ -1378,6 +1384,9 @@ void G_Ticker(void)
             break;
         case GS_DEMOSCREEN:
             H2_PageTicker();
+            break;
+        case GS_LEVEL_SELECT:
+            TickLevelSelect();
             break;
     }
 }

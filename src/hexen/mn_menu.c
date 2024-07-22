@@ -141,6 +141,8 @@ static void CrispyMouselook(int option);
 static void CrispyBobfactor(int option);
 static void CrispyCenterWeapon(int option);
 static void CrispyDefaultskill(int option);
+static boolean CrispyAPAutomapIcons(int option);
+static boolean CrispyAPLevelSelectMusic(int option);
 static void CrispyNextPage(int option);
 static void CrispyPrevPage(int option);
 static void SCNetCheck2(int option);
@@ -613,6 +615,39 @@ int MN_TextAWidth(const char *text)
     }
     return (width);
 }
+
+
+int MN_TextAWidth_len(const char *text, int len)
+{
+    char c, C;
+    int width;
+    patch_t *p;
+
+    width = 0;
+    while ((c = *text) != 0 && len > 0)
+    {
+        if (c == '~')
+        {
+            text += 2;
+            len -= 2;
+            continue;
+        }
+        C = toupper(c);
+        if (c < 33 || C > 91)
+        {
+            width += 4;
+        }
+        else
+        {
+            p = W_CacheLumpNum(FontABaseLump + C - 33, PU_CACHE);
+            width += SHORT(p->width) - 1;
+        }
+        text++;
+        len--;
+    }
+    return (width);
+}
+
 
 //---------------------------------------------------------------------------
 //
@@ -1638,6 +1673,29 @@ static void CrispyFreelook(int option)
 static void CrispyMouselook(int option)
 {
     crispy->mouselook = !crispy->mouselook;
+}
+
+static boolean CrispyAPAutomapIcons(int option)
+{
+    ChangeSettingEnum(&crispy->ap_automapicons, option, NUM_AP_AUTOMAPICON);
+    return true;
+}
+
+static boolean CrispyAPLevelSelectMusic(int option)
+{
+    crispy->ap_levelselectmusic = !crispy->ap_levelselectmusic;
+    if (gamestate == GS_LEVEL_SELECT)
+    {
+        if (crispy->ap_levelselectmusic)
+            S_StartSong(mus_intr, true);
+        else
+        {
+            extern int Mus_Song;
+            Mus_Song = -1;
+            I_StopSong();
+        }
+    }
+    return true;
 }
 
 static void CrispyBobfactor(int option)

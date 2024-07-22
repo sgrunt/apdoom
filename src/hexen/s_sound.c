@@ -69,7 +69,7 @@ static int cd_track_end_time = 0;
 static channel_t Channel[MAX_CHANNELS];
 static void *RegisteredSong;      //the current registered song.
 static boolean MusicPaused;
-static int Mus_Song = -1;
+int Mus_Song = -1;
 static byte *Mus_SndPtr;
 static byte *SoundCurve;
 

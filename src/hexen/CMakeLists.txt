@@ -1,4 +1,8 @@
 add_library(hexen STATIC
+            level_select.c      level_select.h
+            ap_msg.c            ap_msg.h
+            ap_notif.c          ap_notif.h
+
             a_action.c
                                 am_data.h
             am_map.c            am_map.h
@@ -56,7 +60,7 @@ add_library(hexen STATIC
                                 textdefs.h
                                 xddefs.h)
 
-target_include_directories(hexen PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+target_include_directories(hexen PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../" "../archipelago/")
 target_link_libraries(hexen SDL2::SDL2)
 if(ENABLE_SDL2_MIXER)
     target_link_libraries(hexen SDL2_mixer::SDL2_mixer)
