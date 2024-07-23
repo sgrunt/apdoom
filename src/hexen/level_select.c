@@ -129,6 +129,7 @@ void play_level(int lvl)
     else
     {*/
         // If none, load it fresh
+	PlayerClass[consoleplayer] = ap_state.player_class;
         G_DeferedInitNew(gameskill, 1, lvl);
 //    }
 

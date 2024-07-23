@@ -1301,6 +1301,9 @@ void G_Ticker(void)
             case ga_victory:
                 F_StartFinale();
                 break;
+            case ga_levelselect:
+                ShowLevelSelect();
+                break;
             default:
                 break;
         }
@@ -1401,6 +1404,7 @@ void G_Ticker(void)
 //
 // do main actions
 //
+    ap_is_in_game = 0;
     switch (gamestate)
     {
         case GS_LEVEL:
@@ -1408,6 +1412,16 @@ void G_Ticker(void)
             SB_Ticker();
             AM_Ticker();
             CT_Ticker();
+            ap_is_in_game = (players[consoleplayer].playerstate == PST_LIVE && !paused) ? 1 : 0;
+
+            if (ap_is_in_game)
+            {
+                if (apdoom_should_die() && players[consoleplayer].mo)
+                {
+                    HU_AddAPMessage("Death by Deathlink");
+                    P_KillMobj_Real(NULL, players[consoleplayer].mo, false);
+                }
+            }
             break;
         case GS_INTERMISSION:
             IN_Ticker();
@@ -1738,6 +1752,11 @@ void G_DoReborn(int playernum)
 void G_ScreenShot(void)
 {
     gameaction = ga_screenshot;
+}
+
+void G_LevelSelect(void)
+{
+    gameaction = ga_levelselect;
 }
 
 //==========================================================================
@@ -2112,7 +2131,7 @@ void G_InitNew(skill_t skill, int episode, int map)
     viewactive = true;
     gameepisode = episode;
     gamemap = map;
-    gameskill = skill;
+    gameskill = ap_state.difficulty; //skill;
     BorderNeedRefresh = true;
 
     // Initialize the sky

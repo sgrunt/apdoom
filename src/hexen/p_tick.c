@@ -38,6 +38,7 @@ static void RunThinkers(void);
 
 int leveltime;
 int TimerGame;
+int leveltimesinceload;
 thinker_t thinkercap;           // The head and tail of the thinker list
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
@@ -76,6 +77,7 @@ void P_Ticker(void)
     P_UpdateSpecials();
     P_AnimateSurfaces();
     leveltime++;
+    leveltimesinceload++;
 }
 
 //==========================================================================

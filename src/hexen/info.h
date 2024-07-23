@@ -317,6 +317,10 @@ typedef enum
     SPR_WATR,
     SPR_KORX,
     SPR_ABAT,
+	// [AP] Archipelago junk item (APJI) and progression (APPI)
+    SPR_APJI, SPR_APPI,
+    // [AP] Select select teleport "HUB"
+    SPR_LVST,
     NUMSPRITES
 } spritenum_t;
 
@@ -3168,6 +3172,31 @@ typedef enum
     S_BAT2,
     S_BAT3,
     S_BAT_DEATH,
+    
+    // [AP] Archipelago junk item (APJI) and progression (APPI)
+    S_APJI,
+    S_APJIB,
+    S_APJIC,
+    S_APJID,
+    S_APJIE,
+    S_APJIF,
+    S_APJIG,
+
+    S_APPI,
+    S_APPIB,
+    S_APPIC,
+    S_APPID,
+    S_APPIE,
+    S_APPIF,
+    S_APPIG,
+
+    // [AP] Level select teleport "HUB"
+    S_LVST,
+    S_LVSTT,
+    S_LVSTB,
+    S_LVSTC,
+    S_LVSTD,
+
     NUMSTATES
 } statenum_t;
 
@@ -3592,6 +3621,10 @@ typedef enum
     MT_KORAX_BOLT,
     MT_BAT_SPAWNER,
     MT_BAT,
+    // [AP] Archipelago junk item (APJI) and progression (APPI)
+    MT_APJI, MT_APPI,
+    // [AP] Level select teleport "HUB"
+    MT_LVSTEL,
     NUMMOBJTYPES
 } mobjtype_t;
 

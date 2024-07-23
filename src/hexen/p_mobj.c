@@ -37,7 +37,7 @@ void P_MarkAsLeaving(mobj_t * corpse);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
-void P_SpawnMapThing(mapthing_t * mthing);
+void P_SpawnMapThing(mapthing_t * mthing, int index);
 
 // PRIVATE FUNCTION PROTOTYPES ---------------------------------------------
 
@@ -1415,7 +1415,7 @@ void P_SpawnPlayer(mapthing_t * mthing)
 //
 //==========================================================================
 
-void P_SpawnMapThing(mapthing_t * mthing)
+void P_SpawnMapThing(mapthing_t * mthing, int index)
 {
     int i;
     unsigned int spawnMask;
@@ -1518,6 +1518,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
     }
     if (!(mthing->options & spawnMask))
     {
+        if (mthing->type != 20000 && mthing->type != 20001 && mthing->type != 20002)
         return;
     }
 
@@ -1526,6 +1527,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
     {                           // Single player
         if ((mthing->options & classFlags[PlayerClass[0]]) == 0)
         {                       // Not for current class
+        if (mthing->type != 20000 && mthing->type != 20001 && mthing->type != 20002)
             return;
         }
     }
@@ -1599,6 +1601,7 @@ void P_SpawnMapThing(mapthing_t * mthing)
             break;
     }
     mobj = P_SpawnMobj(x, y, z, i);
+    mobj->index = index;
     if (z == ONFLOORZ)
     {
         mobj->z += mthing->height << FRACBITS;

@@ -120,6 +120,7 @@ typedef struct
     int check_sanity;
     int reset_level_on_death;
     int goal;
+    int player_class;
     
 } ap_state_t;
 

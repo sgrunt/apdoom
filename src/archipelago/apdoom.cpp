@@ -203,6 +203,7 @@ void f_itemrecv(int64_t item_id, int player_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
 void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
 void f_goal(int);
+void f_player_class(int);
 void f_difficulty(int);
 void f_random_monsters(int);
 void f_random_items(int);
@@ -499,6 +500,7 @@ int apdoom_init(ap_settings_t* settings)
 	AP_SetLocationCheckedCallback(f_locrecv);
 	AP_SetLocationInfoCallback(f_locinfo);
 	AP_RegisterSlotDataIntCallback("goal", f_goal);
+	AP_RegisterSlotDataIntCallback("player_class", f_player_class);
 	AP_RegisterSlotDataIntCallback("difficulty", f_difficulty);
 	AP_RegisterSlotDataIntCallback("random_monsters", f_random_monsters);
 	AP_RegisterSlotDataIntCallback("random_pickups", f_random_items);
@@ -1109,7 +1111,7 @@ int get_map_doom_type()
 static const std::map<int, int> doom_weapons_map = {{2001, 2}, {2002, 3}, {2003, 4}, {2004, 5}, {2006, 6}, {2005, 7}};
 static const std::map<int, int> doom2_weapons_map = {{2001, 2}, {2002, 3}, {2003, 4}, {2004, 5}, {2006, 6}, {2005, 7}, {82, 8}};
 static const std::map<int, int> heretic_weapons_map = {{2005, 7}, {2001, 2}, {53, 3}, {2003, 5}, {2002, 6}, {2004, 4}};
-static const std::map<int, int> hexen_weapons_map = {};
+static const std::map<int, int> hexen_weapons_map = {{8010, 2}, {123, 3}, {10, 2}, {8009, 3}, {53, 2}, {8040, 3}};
 
 
 const std::map<int, int>& get_weapons_map()
@@ -1308,6 +1310,12 @@ void f_goal(int goal)
 }
 
 
+void f_player_class(int player_class)
+{
+	ap_state.player_class = player_class;
+}
+
+
 void f_difficulty(int difficulty)
 {
 	if (ap_settings.override_skill)
@@ -1471,6 +1479,31 @@ void apdoom_complete_level(ap_level_index_t idx)
 
 ap_level_index_t ap_make_level_index(int ep /* 1-based */, int map /* 1-based */)
 {
+	if (ap_game == ap_game_t::hexen) {
+		ap_level_index_t ret = { ep - 1, map - 1 };
+		if (map >= 8 && map <= 13) {
+		    ret.ep = 1;
+		    ret.map = map - 8;
+		}
+		if (map >= 21 && map <= 26) {
+		    ret.ep = 3;
+		    ret.map = map - 21;
+		}
+		if (map >= 27 && map <= 28) {
+		    ret.ep = 2;
+		    ret.map = map - 27;
+		}
+		if (map >= 30 && map <= 34) {
+		    ret.ep = 2;
+		    ret.map = map - 28;
+		}
+		if (map >= 35) {
+		    ret.ep = 4;
+		    ret.map = map - 35;
+		}
+		return ret;
+	}
+
 	if (ap_game != ap_game_t::doom2) return { ep - 1, map - 1 };
 
 	// In Doom2, every map is ep = 1
@@ -1488,14 +1521,14 @@ ap_level_index_t ap_make_level_index(int ep /* 1-based */, int map /* 1-based */
 
 int ap_index_to_ep(ap_level_index_t idx)
 {
-	if (ap_game != ap_game_t::doom2) return idx.ep + 1;
+	if (ap_game != ap_game_t::doom2 && ap_game != ap_game_t::hexen) return idx.ep + 1;
 	return 1;
 }
 
 
 int ap_index_to_map(ap_level_index_t idx)
 {
-	if (ap_game != ap_game_t::doom2) return idx.map + 1;
+	if (ap_game != ap_game_t::doom2 && ap_game != ap_game_t::hexen) return idx.map + 1;
 
 	const auto& table = get_level_info_table();
 	for (int ep = 0; ep < idx.ep; ++ep)

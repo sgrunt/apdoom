@@ -28,6 +28,9 @@
 #include "s_sound.h"
 #include "p_local.h"
 
+#include "aphexen_c_def.h"
+#include "apdoom.h"
+
 // MACROS ------------------------------------------------------------------
 
 #define MAPINFO_SCRIPT_NAME "MAPINFO"
@@ -74,7 +77,7 @@ struct mapInfo_s
 
 // EXTERNAL FUNCTION PROTOTYPES --------------------------------------------
 
-void P_SpawnMapThing(mapthing_t * mthing);
+void P_SpawnMapThing(mapthing_t * mthing, int index);
 
 // PUBLIC FUNCTION PROTOTYPES ----------------------------------------------
 
@@ -152,6 +155,17 @@ static int MapCmdIDs[] = {
 static int cd_NonLevelTracks[6];        // Non-level specific song cd track numbers 
 
 // CODE --------------------------------------------------------------------
+
+unsigned long long hash_seed(unsigned char *str)
+{
+    unsigned long long hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
+}
 
 /*
 =================
@@ -378,15 +392,375 @@ void P_LoadNodes(int lump)
 void P_LoadThings(int lump)
 {
     byte *data;
-    int i;
+    int i, j;
     mapthing_t spawnthing;
+    mapthing_t spawnthing_player1_start;
     mapthing_t *mt;
     int numthings;
+    int bit;
     int playerCount;
     int deathSpotsCount;
+    boolean foundplayer1;
 
+    foundplayer1 = false;
     data = W_CacheLumpNum(lump, PU_STATIC);
     numthings = W_LumpLength(lump) / sizeof(mapthing_t);
+
+    // Generate unique random seed from ap seed + level
+    const char* ap_seed = apdoom_get_seed();
+    unsigned long long seed = hash_seed(ap_seed);
+    seed += gameepisode * 9 + gamemap;
+    srand(seed);
+
+    int things_type_remap[1024] = {0};
+
+    mt = (mapthing_t *)data;
+    for (i = 0; i < numthings; i++, mt++)
+    {
+        things_type_remap[i] = mt->type;
+    }
+    
+#define E1M8_CUTOFF_OFFSET -1984
+
+#if 0
+    int do_random_monsters = ap_state.random_monsters;
+    if (do_random_monsters > 0)
+    {
+        // Make sure at the right difficulty level
+        if (gameskill == sk_baby)
+            bit = 1;
+        else if (gameskill == sk_nightmare)
+            bit = 4;
+        else
+            bit = 1<<(gameskill-1);
+
+        random_monster_def_t* monsters[1024] = {0};
+        int monster_count = 0;
+        monster_spawn_def_t spawns[1024] = {0};
+        int spawn_count = 0;
+
+        // Collect spawn points
+        mt = (mapthing_t *)data;
+        for (i = 0; i < numthings; i++, mt++)
+        {
+            if (!(mt->options & bit))
+                continue;
+
+            for (int j = 0; j < monster_def_count; ++j)
+            {
+                if (random_monster_defs[j].dont_shuffle)
+                    continue;
+
+                if (gameepisode == 1 && gamemap == 8)
+                    if (mt->y < E1M8_CUTOFF_OFFSET)
+                        continue;
+
+                if (random_monster_defs[j].doom_type == mt->type)
+                {
+                    tmtype = mt->type;
+                    get_fit_dimensions(mt->x * FRACUNIT, mt->y * FRACUNIT, &spawns[spawn_count].fit_radius, &spawns[spawn_count].fit_height);
+                    spawns[spawn_count].og_monster = &random_monster_defs[j];
+                    spawns[spawn_count++].index = i;
+                    break;
+                }
+            }
+        }
+
+        if (ap_state.random_monsters == 1) // Shuffle
+        {
+            // Collect monsters
+            for (int i = 0; i < spawn_count; ++i)
+            {
+                monster_spawn_def_t* spawn = &spawns[i];
+                monsters[monster_count++] = spawn->og_monster;
+            }
+        }
+        else if (ap_state.random_monsters == 2) // Random balanced
+        {
+            int ratios[NUM_RMC] = {0};
+            random_monster_def_t* defs_by_rmc[NUM_RMC][20];
+            int defs_by_rmc_count[NUM_RMC] = {0};
+            int rmc_ratios[NUM_RMC] = {0};
+            for (int i = 0; i < monster_def_count; ++i)
+            {
+                random_monster_def_t* monster = &random_monster_defs[i];
+                defs_by_rmc[monster->category][defs_by_rmc_count[monster->category]++] = monster;
+                rmc_ratios[monster->category] += monster->frequency;
+            }
+
+            int total = 0;
+            for (int i = 0; i < spawn_count; ++i)
+            {
+                ratios[spawns[i].og_monster->category]++;
+                total++;
+            }
+
+            while (monster_count < spawn_count)
+            {
+                int rnd = rand() % total;
+                for (int i = 0; i < NUM_RMC; ++i)
+                {
+                    if (rnd < ratios[i])
+                    {
+                        rnd = rand() % rmc_ratios[i];
+                        for (int j = 0; j < defs_by_rmc_count[i]; ++j)
+                        {
+                            if (rnd < defs_by_rmc[i][j]->frequency)
+                            {
+                                monsters[monster_count++] = defs_by_rmc[i][j];
+                                break;
+                            }
+                            rnd -= defs_by_rmc[i][j]->frequency;
+                        }
+                        break;
+                    }
+                    rnd -= ratios[i];
+                }
+            }
+        }
+        else if (ap_state.random_monsters == 3) // Random chaotic
+        {
+            int total = 0;
+            for (int i = 0; i < monster_def_count; ++i)
+            {
+                random_monster_def_t* monster = &random_monster_defs[i];
+                if (monster->dont_shuffle) continue;
+                total += monster->frequency;
+            }
+
+            while (monster_count < spawn_count)
+            {
+                int rnd = rand() % total;
+                for (int i = 0; i < monster_def_count; ++i)
+                {
+                    random_monster_def_t* monster = &random_monster_defs[i];
+                    if (monster->dont_shuffle) continue;
+                    if (rnd < monster->frequency)
+                    {
+                        monsters[monster_count++] = monster;
+                        break;
+                    }
+                    rnd -= monster->frequency;
+                }
+            }
+        }
+
+        // Make sure we have at least 2 iron lynch in first episode boss level
+        if (gameepisode == 1 && gamemap == 8)
+        {
+            int iron_lynch_count = 0;
+            for (int i = 0; i < monster_count; ++i)
+                if (monsters[i]->doom_type == 6)
+                    iron_lynch_count++;
+            while (iron_lynch_count < 2)
+            {
+                int i = rand() % monster_count;
+                if (monsters[i]->doom_type != 6)
+                {
+                    monsters[i] = &random_monster_defs[12];
+                    iron_lynch_count++;
+                }
+            }
+        }
+
+        // Make sure we have at least 1 iron lynch in E4M8
+        if (gameepisode == 4 && gamemap == 8)
+        {
+            int iron_lynch_count = 0;
+            for (int i = 0; i < monster_count; ++i)
+                if (monsters[i]->doom_type == 6)
+                    iron_lynch_count++;
+            while (iron_lynch_count < 1)
+            {
+                int i = rand() % monster_count;
+                if (monsters[i]->doom_type != 6)
+                {
+                    monsters[i] = &random_monster_defs[12];
+                    iron_lynch_count++;
+                }
+            }
+        }
+        
+        // Randomly pick them until empty, and place them in different spots
+        for (i = 0; i < spawn_count; i++)
+        {
+            int idx = rand() % monster_count;
+            spawns[i].monster = monsters[idx];
+            monsters[idx] = monsters[monster_count - 1];
+            monster_count--;
+        }
+
+        // Go through again, and make sure they fit
+        for (i = 0; i < spawn_count; i++)
+        {
+            monster_spawn_def_t* spawn1 = &spawns[i];
+            if (spawn1->monster->height > spawn1->fit_height ||
+                spawn1->monster->radius > spawn1->fit_radius)
+            {
+                // He doesn't fit here, find another monster randomly that would fit here, then swap
+                int tries = 1000;
+                while (tries--)
+                {
+                    int j = rand() % spawn_count;
+                    if (j == i) continue;
+                    monster_spawn_def_t* spawn2 = &spawns[j];
+                    if (spawn1->monster->height <= spawn2->fit_height &&
+                        spawn1->monster->radius <= spawn2->fit_radius &&
+                        spawn2->monster->height <= spawn1->fit_height &&
+                        spawn2->monster->radius <= spawn1->fit_radius)
+                    {
+                        random_monster_def_t* tmp = spawn1->monster;
+                        spawn1->monster = spawn2->monster;
+                        spawn2->monster = tmp;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Do the final remapping
+        for (i = 0; i < spawn_count; i++)
+        {
+            monster_spawn_def_t* spawn = &spawns[i];
+            things_type_remap[spawn->index] = spawn->monster->doom_type;
+        }
+    }
+#endif
+
+    if (ap_state.random_items > 0)
+    {
+        // Make sure at the right difficulty level
+        if (gameskill == sk_baby)
+            bit = 1;
+        else if (gameskill == sk_nightmare)
+            bit = 4;
+        else
+            bit = 1<<(gameskill-1);
+
+        if (ap_state.random_items == 1) // Shuffle
+        {
+            int items[1024];
+            int item_count = 0;
+            int indices[1024];
+            int index_count = 0;
+
+            // Collect all items
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (mt->options & 16)
+                    continue; // Multiplayer item
+                if (!(mt->options & bit))
+                    continue;
+
+                switch (mt->type)
+                {
+                    case 122: // Blue Mana
+                    case 124: // Green Mana
+                    case 8004: // Combined Mana
+                    case 81: // Crystal Vial
+                    case 82: // Quartz Flask
+                    case 10110: // Disc of Repulsion
+		    case 8000: // Flechette
+                    {
+                        items[item_count++] = mt->type;
+                        indices[index_count++] = i;
+                        break;
+                    }
+                }
+            }
+
+            // Randomly pick them until empty, and place them in different spots
+            mt = (mapthing_t *)data;
+            for (i = 0; i < index_count; i++)
+            {
+                int idx = rand() % item_count;
+                things_type_remap[indices[i]] = items[idx];
+                items[idx] = items[item_count - 1];
+                item_count--;
+            }
+        }
+        else if (ap_state.random_items == 2) // Random balanced
+        {
+            int ratios[2] = {0, 0};
+            int total = 0;
+
+            // Make sure at the right difficulty level
+            if (gameskill == sk_baby)
+                bit = 1;
+            else if (gameskill == sk_nightmare)
+                bit = 4;
+            else
+                bit = 1<<(gameskill-1);
+
+            // Calculate ratios
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                if (mt->options & 16)
+                    continue; // Multiplayer item
+
+                switch (mt->type)
+                {
+                    // Tiny
+                    case 81: // Crystal Vial
+                    case 122: // Blue Mana
+                    case 124: // Green Mana
+                        ratios[0]++;
+                        total++;
+                        break;
+
+                    // Big
+                    case 8004: // Combined Mana
+                    case 82: // Quartz Flask
+                    case 10110: // Disc of Repulsion
+		    case 8000: // Flechette
+                        ratios[1]++;
+                        total++;
+                        break;
+                }
+            }
+
+            // Randomly pick items based on ratio
+            mt = (mapthing_t *)data;
+            for (i = 0; i < numthings; i++, mt++)
+            {
+                switch (mt->type)
+                {
+                    case 122: // Blue Mana
+                    case 124: // Green Mana
+                    case 8004: // Combined Mana
+                    case 81: // Crystal Vial
+                    case 82: // Quartz Flask
+                    case 10110: // Disc of Repulsion
+		    case 8000: // Flechette
+                    {
+                        int rnd = rand() % total;
+                        if (rnd < ratios[0])
+                        {
+                            switch (rand()%3)
+                            {
+                                case 0: things_type_remap[i] = 81; break; // Crystal Vial
+                                case 1: things_type_remap[i] = 122; break; // Blue Mana
+                                case 2: things_type_remap[i] = 124; break; // Green Mana
+                            }
+                        }
+                        else
+                        {
+                            switch (rand()%4)
+                            {
+                                case 0: things_type_remap[i] = 8004; break; // combined Mana
+                                case 1: things_type_remap[i] = 82; break; // Quartz Flask
+                                case 2: things_type_remap[i] = 10110; break; // Disc of Repulsion
+                                case 3: things_type_remap[i] = 8000; break; // Flechette
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     mt = (mapthing_t *) data;
     for (i = 0; i < numthings; i++, mt++)
@@ -396,7 +770,7 @@ void P_LoadThings(int lump)
         spawnthing.y = SHORT(mt->y);
         spawnthing.height = SHORT(mt->height);
         spawnthing.angle = SHORT(mt->angle);
-        spawnthing.type = SHORT(mt->type);
+        spawnthing.type = SHORT(things_type_remap[i]);
         spawnthing.options = SHORT(mt->options);
 
         spawnthing.special = mt->special;
@@ -406,8 +780,55 @@ void P_LoadThings(int lump)
         spawnthing.arg4 = mt->arg4;
         spawnthing.arg5 = mt->arg5;
 
-        P_SpawnMapThing(&spawnthing);
+        // Replace AP locations with AP item
+        if (is_hexen_type_ap_location(spawnthing.type))
+        {
+            // Validate that the location index matches what we have in our data. If it doesn't then the WAD is not the same, we can't continue
+            int ret = ap_validate_doom_location(ap_make_level_index(gameepisode, gamemap), spawnthing.type, i);
+            if (ret == -1)
+            {
+                I_Error("WAD file doesn't match the one used to generate the logic.\nTo make sure it works as intended, get HEXEN.WAD from the steam releases.");
+            }
+            else if (ret == 0)
+            {
+                continue; // Skip it
+            }
+            else if (ret == 1)
+            {
+                if (apdoom_is_location_progression(ap_make_level_index(gameepisode, gamemap), i))
+                    spawnthing.type = 20001;
+                else
+                    spawnthing.type = 20000;
+                int skip = 0;
+                ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
+                for (j = 0; j < level_state->check_count; ++j)
+                {
+                    if (level_state->checks[j] == i)
+                    {
+                        skip = 1;
+                        break;
+                    }
+                }
+                if (skip)
+                    continue;
+            }
+        }
+
+        // [AP] On player start 1, put level select teleport "HUB"
+        if (spawnthing.type == 1 && !foundplayer1) {
+            spawnthing_player1_start = spawnthing;
+	    foundplayer1 = true;
+	}
+
+        P_SpawnMapThing(&spawnthing, i);
     }
+
+    // [AP] Spawn level select teleport "HUB"
+    if (gamemap == 1 || gamemap == 2 || gamemap == 13 || gamemap == 22 || gamemap == 27 || gamemap == 35 || gamemap == 40) {
+        spawnthing_player1_start.type = 20002;
+        P_SpawnMapThing(&spawnthing_player1_start, i);
+    }
+
     P_CreateTIDList();
     P_InitCreatureCorpseQueue(false);   // false = do NOT scan for corpses
     W_ReleaseLumpNum(lump);
@@ -694,6 +1115,7 @@ void P_GroupLines(void)
 =================
 */
 
+extern int leveltimesinceload;
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 {
     int i;
@@ -721,6 +1143,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
 
     P_InitThinkers();
     leveltime = 0;
+    leveltimesinceload = 0;
     oldleveltime = 0;  // [crispy] Track if game is running
 
     M_snprintf(lumpname, sizeof(lumpname), "MAP%02d", map);

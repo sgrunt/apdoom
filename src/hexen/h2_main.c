@@ -167,18 +167,273 @@ void on_ap_victory()
 
 
 //boolean P_GiveArmor(player_t* player, int armortype);
-//boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
-
+boolean P_GiveArmor(player_t * player, armortype_t armortype, int amount);
+boolean P_GiveWeapon(player_t* player, weapontype_t weapon, boolean dropped);
+boolean P_GiveWeaponPiece(player_t *player, pclass_t class, int piece);
 
 // Kind of a copy of P_TouchSpecialThing
 void on_ap_give_item(int doom_type, int ep, int map)
 {
     player_t* player = &players[consoleplayer];
     int sound = SFX_PICKUP_ITEM;
-    ap_level_info_t* level_info = ap_get_level_info(ap_make_level_index(gameepisode, gamemap));
 
+    switch (doom_type)
+    {
+            // Items
+        case 81:         // Item_HealingPotion
+            if (!P_GiveBody(player, 10))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_ITEMHEALTH, false);
+            break;
+        case 8005:
+            if (!P_GiveArmor(player, ARMOR_ARMOR, -1))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_ARMOR1, false);
+            break;
+        case 8006:
+            if (!P_GiveArmor(player, ARMOR_SHIELD, -1))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_ARMOR2, false);
+            break;
+        case 8007:
+            if (!P_GiveArmor(player, ARMOR_HELMET, -1))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_ARMOR3, false);
+            break;
+        case 8008:
+            if (!P_GiveArmor(player, ARMOR_AMULET, -1))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_ARMOR4, false);
+            break;
 
-	S_StartSound(NULL, sound); // [NS] Fallback to itemup.
+            // Keys
+        case 8030:
+        case 8031:
+        case 8032:
+        case 8033:
+        case 8034:
+        case 8035:
+        case 8036:
+        case 8037:
+        case 8038:
+        case 8039:
+            if (!P_GiveKey(player, doom_type - 8030))
+            {
+                return;
+            }
+            P_SetMessage(player, TextKeyMessages[doom_type - 8030],
+                         true);
+            sound = SFX_PICKUP_KEY;
+	    break;
+
+        case 8200:
+            if (!P_GiveKey(player, 10))
+            {
+                return;
+            }
+            P_SetMessage(player, TextKeyMessages[10],
+                         true);
+            sound = SFX_PICKUP_KEY;
+	    break;
+
+            // Artifacts
+        case 82:
+            P_GiveArtifact(player, arti_health, NULL);
+            return;
+        case 83:
+            P_GiveArtifact(player, arti_fly, NULL);
+            return;
+        case 84:
+            P_GiveArtifact(player, arti_invulnerability, NULL);
+            return;
+        case 86:
+            P_GiveArtifact(player, arti_summon, NULL);
+            return;
+        case 30:
+            P_GiveArtifact(player, arti_egg, NULL);
+            return;
+        case 32:
+            P_GiveArtifact(player, arti_superhealth, NULL);
+            return;
+        case 33:
+            P_GiveArtifact(player, arti_torch, NULL);
+            return;
+        case 36:
+            P_GiveArtifact(player, arti_teleport, NULL);
+            return;
+        case 10040:
+            P_GiveArtifact(player, arti_teleportother, NULL);
+            return;
+        case 8000:
+            P_GiveArtifact(player, arti_poisonbag, NULL);
+            return;
+        case 8002:
+            P_GiveArtifact(player, arti_speed, NULL);
+            return;
+        case 8003:
+            P_GiveArtifact(player, arti_boostmana, NULL);
+            return;
+        case 8041:
+            P_GiveArtifact(player, arti_boostarmor, NULL);
+            return;
+        case 10110:
+            P_GiveArtifact(player, arti_blastradius, NULL);
+            return;
+
+            // Puzzle artifacts
+        case 9002:
+            P_GiveArtifact(player, arti_puzzskull, NULL);
+            return;
+        case 9003:
+            P_GiveArtifact(player, arti_puzzgembig, NULL);
+            return;
+        case 9004:
+            P_GiveArtifact(player, arti_puzzgemred, NULL);
+            return;
+        case 9005:
+            P_GiveArtifact(player, arti_puzzgemgreen1, NULL);
+            return;
+        case 9009:
+            P_GiveArtifact(player, arti_puzzgemgreen2, NULL);
+            return;
+        case 9006:
+            P_GiveArtifact(player, arti_puzzgemblue1, NULL);
+            return;
+        case 9010:
+            P_GiveArtifact(player, arti_puzzgemblue2, NULL);
+            return;
+        case 9007:
+            P_GiveArtifact(player, arti_puzzbook1, NULL);
+            return;
+        case 9008:
+            P_GiveArtifact(player, arti_puzzbook2, NULL);
+            return;
+        case 9014:
+            P_GiveArtifact(player, arti_puzzskull2, NULL);
+            return;
+        case 9015:
+            P_GiveArtifact(player, arti_puzzfweapon, NULL);
+            return;
+        case 9016:
+            P_GiveArtifact(player, arti_puzzcweapon, NULL);
+            return;
+        case 9017:
+            P_GiveArtifact(player, arti_puzzmweapon, NULL);
+            return;
+        case 9018:
+            P_GiveArtifact(player, arti_puzzgear1, NULL);
+            return;
+        case 9019:
+            P_GiveArtifact(player, arti_puzzgear2, NULL);
+            return;
+        case 9020:
+            P_GiveArtifact(player, arti_puzzgear3, NULL);
+            return;
+        case 9021:
+            P_GiveArtifact(player, arti_puzzgear4, NULL);
+            return;
+
+            // Mana
+        case 122:
+            if (!P_GiveMana(player, MANA_1, 15))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_MANA_1, false);
+            break;
+        case 124:
+            if (!P_GiveMana(player, MANA_2, 15))
+            {
+                return;
+            }
+            P_SetMessage(player, TXT_MANA_2, false);
+            break;
+        case 8004:         // Double Mana Dodecahedron
+            if (!P_GiveMana(player, MANA_1, 20))
+            {
+                if (!P_GiveMana(player, MANA_2, 20))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                P_GiveMana(player, MANA_2, 20);
+            }
+            P_SetMessage(player, TXT_MANA_BOTH, false);
+            break;
+
+            // 2nd and 3rd Mage Weapons
+        case 53:         // Frost Shards
+            P_GiveWeapon(player, PCLASS_MAGE, WP_SECOND);
+	    P_SetMessage(player, TXT_WEAPON_M2, false);
+            return;
+        case 8040:         // Arc of Death
+            P_GiveWeapon(player, PCLASS_MAGE, WP_THIRD);
+	    P_SetMessage(player, TXT_WEAPON_M3, false);
+            return;
+
+            // 2nd and 3rd Fighter Weapons
+        case 8010:         // Timon's Axe
+            P_GiveWeapon(player, PCLASS_FIGHTER, WP_SECOND);
+	    P_SetMessage(player, TXT_WEAPON_F2, false);
+            return;
+        case 123:         // Hammer of Retribution
+            P_GiveWeapon(player, PCLASS_FIGHTER, WP_THIRD);
+	    P_SetMessage(player, TXT_WEAPON_F3, false);
+            return;
+
+            // 2nd and 3rd Cleric Weapons
+        case 10:         // Serpent Staff
+            P_GiveWeapon(player, PCLASS_CLERIC, WP_SECOND);
+	    P_SetMessage(player, TXT_WEAPON_C2, false);
+            return;
+        case 8009:         // Firestorm
+            P_GiveWeapon(player, PCLASS_CLERIC, WP_THIRD);
+	    P_SetMessage(player, TXT_WEAPON_C3, false);
+            return;
+
+            // Fourth Weapon Pieces
+        case 12:
+            P_GiveWeaponPiece(player, PCLASS_FIGHTER, WPIECE1);
+            return;
+        case 13:
+            P_GiveWeaponPiece(player, PCLASS_FIGHTER, WPIECE2);
+            return;
+        case 16:
+            P_GiveWeaponPiece(player, PCLASS_FIGHTER, WPIECE3);
+            return;
+        case 18:
+            P_GiveWeaponPiece(player, PCLASS_CLERIC, WPIECE1);
+            return;
+        case 19:
+            P_GiveWeaponPiece(player, PCLASS_CLERIC, WPIECE2);
+            return;
+        case 20:
+            P_GiveWeaponPiece(player, PCLASS_CLERIC, WPIECE3);
+            return;
+        case 21:
+            P_GiveWeaponPiece(player, PCLASS_MAGE, WPIECE1);
+            return;
+        case 22:
+            P_GiveWeaponPiece(player, PCLASS_MAGE, WPIECE2);
+            return;
+        case 23:
+            P_GiveWeaponPiece(player, PCLASS_MAGE, WPIECE3);
+            return;
+    }
+
+    S_StartSound(NULL, sound); // [NS] Fallback to itemup.
 }
 
 void D_BindVariables(void)

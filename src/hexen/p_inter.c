@@ -302,7 +302,6 @@ static void TryPickupWeapon(player_t * player, pclass_t weaponClass,
 //
 //--------------------------------------------------------------------------
 
-/*
 boolean P_GiveWeapon(player_t *player, pclass_t class, weapontype_t weapon)
 {
 	boolean gaveMana;
@@ -369,7 +368,6 @@ boolean P_GiveWeapon(player_t *player, pclass_t class, weapontype_t weapon)
 	}
 	return(gaveWeapon || gaveMana);
 }
-*/
 
 //===========================================================================
 //
@@ -377,7 +375,6 @@ boolean P_GiveWeapon(player_t *player, pclass_t class, weapontype_t weapon)
 //
 //===========================================================================
 
-/*
 boolean P_GiveWeaponPiece(player_t *player, pclass_t class, int piece)
 {
 	P_GiveMana(player, MANA_1, 20);
@@ -398,7 +395,6 @@ boolean P_GiveWeaponPiece(player_t *player, pclass_t class, int piece)
 	}
 	return true;
 }
-*/
 
 //==========================================================================
 //
@@ -932,6 +928,8 @@ void A_RestoreSpecialThing2(mobj_t * thing, player_t *player, pspdef_t *psp)
 //
 //---------------------------------------------------------------------------
 
+extern int leveltimesinceload;
+
 void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
 {
     player_t *player;
@@ -1219,6 +1217,20 @@ void P_TouchSpecialThing(mobj_t * special, mobj_t * toucher)
         case SPR_WMS3:
             TryPickupWeaponPiece(player, PCLASS_MAGE, WPIECE3, special);
             return;
+
+	    case SPR_APJI:
+	    case SPR_APPI:
+		    apdoom_check_location(ap_make_level_index(gameepisode, gamemap), special->index);
+		    break;
+
+	    case SPR_LVST:
+		    // Teleport back to level select!
+		    if (leveltimesinceload > 350)
+		    {
+			    S_StartSound(NULL, SFX_TELEPORT);
+			    G_LevelSelect();
+		    }
+		    return; // Don't pick up this
 
         default:
             I_Error("P_SpecialThing: Unknown gettable thing");
