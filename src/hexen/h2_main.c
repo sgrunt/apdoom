@@ -1465,7 +1465,7 @@ static void DrawAndBlit(void)
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
 
-    if (paused && !MenuActive && !askforquit)
+    if (paused && !MenuActive && !askforquit && gamestate != GS_LEVEL_SELECT)
     {
         if (!netgame)
         {
@@ -1484,6 +1484,12 @@ static void DrawAndBlit(void)
 
     // Draw Menu
     MN_Drawer();
+
+    if (gamestate != GS_FINALE)
+    {
+        ap_notif_draw();
+        HU_DrawAPMessages();   // [AP] Sticky messages on top of everything
+    }
 
     // Send out any new accumulation
     NetUpdate();
