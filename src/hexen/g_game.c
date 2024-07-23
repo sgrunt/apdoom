@@ -1654,6 +1654,7 @@ void G_DeathMatchSpawnPlayer(int playernum)
 //
 //==========================================================================
 
+extern int leveltimesinceload;
 void G_DoReborn(int playernum)
 {
     int i;
@@ -1668,6 +1669,8 @@ void G_DoReborn(int playernum)
     {
         return;
     }
+    // [ap] always do coop-style reborn logic to preserve keys and artifacts
+    #if 0
     if (!netgame)
     {
         if (SV_RebornSlotAvailable())
@@ -1680,6 +1683,7 @@ void G_DoReborn(int playernum)
         }
     }
     else
+    #endif
     {                           // Net-game
         players[playernum].mo->player = NULL;   // Dissassociate the corpse
 
@@ -1728,6 +1732,8 @@ void G_DoReborn(int playernum)
         {                       // Player's going to be inside something
             P_SpawnPlayer(&playerstarts[RebornPosition][playernum]);
         }
+
+	leveltimesinceload = MIN(leveltimesinceload, 175);
 
         // Restore keys and weapons
         players[playernum].keys = oldKeys;
