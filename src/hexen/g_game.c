@@ -2028,6 +2028,8 @@ void G_SaveGame(int slot, char *description)
 
 void G_DoSaveGame(void)
 {
+    cache_ap_player_state();
+
     SV_SaveGame(savegameslot, savedescription);
     gameaction = ga_nothing;
     savedescription[0] = 0;
@@ -2086,6 +2088,9 @@ void G_DoInitNew(void)
 void G_InitNew(skill_t skill, int episode, int map)
 {
     int i;
+
+    ap_state.ep = episode;
+    ap_state.map = map;
 
     if (paused)
     {

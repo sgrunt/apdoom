@@ -1194,6 +1194,12 @@ static void SCQuitGame(int option)
     {
         paused = true;
     }
+
+    // [AP] Save state if we are currently in a level
+    if (!netgame && /*ap_state.ep != 0 && */ap_state.map != 0 && gamestate == GS_LEVEL)
+    {
+        G_DoSaveGame();
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -1279,7 +1285,8 @@ static boolean SCLevelSelect(int option)
     // Was the game quit during a level?
     if (ap_state.map != 0)
     {
-        play_level(ap_state.map - 1);
+        //play_level(ap_state.map - 1);
+	G_DoLoadGame();
     }
     else
     {
