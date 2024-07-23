@@ -109,9 +109,9 @@ void ap_notif_draw(void)
 
         int center_y = 172 + notif->y;
 
-        V_DrawPatch(notif->x - AP_NOTIF_SIZE / 2 - WIDESCREENDELTA, 
+/*        V_DrawPatch(notif->x - AP_NOTIF_SIZE / 2 - WIDESCREENDELTA, 
                     center_y - AP_NOTIF_SIZE / 2, 
-                    W_CacheLumpName("NOTIFBG", PU_CACHE));
+                    W_CacheLumpName("NOTIFBG", PU_CACHE));*/
         V_DrawScaledBlockTransparency(
             notif->x - ICON_BLOCK_SIZE / 2 - WIDESCREENDELTA,
             center_y - ICON_BLOCK_SIZE / 2,
