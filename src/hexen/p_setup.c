@@ -877,6 +877,11 @@ void P_LoadLineDefs(int lump)
     {
         ld->flags = SHORT(mld->flags);
 
+	// [ap] hack - make Winnowing Hall exit repeatable
+	if (gamemap == 1 && i == 1550) {
+	    ld->flags = ld->flags | ML_REPEAT_SPECIAL;
+	}
+
         // Old line special info ...
         //ld->special = SHORT(mld->special);
         //ld->tag = SHORT(mld->tag);
