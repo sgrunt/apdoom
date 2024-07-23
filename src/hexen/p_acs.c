@@ -637,6 +637,80 @@ boolean ap_check_send_special(int number, int map, int line_index) {
         check_number = 391218; // Seven Portals - Bright Crucible - Exit Trigger
     }
 
+    if (number == 18 && map == 13) { // Shadow Wood - Shadow Wood - Darkmere Horn Switch
+        check_number = 391219; // Shadow Wood - Darkmere - Horn Key Puzzle Switch
+    }
+
+    if (number == 19 && map == 13) { // Shadow Wood - Shadow Wood - Darkmere Cave Switch
+        check_number = 391220; // Shadow Wood - Darkmere - Cave Key Puzzle Switch
+    }
+
+    if (number == 20 && map == 13) { // Shadow Wood - Shadow Wood - Caves of Circe Horn Switch
+        check_number = 391221; // Shadow Wood - Caves of Circe - Horn Key Puzzle Switch
+    }
+
+    if (number == 21 && map == 13) { // Shadow Wood - Shadow Wood - Caves of Circe Swamp Switch
+        check_number = 391222; // Shadow Wood - Caves of Circe - Swamp Key Puzzle Switch
+    }
+
+    if (number == 22 && map == 13) { // Shadow Wood - Shadow Wood - Wastelands Swamp Switch
+        check_number = 391224; // Shadow Wood - Wastelands - Swamp Key Puzzle Switch
+    }
+
+    if (number == 23 && map == 13) { // Shadow Wood - Shadow Wood - Wastelands Cave Switch
+        check_number = 391223; // Shadow Wood - Wastelands - Cave Key Puzzle Switch
+    }
+
+    if (number == 9 && map == 21) { // Castle of Grief - Forsaken Outpost - Desolate Garden Access 2
+        check_number = 391225; // Shadow Wood - Sacred Grove - Desolate Garden Switch
+    }
+
+    if ((number == 31 && map == 27) || // Heresiarch's Seminary - Heresiarch's Seminary - Dragon Chapel Dragon Switch
+        (number == 1 && map == 34) ||
+	(number == 6 && map == 30)) {
+	check_number = 391226; // Heresiarch's Seminary - Dragon Chapel - Dragon Puzzle Switch
+    }
+
+    if (number == 32 && map == 27) { // Heresiarch's Seminary - Heresiarch's Seminary - Dragon Chapel Wolf Switch
+        check_number = 391227; // Heresiarch's Seminary - Dragon Chapel - Wolf Puzzle Switch
+    }
+
+    if (number == 33 && map == 27) { // Heresiarch's Seminary - Heresiarch's Seminary - Dragon Chapel Griffin Switch
+        check_number = 391228; // Heresiarch's Seminary - Dragon Chapel - Griffin Puzzle Switch
+    }
+
+    if ((number == 37 && map == 27) || // Heresiarch's Seminary - Heresiarch's Seminary - Griffin Chapel Griffin Switch
+        (number == 2 && map == 28) ||
+	(number == 7 && map == 34)) {
+	check_number = 391232; // Heresiarch's Seminary - Griffin Chapel - Griffin Puzzle Switch
+    }
+
+    if (number == 38 && map == 27) { // Heresiarch's Seminary - Heresiarch's Seminary - Griffin Chapel Dragon Switch
+        check_number = 391233; // Heresiarch's Seminary - Griffin Chapel - Dragon Puzzle Switch
+    }
+
+    if (number == 39 && map == 27) { // Heresiarch's Seminary - Heresiarch's Seminary - Griffin Chapel Wolf Trigger
+        check_number = 391234; // Heresiarch's Seminary - Griffin Chapel - Wolf Puzzle Trigger 
+    }
+
+    if ((number == 34 && map == 27) || // Heresiarch's Seminary - Heresiarch's Seminary - Wolf Chapel Wolf Switch
+        (number == 5 && map == 28) ||
+	(number == 5 && map == 30)) {
+	check_number = 391229; // Heresiarch's Seminary - Wolf Chapel - Wolf Puzzle Switch
+    }
+
+    if (number == 35 && map == 27) { // Heresiarch's Seminary - Heresiarch's Seminary - Wolf Chapel Dragon Switch
+        check_number = 391230; // Heresiarch's Seminary - Wolf Chapel - Dragon Puzzle Switch
+    }
+
+    if (number == 36 && map == 27) { // Heresiarch's Seminary - Heresiarch's Seminary - Wolf Chapel Griffin Trigger
+        check_number = 391231; // Heresiarch's Seminary - Wolf Chapel - Griffin Puzzle Trigger
+    }
+
+    if (number == 24 && map == 23) { // Castle of Grief - Gibbet - Axe Key Access
+        check_number = 391235; // Castle of Grief - Forsaken Outpost - From Effluvium Trigger
+    }
+
     if (check_number > 0) {
         apdoom_send_item(check_number);
         return true;
