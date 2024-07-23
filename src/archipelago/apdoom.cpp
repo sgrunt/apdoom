@@ -1204,7 +1204,6 @@ void f_itemrecv(int64_t item_id, int player_id, bool notify_player)
 	if (item.doom_type == -2)
 		level_state->completed = 1;
 
-
 	if (!notify_player) return;
 
 	if (!ap_is_in_game)
@@ -1214,7 +1213,7 @@ void f_itemrecv(int64_t item_id, int player_id, bool notify_player)
 	}
 
 	// Give item to player
-	ap_settings.give_item_callback(item.doom_type, item.ep, item.map);
+	ap_settings.give_item_callback(item.doom_type == -3 ? item_id : item.doom_type, item.ep, item.map);
 
 	// Add notification icon
 	const auto& sprite_map = get_sprites();

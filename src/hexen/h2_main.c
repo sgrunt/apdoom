@@ -47,6 +47,7 @@
 #include "hexen_icon.c"
 
 #include "apdoom.h"
+#include "ap_msg.h"
 
 #include "level_select.h" // [ap]
 #include "ap_msg.h"
@@ -165,6 +166,172 @@ void on_ap_victory()
     F_StartFinale();
 }
 
+extern int WorldVars[MAX_ACS_WORLD_VARS];
+
+void on_ap_give_acs(int check) {
+    int script_map = -1;
+    int script_num = 0;
+    int script2_map = -1;
+    int script2_num = 0;
+    int script3_map = -1;
+    int script3_num = 0;
+    int world_var_increment = -1;
+    player_t* player = &players[consoleplayer];
+    char error_message[80];
+    byte script_args[3];
+    script_args[0] = script_args[1] = script_args[2] = 0;
+
+    switch(check) {
+        case 390053: // Seven Portals - Seven Portals - West Access (1/3)
+	     script_num = 20;
+	     script_map = 2;
+             break;
+        case 390054: // Seven Portals - Seven Portals - Ice Stairs
+	     script_num = 16;
+	     script_map = 2;
+             break;
+        case 390055: // Seven Portals - Seven Portals - Steel Stairs
+	     script_num = 17;
+	     script_map = 2;
+             break;
+        case 390056: // Seven Portals - Seven Portals - Fire Stairs
+	     script_num = 18;
+	     script_map = 2;
+             break;
+        case 390057: // Seven Portals - Seven Portals - Exit Access (1/3)
+	     script_num = 9;
+	     script_map = 2;
+             break;
+        case 390058: // Seven Portals - Bright Crucible Access (1/2)
+             script_num = 1;
+             script_map = 2;
+             break;
+        case 390059: // Seven Portals - Guardian of Ice - Steel Door
+             script_num = 21;
+             script_map = 3;
+             break;
+        case 390060: // Seven Portals - Guardian of Ice - Fire Door
+             script_num = 22;
+             script_map = 3;
+             break;
+        case 390061: // Castle of Grief - Forsaken Outpost - Desolate Garden Access 1
+             script_num = 8;
+             script_map = 21;
+             script2_num = 10;
+             script2_map = 21;
+             break;
+        case 390062: // Shadow Wood - Shadow Wood - Darkmere Horn Switch
+             script_num = 18;
+             script_map = 13;
+	     world_var_increment = 0;
+             break;
+        case 390063: // Shadow Wood - Shadow Wood - Darkmere Cave Switch
+             script_num = 19;
+             script_map = 13;
+	     world_var_increment = 0;
+             break;
+        case 390064: // Shadow Wood - Shadow Wood - Caves of Circe Horn Switch
+             script_num = 20;
+             script_map = 13;
+	     world_var_increment = 0;
+             break;
+        case 390065: // Shadow Wood - Shadow Wood - Caves of Circe Swamp Switch
+             script_num = 21;
+             script_map = 13;
+	     world_var_increment = 0;
+             break;
+        case 390066: // Shadow Wood - Shadow Wood - Wastelands Swamp Switch
+             script_num = 22;
+             script_map = 13;
+	     world_var_increment = 0;
+             break;
+        case 390067: // Shadow Wood - Shadow Wood - Wastelands Cave Switch
+             script_num = 23;
+             script_map = 13;
+	     world_var_increment = 0;
+             break;
+        case 390068: // Castle of Grief - Forsaken Outpost - Desolate Garden Access 2
+             script_num = 9;
+             script_map = 21;
+             script2_num = 10;
+             script2_map = 21;
+             break;
+        case 390069: // Heresiarch's Seminary - Heresiarch's Seminary - Dragon Chapel Dragon Switch
+             script_num = 31;
+             script_map = 27;
+             script2_num = 1;
+             script2_map = 34;
+             script3_num = 6;
+             script3_map = 30;
+             break;
+        case 390070: // Heresiarch's Seminary - Heresiarch's Seminary - Dragon Chapel Wolf Switch
+             script_num = 32;
+             script_map = 27;
+             break;
+        case 390071: // Heresiarch's Seminary - Heresiarch's Seminary - Dragon Chapel Griffin Switch
+             script_num = 33;
+             script_map = 27;
+             break;
+        case 390072: // Heresiarch's Seminary - Heresiarch's Seminary - Griffin Chapel Griffin Switch
+             script_num = 37;
+             script_map = 27;
+             script2_num = 2;
+             script2_map = 28;
+             script3_num = 7;
+             script3_map = 34;
+             break;
+        case 390073: // Heresiarch's Seminary - Heresiarch's Seminary - Griffin Chapel Dragon Switch
+             script_num = 38;
+             script_map = 27;
+             break;
+        case 390074: // Heresiarch's Seminary - Heresiarch's Seminary - Griffin Chapel Wolf Trigger
+             script_num = 39;
+             script_map = 27;
+             break;
+        case 390075: // Heresiarch's Seminary - Heresiarch's Seminary - Wolf Chapel Wolf Switch
+             script_num = 34;
+             script_map = 27;
+             script2_num = 5;
+             script2_map = 28;
+             script3_num = 5;
+             script3_map = 30;
+             break;
+        case 390076: // Heresiarch's Seminary - Heresiarch's Seminary - Wolf Chapel Dragon Switch
+             script_num = 35;
+             script_map = 27;
+             break;
+        case 390077: // Heresiarch's Seminary - Heresiarch's Seminary - Wolf Chapel Griffin Trigger
+             script_num = 36;
+             script_map = 27;
+             break;
+        case 390078: // Castle of Grief - Gibbet - Axe Key Access
+             script_num = 24;
+             script_map = 23;
+             break;
+    }
+
+    if (script_map >= 0) {
+        if (!P_StartACS(script_num, script_map, script_args, player->mo, NULL, 0)) {
+	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
+            HU_AddAPMessage(error_message);
+	}
+    }
+    if (script2_map >= 0) {
+        if (!P_StartACS(script2_num, script2_map, script_args, player->mo, NULL, 0)) {
+	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
+            HU_AddAPMessage(error_message);
+	}
+    }
+    if (script3_map >= 0) {
+        if (!P_StartACS(script3_num, script3_map, script_args, player->mo, NULL, 0)) {
+	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
+            HU_AddAPMessage(error_message);
+	}
+    }
+    if (world_var_increment >= 0) {
+        WorldVars[world_var_increment] = WorldVars[world_var_increment] + 1;
+    }
+}
 
 //boolean P_GiveArmor(player_t* player, int armortype);
 boolean P_GiveArmor(player_t * player, armortype_t armortype, int amount);
@@ -176,6 +343,11 @@ void on_ap_give_item(int doom_type, int ep, int map)
 {
     player_t* player = &players[consoleplayer];
     int sound = SFX_PICKUP_ITEM;
+
+    if (doom_type >= 390000) {
+    	on_ap_give_acs(doom_type);
+	sound = SFX_SWITCH_OTHERLEVEL;
+    }
 
     switch (doom_type)
     {
