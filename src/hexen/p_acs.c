@@ -565,6 +565,87 @@ void P_CheckACSStore(void)
 
 //==========================================================================
 //
+// ap_check_send_special
+//
+// Some ACS scripts we want to intercept since they're AP checks. Check for
+// that here and intercept them.
+//
+//==========================================================================
+boolean ap_check_send_special(int number, int map, int line_index) {
+    int check_number = 0;
+
+    if (number == 20 && map == 2) { // Seven Portals - Seven Portals - West Access (1/3)
+	if (gamemap == 4) {
+	    check_number = 391205; // Seven Portals - Guardian of Fire - West Door Switch
+        } else if (gamemap == 5) {
+	    if (line_index == 1583) {
+	        check_number = 391206; // Seven Portals - Guardian of Steel - West Door Switch North
+	    } else if (line_index == 1575) {
+	        check_number = 391207; // Seven Portals - Guardian of Steel - West Door Switch South
+	    }
+	} else {
+	    
+	}
+    }
+
+    if (number == 16 && map == 2) { // Seven Portals - Seven Portals - Ice Stairs
+        check_number = 391213; // Seven Portals - Guardian of Ice - Ice Stairs Trigger
+    }
+
+    if (number == 17 && map == 2) { // Seven Portals - Seven Portals - Fire Stairs
+        check_number = 391214; // Seven Portals - Guardian of Fire - Fire Stairs Switch
+    }
+
+    if (number == 18 && map == 2) { // Seven Portals - Seven Portals - Steel
+        check_number = 391215; // Seven Portals - Guardian of Fire - Steel Stairs Switches
+    }
+
+    if (number == 9 && map == 2) { // Seven Portals - Seven Portals - Exit Access (1/3)
+        if (gamemap == 2) {
+	    if (line_index == 997) { 
+	        check_number = 391208; // Seven Portals - Seven Portals - Ice Stairs Exit Switch
+	    } else if (line_index == 991) {
+	        check_number = 391209; // Seven Portals - Seven Portals - Steel Stairs Exit Switch
+	    } else if (line_index == 985) {
+	        check_number = 391211; // Seven Portals - Seven Portals - Fire Stairs Exit Switch
+	    } else {
+	        printf("exit access: unknown line_index %d", line_index);
+	    }
+	} else {
+	    printf("exit access: unknown gamemap %d\n", gamemap);
+	}
+    }
+
+    if (number == 1 && map == 2) { // Seven Portals - Bright Crucible Access (1/2)
+        if (gamemap == 4) {
+	    check_number = 391216; // Seven Portals - Guardian of Fire - Bright Crucible Switch
+	} else if (gamemap == 5) {
+	    check_number = 391217; // Seven Portals - Guardian of Steel - Bright Crucible Trigger
+	} else {
+	}
+    }
+
+    if (number == 21 && map == 3) { // Seven Portals - Guardian of Ice - Steel Door
+        check_number = 391210; // Seven Portals - Seven Portals - Steel Stairs Puzzle Switch
+    }
+
+    if (number == 22 && map == 3) { // Seven Portals - Guardian of Ice - Fire Door
+        check_number = 391212; // Seven Portals - Seven Portals - Fire Stairs Puzzle Switch
+    }
+
+    if (number == 8 && map == 21) { // Castle of Grief - Forsaken Outpost - Desolate Garden Access 1
+        check_number = 391218; // Seven Portals - Bright Crucible - Exit Trigger
+    }
+
+    if (check_number > 0) {
+        apdoom_send_item(check_number);
+        return true;
+    }
+    return false;
+}
+
+//==========================================================================
+//
 // P_StartACS
 //
 // Start an ACS script. The 'args' array should be at least MAX_SCRIPT_ARGS
@@ -583,6 +664,10 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
     aste_t *statePtr;
 
     NewScript = NULL;
+    int checkmap = map ? map : gamemap;
+    if (line != NULL && ap_check_send_special(number, checkmap, line->index)) {
+        return true;
+    }
     if (map && map != gamemap)
     {                           // Add to the script store
         return AddToACSStore(map, number, args);

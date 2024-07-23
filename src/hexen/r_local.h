@@ -163,6 +163,8 @@ typedef struct line_s
     sector_t *backsector;
     int validcount;
     void *specialdata;
+    // [ap] Linedef index for script checking purposes
+    int index;
 } line_t;
 
 typedef struct

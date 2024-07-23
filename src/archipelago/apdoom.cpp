@@ -1450,6 +1450,10 @@ void apdoom_check_location(ap_level_index_t idx, int index)
 	AP_SendItem(id);
 }
 
+void apdoom_send_item(int id) {
+        AP_SendItem(id);
+}
+
 
 int apdoom_is_location_progression(ap_level_index_t idx, int index)
 {

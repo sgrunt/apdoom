@@ -935,6 +935,8 @@ void P_LoadLineDefs(int lump)
             ld->backsector = sides[ld->sidenum[1]].sector;
         else
             ld->backsector = 0;
+
+	ld->index = i;
     }
 
     W_ReleaseLumpNum(lump);

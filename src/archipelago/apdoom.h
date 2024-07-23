@@ -181,6 +181,7 @@ int apdoom_init(ap_settings_t* settings);
 void apdoom_shutdown();
 void apdoom_save_state();
 void apdoom_check_location(ap_level_index_t idx, int index);
+void apdoom_send_item(int index);
 int apdoom_is_location_progression(ap_level_index_t idx, int index);
 void apdoom_check_victory();
 void apdoom_update();
