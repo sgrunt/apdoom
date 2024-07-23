@@ -327,14 +327,14 @@ void ShowLevelSelect()
     ap_state.map = 0;
     players[consoleplayer].message[0] = '\0';
 
-    selected_level = 1;
+    selected_level = 0;
 
-/*    while (!ap_state.episodes[selected_level])
+    while (!ap_state.episodes[selected_level])
     {
         selected_level = (selected_level + 1) % ap_episode_count;
         if (selected_level == 0) // oops;
             break;
-    } */
+    }
 }
 
 
@@ -374,9 +374,22 @@ void DrawEpisodicLevelSelectStats()
     int map_count = 5; //ap_get_map_count(selected_ep + 1);
     for (int i = 0; i < map_count; ++i)
     {
+    	int checked_count = 0;
+	int total_check_count = 0;
+	int completed = 0;
+	int unlocked = 0;
         level_pos_t* level_pos = &level_pos_infos[i];
-        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(i + 1, 1));
-        ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(i + 1, 1));
+
+	for (int map = 0; map < ap_get_map_count(i + 1); map++) {
+	        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(i + 1, map + 1));
+        	ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(i + 1, map + 1));
+		if (map == 0) {
+			completed = ap_level_state->completed;
+			unlocked = ap_level_state->unlocked;
+		}
+		checked_count += ap_level_state->check_count;
+		total_check_count += ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count;
+	}
 
         x = level_pos->x;
         y = level_pos->y;
@@ -402,32 +415,32 @@ void DrawEpisodicLevelSelectStats()
             MN_DrTextB(name, x + 20, y - 10);
         
             // Level complete splash
-            if (ap_level_state->completed)
+            if (completed)
                 V_DrawPatch(x, y, W_CacheLumpName("FONTA56", PU_CACHE));
 
             // Lock
-            if (!ap_level_state->unlocked)
+            if (!unlocked)
                 V_DrawPatch(x, y, W_CacheLumpName("FONTAY03", PU_CACHE));
 
             // Progress
-            print_right_aligned_yellow_digit(x + 30 + text_w - 4, y - 1, ap_level_state->check_count);
+            print_right_aligned_yellow_digit(x + 30 + text_w - 4, y - 1, checked_count);
             V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("FONTA15", PU_CACHE));
-//            print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+            print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, total_check_count);
         }
         else
         {
             // Level complete splash
-            if (ap_level_state->completed)
+            if (completed)
                 V_DrawPatch(x, y, W_CacheLumpName("FONTA56", PU_CACHE));
 
             // Lock
-            if (!ap_level_state->unlocked)
+            if (!unlocked)
                 V_DrawPatch(x, y, W_CacheLumpName("FONTAY03", PU_CACHE));
 
             // Progress
-            print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, ap_level_state->check_count);
+            print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, checked_count);
             V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("FONTA15", PU_CACHE));
-//            print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, ap_state.check_sanity ? ap_level_info->check_count : ap_level_info->check_count - ap_level_info->sanity_check_count);
+            print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, total_check_count);
         }
     }
 
