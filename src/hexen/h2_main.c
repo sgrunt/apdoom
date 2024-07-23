@@ -91,6 +91,7 @@ static void PageDrawer(void);
 static void HandleArgs(void);
 static void CheckRecordFrom(void);
 static void DrawAndBlit(void);
+static void SetApSavePath(void);
 static void CreateSavePath(void);
 static void WarpCheck(void);
 
@@ -903,7 +904,8 @@ void D_DoomMain(void)
     M_SetConfigFilenames("hexen.cfg", PROGRAM_PREFIX "hexen.cfg");
     M_LoadDefaults();
 
-    D_SetDefaultSavePath();
+    // [ap] save path should be from AP settings
+//    D_SetDefaultSavePath();
 
     I_AtExit(M_SaveDefaults, false);
 
@@ -911,7 +913,7 @@ void D_DoomMain(void)
     startskill = (crispy->defaultskill + SKILL_HMP) % NUM_SKILLS;
 
     // Now that the savedir is loaded, make sure it exists
-    CreateSavePath();
+//    CreateSavePath();
 
     ST_Message("Z_Init: Init zone memory allocation daemon.\n");
     Z_Init();
@@ -1018,6 +1020,8 @@ void D_DoomMain(void)
     {
 	    I_Error("Failed to initialize Archipelago.");
     }
+
+    SetApSavePath();
 
     // haleyjd: removed WATCOMC
 
@@ -1908,6 +1912,18 @@ void CleanExit(void)
 	exit(1);
 }
 */
+
+//==========================================================================
+//
+// SetApSavePath
+//
+//==========================================================================
+
+static void SetApSavePath(void)
+{
+    SavePath = M_StringJoin(apdoom_get_seed(), DIR_SEPARATOR_S, NULL);
+    CreateSavePath();
+}
 
 //==========================================================================
 //

@@ -901,6 +901,9 @@ static void StreamIn_mobj_t(mobj_t *str)
     {
         str->args[i] = SV_ReadByte();
     }
+
+    // int index;
+    str->index = SV_ReadLong();
 }
 
 static void StreamOutMobjSpecials(mobj_t *mobj)
@@ -1110,6 +1113,9 @@ static void StreamOut_mobj_t(mobj_t *str)
     {
         SV_WriteByte(str->args[i]);
     }
+
+    // int index;
+    SV_WriteLong(str->index);
 }
 
 

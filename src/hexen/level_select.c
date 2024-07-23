@@ -116,22 +116,21 @@ void print_left_aligned_yellow_digit(int x, int y, int digit)
 void play_level(int lvl)
 {
     // Check if level has a save file first
-/*    char filename[260];
-    snprintf(filename, 260, "%s/save_MAP%02i.dsg", apdoom_get_seed(), lvl);
+    char filename[260];
+    snprintf(filename, 260, "%s/hex0.hxs", apdoom_get_seed());
     if (M_FileExists(filename))
     {
         // We load
-        extern char savename[256];
-        snprintf(savename, 256, "%s", filename);
         gameaction = ga_loadgame;
-        //G_DoLoadGame();
+        G_DoLoadGame();
+	G_TeleportNewMap(lvl, 0);
     }
     else
-    {*/
+    {
         // If none, load it fresh
 	PlayerClass[consoleplayer] = ap_state.player_class;
         G_DeferedInitNew(gameskill, 1, lvl);
-//    }
+    }
 
     //apdoom_check_victory(); // In case we had pending victory
 
