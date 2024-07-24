@@ -311,6 +311,14 @@ void on_ap_give_acs(int check) {
              break;
     }
 
+    if (world_var_increment >= 0) {
+        WorldVars[world_var_increment] = WorldVars[world_var_increment] + 1;
+	if (world_var_increment == 0 && WorldVars[world_var_increment] >= 6) {
+	    script2_num = 10;
+	    script2_map = 13;
+	}
+    }
+
     if (script_map >= 0) {
         if (!P_StartACS(script_num, script_map, script_args, player->mo, NULL, 0)) {
 	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
@@ -328,9 +336,6 @@ void on_ap_give_acs(int check) {
 	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
             HU_AddAPMessage(error_message);
 	}
-    }
-    if (world_var_increment >= 0) {
-        WorldVars[world_var_increment] = WorldVars[world_var_increment] + 1;
     }
 }
 
