@@ -513,6 +513,11 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
 	AP_RegisterSlotDataIntCallback("episode4", f_episode4);
 	AP_RegisterSlotDataIntCallback("episode5", f_episode5);
+	AP_RegisterSlotDataIntCallback("hub1", f_episode1);
+	AP_RegisterSlotDataIntCallback("hub2", f_episode2);
+	AP_RegisterSlotDataIntCallback("hub3", f_episode3);
+	AP_RegisterSlotDataIntCallback("hub4", f_episode4);
+	AP_RegisterSlotDataIntCallback("hub5", f_episode5);
 	AP_RegisterSlotDataIntCallback("two_ways_keydoors", f_two_ways_keydoors);
     AP_Start();
 
