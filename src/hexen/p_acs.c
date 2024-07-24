@@ -715,6 +715,12 @@ boolean ap_check_send_special(int number, int map, int line_index) {
         apdoom_send_item(check_number);
         return true;
     }
+
+    if (number == 3 && map == 35) {
+        // hack to prevent the vivarium door from closing
+	return;
+    }
+
     return false;
 }
 
