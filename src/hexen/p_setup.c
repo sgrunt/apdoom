@@ -942,6 +942,51 @@ void P_LoadLineDefs(int lump)
             ld->backsector = 0;
 
 	ld->index = i;
+
+	// [ap] Dark Crucible accessibility changes
+	if (gamemap == 40) {
+	    if (i >= 785 && i <= 791) { // front door - keep it open
+	        ld->arg3 = 0;
+	    }
+
+	    if (i >= 512 && i <= 518) { // middle door - make it openable in case Korax dies early
+	        ld->special = 11;
+		ld->flags |= 0x1000; // push action
+		ld->arg1 = 14;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	    if ((i == 143) || (i == 145)) { // first half side doors - make them openable
+	        ld->special = 11;
+		ld->arg1 = 10;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	    if ((i == 139) || (i == 149)) { // first half side doors - make them openable
+	        ld->special = 11;
+		ld->arg1 = 12;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	    if ((i == 138) || (i == 148)) { // second half side doors - make them openable
+	        ld->special = 11;
+		ld->arg1 = 13;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	    if ((i == 142) || (i == 144)) { // second half side doors - make them openable
+	        ld->special = 11;
+		ld->arg1 = 11;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	    if ((i == 138) || (i == 148)) { // second half side doors - make them openable
+	        ld->special = 11;
+		ld->arg1 = 13;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	}
     }
 
     W_ReleaseLumpNum(lump);
