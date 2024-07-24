@@ -826,6 +826,12 @@ void P_LoadThings(int lump)
     // [AP] Spawn level select teleport "HUB"
     if (gamemap == 1 || gamemap == 2 || gamemap == 6 || gamemap == 13 || gamemap == 22 || gamemap == 27 || gamemap == 35 || gamemap == 40) {
         spawnthing_player1_start.type = 20002;
+	// put the Bright Crucible hub tele in an accessible spot
+	if (gamemap == 6) {
+	    spawnthing_player1_start.x = 352;
+	    spawnthing_player1_start.y = -1152;
+	    spawnthing_player1_start.height = -344;
+	}
         P_SpawnMapThing(&spawnthing_player1_start, i);
     }
 
