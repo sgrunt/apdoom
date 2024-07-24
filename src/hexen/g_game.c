@@ -1659,6 +1659,11 @@ void G_DoReborn(int playernum)
 {
     int i;
     boolean oldWeaponowned[NUMWEAPONS];
+    int oldArmorpoints[NUMARMOR];
+    inventory_t oldInventory[NUMINVENTORYSLOTS];
+    artitype_t oldReadyArtifact;
+    int oldArtifactCount;
+    int oldInventorySlotNum;
     int oldKeys;
     int oldPieces;
     boolean foundSpot;
@@ -1700,6 +1705,19 @@ void G_DoReborn(int playernum)
         {
             oldWeaponowned[i] = players[playernum].weaponowned[i];
         }
+
+	// [ap] preserve armor and inventory as well
+        for (i = 0; i < NUMARMOR; i++)
+        {
+            oldArmorpoints[i] = players[playernum].armorpoints[i];
+        }
+        for (i = 0; i < NUMINVENTORYSLOTS; i++)
+        {
+            oldInventory[i] = players[playernum].inventory[i];
+        }
+        oldReadyArtifact = players[playernum].readyArtifact;
+        oldArtifactCount = players[playernum].artifactCount;
+	oldInventorySlotNum = players[playernum].inventorySlotNum;
 
         foundSpot = false;
         if (G_CheckSpot(playernum, &playerstarts[RebornPosition][playernum]))
@@ -1746,6 +1764,18 @@ void G_DoReborn(int playernum)
                 players[playernum].weaponowned[i] = true;
             }
         }
+	// [ap] preserve armor and inventory as well
+        for (i = 0; i < NUMARMOR; i++)
+        {
+            players[playernum].armorpoints[i] = oldArmorpoints[i];
+        }
+        for (i = 0; i < NUMINVENTORYSLOTS; i++)
+        {
+            players[playernum].inventory[i] = oldInventory[i];
+	}
+        players[playernum].readyArtifact = oldReadyArtifact;
+        players[playernum].artifactCount = oldArtifactCount;
+	players[playernum].inventorySlotNum = oldInventorySlotNum;
         players[playernum].mana[MANA_1] = 25;
         players[playernum].mana[MANA_2] = 25;
         if (bestWeapon)
