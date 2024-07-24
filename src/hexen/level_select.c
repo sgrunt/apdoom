@@ -416,30 +416,30 @@ void DrawEpisodicLevelSelectStats()
         
             // Level complete splash
             if (completed)
-                V_DrawPatch(x, y, W_CacheLumpName("FONTA56", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("CHECKMRK", PU_CACHE));
 
             // Lock
             if (!unlocked)
-                V_DrawPatch(x, y, W_CacheLumpName("FONTAY03", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
 
             // Progress
             print_right_aligned_yellow_digit(x + 30 + text_w - 4, y - 1, checked_count);
-            V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("FONTA15", PU_CACHE));
+            V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("STYSLASH", PU_CACHE));
             print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, total_check_count);
         }
         else
         {
             // Level complete splash
             if (completed)
-                V_DrawPatch(x, y, W_CacheLumpName("FONTA56", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("CHECKMRK", PU_CACHE));
 
             // Lock
             if (!unlocked)
-                V_DrawPatch(x, y, W_CacheLumpName("FONTAY03", PU_CACHE));
+                V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
 
             // Progress
             print_right_aligned_yellow_digit(x - 4, y + stat_y_offset, checked_count);
-            V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("FONTA15", PU_CACHE));
+            V_DrawPatch(x - 3, y + stat_y_offset, W_CacheLumpName("STYSLASH", PU_CACHE));
             print_left_aligned_yellow_digit(x + 3, y + stat_y_offset, total_check_count);
         }
     }

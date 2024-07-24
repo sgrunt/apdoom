@@ -52,11 +52,9 @@ const char *sprnames[] = {
     "ETTN","ETTB","FDMN","FDMB","ICEY","ICPR","ICWS","SORC","SBMP","SBS4",
     "SBMB","SBS3","SBMG","SBS1","SBS2","SBFX","RADE","WATR","KORX","ABAT",
 	// [AP] Archipelago junk item (APJI) and progression (APPI)
-	//"APJI", "APPI",
-	"RADE", "HRAD",
+	"APJI", "APPI",
 	// [AP] Level select teleport "HUB".
-	//"LVST",
-	"TRNG",
+	"LVST",
 
     NULL
 };

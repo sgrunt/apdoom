@@ -42,6 +42,7 @@ COPY credits-chex.txt Release\credits-chex.txt
 REM Copy WADs
 COPY APDOOM.WAD Release\APDOOM.WAD
 COPY APHERETIC.WAD Release\APHERETIC.WAD
+COPY APHEXEN.WAD Release\APHEXEN.WAD
 
 REM Archiving release
 winrar a -afzip -ep1 -r Release\APDOOM_x_x_x.zip @release.lst

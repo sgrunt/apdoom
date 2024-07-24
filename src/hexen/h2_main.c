@@ -1286,7 +1286,7 @@ static void HandleArgs(void)
     cmdfrag = M_ParmExists("-cmdfrag");
 
     // Always merge Archipelago WAD
-    // W_MergeFile("APHERETIC.WAD");
+    W_MergeFile("APHEXEN.WAD");
 
     // Check WAD file command line options
     W_ParseCommandLine();
