@@ -1546,7 +1546,17 @@ void apdoom_check_victory()
 {
 	if (ap_state.victory) return;
 
-	if (ap_state.goal == 1 && (ap_game == ap_game_t::doom || ap_game == ap_game_t::heretic))
+        if (ap_game == ap_game_t::hexen) {
+	    if (ap_state.goal == 1) { // defeat Korax
+	        if (!ap_get_level_state(ap_level_index_t{4, 0})->completed) return;
+	    } else { // complete all hubs
+                for (int ep = 0; ep < ap_episode_count; ++ep)
+                {
+                        if (!ap_state.episodes[ep]) continue;
+                        if (!ap_get_level_state(ap_level_index_t{ep, 0})->completed) return;
+                }
+	    }
+	} else if (ap_state.goal == 1 && (ap_game == ap_game_t::doom || ap_game == ap_game_t::heretic))
 	{
 		for (int ep = 0; ep < ap_episode_count; ++ep)
 		{

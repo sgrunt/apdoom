@@ -26,6 +26,7 @@
 #include "v_video.h"
 #include "i_swap.h"
 #include "am_map.h"
+#include "doomkeys.h"
 
 
 // MACROS ------------------------------------------------------------------
@@ -101,6 +102,36 @@ void F_StartFinale(void)
 
 boolean F_Responder(event_t * event)
 {
+    if (event->type != ev_keydown)
+    {
+        return false;
+    }
+
+    if (gamestate != GS_FINALE)
+        return false;
+
+    if (FinaleCount < 35 * 3)
+        return false;
+
+    switch (event->type)
+    {
+        case ev_keydown:
+        {
+            switch (event->data1)
+            {
+                case KEY_ENTER:
+                case 'e':
+                case ' ':
+		    if (FinaleStage < 5) {
+		        FinaleCount = FinaleEndCount;
+			return true;
+		    }
+                    ShowLevelSelect();
+                    return true;
+            }
+        }
+    }
+
     return false;
 }
 

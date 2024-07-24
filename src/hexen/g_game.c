@@ -1898,6 +1898,7 @@ void G_Completed(int map, int position)
 void G_DoCompleted(void)
 {
     int i;
+    int oldCluster;
 
     gameaction = ga_nothing;
 
@@ -1913,6 +1914,8 @@ void G_DoCompleted(void)
             G_PlayerExitMap(i);
         }
     }
+
+#if 0 // [AP] No intermission for AP
     if (LeaveMap == -1 && LeavePosition == -1)
     {
         gameaction = ga_victory;
@@ -1923,6 +1926,18 @@ void G_DoCompleted(void)
         gamestate = GS_INTERMISSION;
         IN_Start();
     }
+#endif
+
+    oldCluster = P_GetMapCluster(gamemap);
+    if (oldCluster != P_GetMapCluster(LeaveMap))
+    {
+        apdoom_complete_level(ap_make_level_index(oldCluster, 1));
+        ShowLevelSelect();
+        apdoom_check_victory();
+	return;
+    }
+
+    gameaction = ga_leavemap;
 
 /*
 	int i;
