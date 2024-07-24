@@ -1547,7 +1547,11 @@ static int CmdIncMapVar(void)
 
 static int CmdIncWorldVar(void)
 {
-    ++WorldVars[ReadWorldVar()];
+    // [ap] hack - we'll handle the Shadow Wood trigger
+    int worldvar = ReadWorldVar();
+    if (worldvar != 0) {
+        ++WorldVars[ReadWorldVar()];
+    }
     return SCRIPT_CONTINUE;
 }
 
