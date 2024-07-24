@@ -112,7 +112,7 @@ void print_left_aligned_yellow_digit(int x, int y, int digit)
     print_right_aligned_yellow_digit(x + len * 4, y, digit);
 }
 
-
+void SB_SetClassData(void);
 void play_level(int lvl)
 {
     // Check if level has a save file first
@@ -129,6 +129,7 @@ void play_level(int lvl)
     {
         // If none, load it fresh
 	PlayerClass[consoleplayer] = ap_state.player_class;
+	SB_SetClassData();
         G_DeferedInitNew(gameskill, 1, lvl);
     }
 
