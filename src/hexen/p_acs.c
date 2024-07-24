@@ -593,11 +593,11 @@ boolean ap_check_send_special(int number, int map, int line_index) {
     }
 
     if (number == 17 && map == 2) { // Seven Portals - Seven Portals - Fire Stairs
-        check_number = 391214; // Seven Portals - Guardian of Fire - Fire Stairs Switch
+        check_number = 391215; // Seven Portals - Guardian of Fire - Fire Stairs Switch
     }
 
     if (number == 18 && map == 2) { // Seven Portals - Seven Portals - Steel
-        check_number = 391215; // Seven Portals - Guardian of Fire - Steel Stairs Switches
+        check_number = 391214; // Seven Portals - Guardian of Fire - Steel Stairs Switches
     }
 
     if (number == 9 && map == 2) { // Seven Portals - Seven Portals - Exit Access (1/3)
