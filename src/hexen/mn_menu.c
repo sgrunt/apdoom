@@ -225,7 +225,7 @@ static MenuItem_t MainItems[] = {
 static Menu_t MainMenu = {
     110, 56,
     DrawMainMenu,
-    5, MainItems,
+    4, MainItems,
     0,
     MENU_NONE
 };
