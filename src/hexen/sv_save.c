@@ -2230,14 +2230,15 @@ void SV_MapTeleport(int map, int position)
 
     if (!deathmatch)
     {
-        if (P_GetMapCluster(gamemap) == P_GetMapCluster(map))
-        {                       // Same cluster - save map without saving player mobjs
+    	// [ap] always save maps
+//        if (P_GetMapCluster(gamemap) == P_GetMapCluster(map))
+//        {                       // Same cluster - save map without saving player mobjs
             SV_SaveMap(false);
-        }
-        else
-        {                       // Entering new cluster - clear base slot
-            SV_ClearSaveSlot(BASE_SLOT);
-        }
+//        }
+//        else
+//        {                       // Entering new cluster - clear base slot
+//            SV_ClearSaveSlot(BASE_SLOT);
+//        }
     }
 
     // Store player structs for later
