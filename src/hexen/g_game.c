@@ -1489,7 +1489,8 @@ void G_PlayerExitMap(int playerNumber)
         if (P_GetMapCluster(gamemap) != P_GetMapCluster(LeaveMap))
         {                       // Entering new cluster
             // Strip all keys
-            player->keys = 0;
+	    // [ap] Don't strip all keys
+            // player->keys = 0;
 
             // Strip flight artifact
             for (i = 0; i < 25; i++)
