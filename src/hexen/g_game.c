@@ -1662,9 +1662,10 @@ void G_DoReborn(int playernum)
     boolean oldWeaponowned[NUMWEAPONS];
     int oldArmorpoints[NUMARMOR];
     inventory_t oldInventory[NUMINVENTORYSLOTS];
-    artitype_t oldReadyArtifact;
     int oldArtifactCount;
     int oldInventorySlotNum;
+    int oldInventoryPtr;
+    int oldCurPos;
     int oldKeys;
     int oldPieces;
     int oldMana[NUMMANA];
@@ -1721,7 +1722,10 @@ void G_DoReborn(int playernum)
         {
             oldMana[i] = players[playernum].mana[i];
         }
-        oldReadyArtifact = players[playernum].readyArtifact;
+	if (playernum == consoleplayer) {
+            oldInventoryPtr = inv_ptr;
+            oldCurPos = curpos;
+	}
         oldArtifactCount = players[playernum].artifactCount;
 	oldInventorySlotNum = players[playernum].inventorySlotNum;
 
@@ -1786,7 +1790,12 @@ void G_DoReborn(int playernum)
         {
             players[playernum].inventory[i] = oldInventory[i];
 	}
-        players[playernum].readyArtifact = oldReadyArtifact;
+	if (playernum == consoleplayer)
+        {
+            inv_ptr = oldInventoryPtr;
+            curpos = oldCurPos;
+            players[consoleplayer].readyArtifact = players[consoleplayer].inventory[inv_ptr].type;
+	}
         players[playernum].artifactCount = oldArtifactCount;
 	players[playernum].inventorySlotNum = oldInventorySlotNum;
         if (bestWeapon)
