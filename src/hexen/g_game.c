@@ -1667,6 +1667,7 @@ void G_DoReborn(int playernum)
     int oldInventorySlotNum;
     int oldKeys;
     int oldPieces;
+    int oldMana[NUMMANA];
     boolean foundSpot;
     int bestWeapon;
 
@@ -1716,6 +1717,10 @@ void G_DoReborn(int playernum)
         {
             oldInventory[i] = players[playernum].inventory[i];
         }
+        for (i = 0; i < NUMMANA; i++)
+        {
+            oldMana[i] = players[playernum].mana[i];
+        }
         oldReadyArtifact = players[playernum].readyArtifact;
         oldArtifactCount = players[playernum].artifactCount;
 	oldInventorySlotNum = players[playernum].inventorySlotNum;
@@ -1763,6 +1768,13 @@ void G_DoReborn(int playernum)
             {
                 bestWeapon = i;
                 players[playernum].weaponowned[i] = true;
+		// [ap] give ammo too
+		if (i == WP_SECOND || i == WP_FOURTH) {
+		    players[playernum].mana[MANA_1] = MAX(oldMana[MANA_1], 50);
+		}
+		if (i == WP_THIRD || i == WP_FOURTH) {
+		    players[playernum].mana[MANA_2] = MAX(oldMana[MANA_2], 50);
+		}
             }
         }
 	// [ap] preserve armor and inventory as well
@@ -1777,8 +1789,6 @@ void G_DoReborn(int playernum)
         players[playernum].readyArtifact = oldReadyArtifact;
         players[playernum].artifactCount = oldArtifactCount;
 	players[playernum].inventorySlotNum = oldInventorySlotNum;
-        players[playernum].mana[MANA_1] = 25;
-        players[playernum].mana[MANA_2] = 25;
         if (bestWeapon)
         {                       // Bring up the best weapon
             players[playernum].pendingweapon = bestWeapon;
