@@ -500,7 +500,7 @@ boolean EV_Teleport(int tid, mobj_t * thing, boolean fog);
 #define MAX_ACS_MAP_VARS 32
 #define MAX_ACS_WORLD_VARS 64
 #define ACS_STACK_DEPTH 32
-#define MAX_ACS_STORE 20
+#define MAX_ACS_STORE 40
 
 typedef enum
 {
