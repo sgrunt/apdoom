@@ -626,24 +626,14 @@ void get_fit_dimensions(fixed_t x, fixed_t y, fixed_t* fit_radius, fixed_t* fit_
 // These thing types are referenced in conditionals in their respective maps.
 boolean dont_shuffle_for_map(int doom_type) {
     switch (gamemap) {
-        case 2:
-	    return doom_type == MT_CENTAUR || doom_type == MT_DEMON;
-	case 4:
-	    return doom_type == MT_ETTIN;
-	case 5:
-	    return doom_type == MT_ICEGUY;
-	case 10:
-	    return doom_type == MT_CENTAUR || doom_type == MT_ETTIN || doom_type == MT_FIREDEMON;
 	case 11:
 	    return doom_type == MT_DEMON || doom_type == MT_ETTIN;
 	case 23:
-	    return doom_type == MT_BISHOP || doom_type == MT_DEMON || doom_type == MT_FIREDEMON;
+	    return doom_type == MT_DEMON;
 	case 25:
 	    return doom_type == MT_DEMON || doom_type == MT_ETTIN;
-	case 27:
-	    return doom_type == MT_CENTAUR || doom_type == MT_DEMON;
 	case 35:
-	    return doom_type == MT_WRAITH || doom_type == MT_WRAITHB;
+	    return doom_type == MT_WRAITH;
 	case 40:
 	    return doom_type == MT_CENTAUR || doom_type == MT_ETTIN;
     }
