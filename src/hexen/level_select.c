@@ -155,7 +155,7 @@ void select_map_dir(int dir)
     float fromy = (float)level_pos_infos[from].y;
 
     int best = from;
-    int top_most = 0; //200;
+    int top_most = 200;
     int top_most_idx = -1;
     int bottom_most = 0;
     int bottom_most_idx = -1;
