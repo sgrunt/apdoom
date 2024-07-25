@@ -1622,7 +1622,7 @@ void P_SpawnMapThing(mapthing_t * mthing, int index)
         mobj->health = P_Random();
         mobj->special1.i = mthing->height << FRACBITS;
     }
-    if (mobj->tics > 0)
+    if (mobj->tics > 0 && mobj->type != MT_LVSTEL)  // [AP] We want the HUB to stay put 10 sec, no random
     {
         mobj->tics = 1 + (P_Random() % mobj->tics);
     }
