@@ -383,6 +383,273 @@ void P_LoadNodes(int lump)
     W_ReleaseLumpNum(lump);
 }
 
+typedef enum
+{
+    rmc_melee,
+    rmc_ranged,
+    rmc_flying,
+    rmc_boss,
+
+    NUM_RMC
+} random_monster_cat_t;
+
+
+typedef struct
+{
+    int doom_type;
+    int hit_points;
+    int radius;
+    int height;
+    int frequency; // Globally in entire game. This is used for random balanced
+    random_monster_cat_t category;
+    int dont_shuffle;
+} random_monster_def_t;
+
+
+static random_monster_def_t random_monster_defs[] =
+{
+    { 107, 200, 20*FRACUNIT, 64*FRACUNIT, 344, rmc_melee }, // Centaur
+    { 121, 90, 32*FRACUNIT, 70*FRACUNIT, 60, rmc_melee }, // Stalker
+    { 10030, 175, 25*FRACUNIT, 68*FRACUNIT, 811, rmc_melee }, // Ettin
+
+    { 115, 250, 20*FRACUNIT, 64*FRACUNIT, 106, rmc_ranged }, // Slaughtaur
+    { 31, 250, 32*FRACUNIT, 64*FRACUNIT, 236, rmc_ranged }, // Green Chaos Serpent
+    { 8080, 250, 32*FRACUNIT, 64*FRACUNIT, 123, rmc_ranged }, // Brown Chaos Serpent
+    { 120, 90, 32*FRACUNIT, 70*FRACUNIT, 60, rmc_ranged }, // Stalker Boss
+    { 8020, 120, 22*FRACUNIT, 75*FRACUNIT, 41, rmc_ranged }, // Wendigo
+
+    { 34, 150, 20*FRACUNIT, 55*FRACUNIT, 30, rmc_flying }, // Reiver
+    { 10011, 150, 20*FRACUNIT, 55*FRACUNIT, 60, rmc_flying, 1 }, // Reiver (buried)
+    { 114, 150, 22*FRACUNIT, 65*FRACUNIT, 449, rmc_flying }, // Dark Bishop
+    { 10060, 150, 20*FRACUNIT, 68*FRACUNIT, 496, rmc_flying }, // Afrit
+
+    { 254, 640, 20*FRACUNIT, 65*FRACUNIT, 1, rmc_boss, 1 }, // Death Wyvern
+    { 10080, 5000, 40*FRACUNIT, 110*FRACUNIT, 2, rmc_boss, 1 }, // Heresiarch
+    { 10100, 800, 16*FRACUNIT, 64*FRACUNIT, 1, rmc_boss, 1 }, // Zedek
+    { 10101, 800, 16*FRACUNIT, 64*FRACUNIT, 1, rmc_boss, 1 }, // Traductus
+    { 10102, 800, 16*FRACUNIT, 64*FRACUNIT, 1, rmc_boss, 1 }, // Melenkir
+    { 10200, 5000, 65*FRACUNIT, 115*FRACUNIT, 1, rmc_boss, 1 } // Korax
+};
+static const int monster_def_count = sizeof(random_monster_defs) / sizeof(random_monster_def_t);
+
+
+typedef struct
+{
+    int index;
+    random_monster_def_t* og_monster;
+    random_monster_def_t* monster;
+    fixed_t fit_radius;
+    fixed_t fit_height;
+} monster_spawn_def_t;
+
+extern fixed_t tmbbox[4];
+extern int tmflags;
+extern fixed_t tmx;
+extern fixed_t tmy;
+extern fixed_t tmdropoffz;
+fixed_t tmradius;
+int tmtype;
+
+boolean PIT_CheckLine_NoFlags(line_t * ld)
+{
+    if (tmbbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+        || tmbbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
+        || tmbbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
+        || tmbbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+    {
+        return (true);
+    }
+    if (P_BoxOnLineSide(tmbbox, ld) != -1)
+    {
+        return (true);
+    }
+
+// a line has been hit
+/*
+=
+= The moving thing's destination position will cross the given line.
+= If this should not be allowed, return false.
+= If the line is special, keep track of it to process later if the move
+=       is proven ok.  NOTE: specials are NOT sorted by order, so two special lines
+=       that are only 8 pixels apart could be crossed in either order.
+*/
+
+    if (!ld->backsector)
+    {                           // One sided line
+        return (false);
+    }
+    if (ld->flags & ML_BLOCKING)
+    {                       // Explicitly blocking everything
+        return (false);
+    }
+    if (ld->flags & ML_BLOCKMONSTERS)
+    {                       // Block monsters only
+        return (false);
+    }
+
+    // Check if the back sector can step up/down
+    float floor = ld->frontsector->floorheight;
+    float back_floor = ld->backsector->floorheight;
+    
+    if (tmradius <= 20 || abs(floor - back_floor) <= 20 * FRACUNIT) {
+        P_LineOpening(ld);          // set openrange, opentop, openbottom
+        // adjust floor / ceiling heights
+        if (opentop < tmceilingz)
+        {
+            tmceilingz = opentop;
+            ceilingline = ld;
+        }
+        if (openbottom > tmfloorz)
+        {
+            tmfloorz = openbottom;
+        }
+        if (lowfloor < tmdropoffz)
+        {
+            tmdropoffz = lowfloor;
+        }
+        return (true);
+    }
+    return false;
+}
+
+boolean P_BlockLinesIterator_NoPolyobj(int x, int y, boolean(*func) (line_t *))
+{
+    int offset;
+    short *list;
+    line_t *ld;
+
+    int i;
+    polyblock_t *polyLink;
+    seg_t **tempSeg;
+
+    if (x < 0 || y < 0 || x >= bmapwidth || y >= bmapheight)
+        return true;
+
+    offset = y * bmapwidth + x;
+    offset = *(blockmap + offset);
+
+    for (list = blockmaplump + offset; *list != -1; list++)
+    {
+        ld = &lines[*list];
+        if (ld->validcount == validcount)
+            continue;           // line has already been checked
+        ld->validcount = validcount;
+
+        if (!func(ld))
+            return false;
+    }
+
+    return true;                // everything was checked
+}
+
+
+boolean check_position(fixed_t x, fixed_t y, fixed_t radius)
+{
+    int			xl;
+    int			xh;
+    int			yl;
+    int			yh;
+    int			bx;
+    int			by;
+    subsector_t*	newsubsec;
+	
+    tmx = x;
+    tmy = y;
+    tmradius = radius;
+	
+    tmbbox[BOXTOP] = y + radius;
+    tmbbox[BOXBOTTOM] = y - radius;
+    tmbbox[BOXRIGHT] = x + radius;
+    tmbbox[BOXLEFT] = x - radius;
+
+    newsubsec = R_PointInSubsector(x, y);
+    validcount++;
+    
+    // check lines
+    xl = (tmbbox[BOXLEFT] - bmaporgx)>>MAPBLOCKSHIFT;
+    xh = (tmbbox[BOXRIGHT] - bmaporgx)>>MAPBLOCKSHIFT;
+    yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
+    yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
+
+    for (bx=xl ; bx<=xh ; bx++)
+        for (by=yl ; by<=yh ; by++)
+            if (!P_BlockLinesIterator_NoPolyobj(bx, by, PIT_CheckLine_NoFlags))
+                return false;
+
+    return true;
+}
+
+
+void get_fit_dimensions(fixed_t x, fixed_t y, fixed_t* fit_radius, fixed_t* fit_height)
+{
+    static const fixed_t radius_checks[] = {
+        128*FRACUNIT,
+        64*FRACUNIT,
+        48*FRACUNIT,
+        40*FRACUNIT,
+        31*FRACUNIT,
+        30*FRACUNIT,
+        24*FRACUNIT,
+        20*FRACUNIT,
+        16*FRACUNIT
+    };
+
+    static const fixed_t height_checks[] = {
+        110*FRACUNIT,
+        100*FRACUNIT,
+        64*FRACUNIT,
+        56*FRACUNIT
+    };
+
+    subsector_t* ss = R_PointInSubsector(x, y);
+
+    for (int i = 0, len = sizeof(height_checks) / sizeof(fixed_t); i < len; ++i)
+    {
+        fixed_t sector_height = ss->sector->ceilingheight - ss->sector->floorheight;
+        if (sector_height >= height_checks[i] || i == len - 1)
+        {
+            *fit_height = height_checks[i];
+            break;
+        }
+    }
+
+    for (int i = 0, len = sizeof(radius_checks) / sizeof(fixed_t); i < len; ++i)
+    {
+        if (check_position(x, y, radius_checks[i]) || i == len - 1)
+        {
+            *fit_radius = radius_checks[i];
+            break;
+        }
+    }
+}
+
+// These thing types are referenced in conditionals in their respective maps.
+boolean dont_shuffle_for_map(int doom_type) {
+    switch (gamemap) {
+        case 2:
+	    return doom_type == MT_CENTAUR || doom_type == MT_DEMON;
+	case 4:
+	    return doom_type == MT_ETTIN;
+	case 5:
+	    return doom_type == MT_ICEGUY;
+	case 10:
+	    return doom_type == MT_CENTAUR || doom_type == MT_ETTIN || doom_type == MT_FIREDEMON;
+	case 11:
+	    return doom_type == MT_DEMON || doom_type == MT_ETTIN;
+	case 23:
+	    return doom_type == MT_BISHOP || doom_type == MT_DEMON || doom_type == MT_FIREDEMON;
+	case 25:
+	    return doom_type == MT_DEMON || doom_type == MT_ETTIN;
+	case 27:
+	    return doom_type == MT_CENTAUR || doom_type == MT_DEMON;
+	case 35:
+	    return doom_type == MT_WRAITH || doom_type == MT_WRAITHB;
+	case 40:
+	    return doom_type == MT_CENTAUR || doom_type == MT_ETTIN;
+    }
+    return false;
+}
+
 //==========================================================================
 //
 // P_LoadThings
@@ -419,10 +686,7 @@ void P_LoadThings(int lump)
     {
         things_type_remap[i] = mt->type;
     }
-    
-#define E1M8_CUTOFF_OFFSET -1984
 
-#if 0
     int do_random_monsters = ap_state.random_monsters;
     if (do_random_monsters > 0)
     {
@@ -451,9 +715,8 @@ void P_LoadThings(int lump)
                 if (random_monster_defs[j].dont_shuffle)
                     continue;
 
-                if (gameepisode == 1 && gamemap == 8)
-                    if (mt->y < E1M8_CUTOFF_OFFSET)
-                        continue;
+		if (dont_shuffle_for_map(random_monster_defs[j].doom_type))
+		    continue;
 
                 if (random_monster_defs[j].doom_type == mt->type)
                 {
@@ -525,6 +788,8 @@ void P_LoadThings(int lump)
             {
                 random_monster_def_t* monster = &random_monster_defs[i];
                 if (monster->dont_shuffle) continue;
+		if (dont_shuffle_for_map(monster->doom_type))
+		    continue;
                 total += monster->frequency;
             }
 
@@ -535,6 +800,8 @@ void P_LoadThings(int lump)
                 {
                     random_monster_def_t* monster = &random_monster_defs[i];
                     if (monster->dont_shuffle) continue;
+		    if (dont_shuffle_for_map(monster->doom_type))
+		        continue;
                     if (rnd < monster->frequency)
                     {
                         monsters[monster_count++] = monster;
@@ -545,42 +812,6 @@ void P_LoadThings(int lump)
             }
         }
 
-        // Make sure we have at least 2 iron lynch in first episode boss level
-        if (gameepisode == 1 && gamemap == 8)
-        {
-            int iron_lynch_count = 0;
-            for (int i = 0; i < monster_count; ++i)
-                if (monsters[i]->doom_type == 6)
-                    iron_lynch_count++;
-            while (iron_lynch_count < 2)
-            {
-                int i = rand() % monster_count;
-                if (monsters[i]->doom_type != 6)
-                {
-                    monsters[i] = &random_monster_defs[12];
-                    iron_lynch_count++;
-                }
-            }
-        }
-
-        // Make sure we have at least 1 iron lynch in E4M8
-        if (gameepisode == 4 && gamemap == 8)
-        {
-            int iron_lynch_count = 0;
-            for (int i = 0; i < monster_count; ++i)
-                if (monsters[i]->doom_type == 6)
-                    iron_lynch_count++;
-            while (iron_lynch_count < 1)
-            {
-                int i = rand() % monster_count;
-                if (monsters[i]->doom_type != 6)
-                {
-                    monsters[i] = &random_monster_defs[12];
-                    iron_lynch_count++;
-                }
-            }
-        }
-        
         // Randomly pick them until empty, and place them in different spots
         for (i = 0; i < spawn_count; i++)
         {
@@ -625,7 +856,6 @@ void P_LoadThings(int lump)
             things_type_remap[spawn->index] = spawn->monster->doom_type;
         }
     }
-#endif
 
     if (ap_state.random_items > 0)
     {
