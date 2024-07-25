@@ -400,7 +400,7 @@ typedef struct
     int hit_points;
     int radius;
     int height;
-    int frequency; // Globally in entire game. This is used for random balanced
+    int frequency[5]; // Per-episode counts.. This is used for random balanced
     random_monster_cat_t category;
     int dont_shuffle;
 } random_monster_def_t;
@@ -408,27 +408,27 @@ typedef struct
 
 static random_monster_def_t random_monster_defs[] =
 {
-    { 107, 200, 20*FRACUNIT, 64*FRACUNIT, 344, rmc_melee }, // Centaur
-    { 121, 90, 32*FRACUNIT, 70*FRACUNIT, 60, rmc_melee }, // Stalker
-    { 10030, 175, 25*FRACUNIT, 68*FRACUNIT, 811, rmc_melee }, // Ettin
+    { 107, 200, 20*FRACUNIT, 64*FRACUNIT, {36, 67, 59, 56, 126}, rmc_melee }, // Centaur
+    { 121, 90, 32*FRACUNIT, 70*FRACUNIT, {9, 27, 1, 19, 4}, rmc_melee }, // Stalker
+    { 10030, 175, 25*FRACUNIT, 68*FRACUNIT, {200, 194, 177, 166, 74}, rmc_melee }, // Ettin
 
-    { 115, 250, 20*FRACUNIT, 64*FRACUNIT, 106, rmc_ranged }, // Slaughtaur
-    { 31, 250, 32*FRACUNIT, 64*FRACUNIT, 236, rmc_ranged }, // Green Chaos Serpent
-    { 8080, 250, 32*FRACUNIT, 64*FRACUNIT, 123, rmc_ranged }, // Brown Chaos Serpent
-    { 120, 90, 32*FRACUNIT, 70*FRACUNIT, 60, rmc_ranged }, // Stalker Boss
-    { 8020, 120, 22*FRACUNIT, 75*FRACUNIT, 41, rmc_ranged }, // Wendigo
+    { 115, 250, 20*FRACUNIT, 64*FRACUNIT, {0, 1, 42, 35, 28}, rmc_ranged }, // Slaughtaur
+    { 31, 250, 32*FRACUNIT, 64*FRACUNIT, {46, 30, 62, 45, 53}, rmc_ranged }, // Green Chaos Serpent
+    { 8080, 250, 32*FRACUNIT, 64*FRACUNIT, {14, 59, 0, 8, 42}, rmc_ranged }, // Brown Chaos Serpent
+    { 120, 90, 32*FRACUNIT, 70*FRACUNIT, {0, 7, 5, 10, 40}, rmc_ranged }, // Stalker Boss
+    { 8020, 120, 22*FRACUNIT, 75*FRACUNIT, {34, 0, 0, 0, 7}, rmc_ranged }, // Wendigo
 
-    { 34, 150, 20*FRACUNIT, 55*FRACUNIT, 30, rmc_flying }, // Reiver
-    { 10011, 150, 20*FRACUNIT, 55*FRACUNIT, 60, rmc_flying, 1 }, // Reiver (buried)
-    { 114, 150, 22*FRACUNIT, 65*FRACUNIT, 449, rmc_flying }, // Dark Bishop
-    { 10060, 150, 20*FRACUNIT, 68*FRACUNIT, 496, rmc_flying }, // Afrit
+    { 34, 150, 20*FRACUNIT, 55*FRACUNIT, {0, 0, 0, 0, 30}, rmc_flying }, // Reiver
+    { 10011, 150, 20*FRACUNIT, 55*FRACUNIT, {0, 0, 0, 0, 60}, rmc_flying, 1 }, // Reiver (buried)
+    { 114, 150, 22*FRACUNIT, 65*FRACUNIT, {0, 0, 226, 79, 144}, rmc_flying }, // Dark Bishop
+    { 10060, 150, 20*FRACUNIT, 68*FRACUNIT, {128, 157, 90, 81, 40}, rmc_flying }, // Afrit
 
-    { 254, 640, 20*FRACUNIT, 65*FRACUNIT, 1, rmc_boss, 1 }, // Death Wyvern
-    { 10080, 5000, 40*FRACUNIT, 110*FRACUNIT, 2, rmc_boss, 1 }, // Heresiarch
-    { 10100, 800, 16*FRACUNIT, 64*FRACUNIT, 1, rmc_boss, 1 }, // Zedek
-    { 10101, 800, 16*FRACUNIT, 64*FRACUNIT, 1, rmc_boss, 1 }, // Traductus
-    { 10102, 800, 16*FRACUNIT, 64*FRACUNIT, 1, rmc_boss, 1 }, // Melenkir
-    { 10200, 5000, 65*FRACUNIT, 115*FRACUNIT, 1, rmc_boss, 1 } // Korax
+    { 254, 640, 20*FRACUNIT, 65*FRACUNIT, {0, 1, 0, 0, 0}, rmc_boss, 1 }, // Death Wyvern
+    { 10080, 5000, 40*FRACUNIT, 110*FRACUNIT, {0, 0, 1, 1, 0}, rmc_boss, 1 }, // Heresiarch
+    { 10100, 800, 16*FRACUNIT, 64*FRACUNIT, {0, 0, 0, 0, 1}, rmc_boss, 1 }, // Zedek
+    { 10101, 800, 16*FRACUNIT, 64*FRACUNIT, {0, 0, 0, 0, 1}, rmc_boss, 1 }, // Traductus
+    { 10102, 800, 16*FRACUNIT, 64*FRACUNIT, {0, 0, 0, 0, 1}, rmc_boss, 1 }, // Melenkir
+    { 10200, 5000, 65*FRACUNIT, 115*FRACUNIT, {0, 0, 0, 0, 1}, rmc_boss, 1 } // Korax
 };
 static const int monster_def_count = sizeof(random_monster_defs) / sizeof(random_monster_def_t);
 
@@ -734,11 +734,12 @@ void P_LoadThings(int lump)
             random_monster_def_t* defs_by_rmc[NUM_RMC][20];
             int defs_by_rmc_count[NUM_RMC] = {0};
             int rmc_ratios[NUM_RMC] = {0};
+	    int hub = P_GetMapCluster(gamemap) - 1;
             for (int i = 0; i < monster_def_count; ++i)
             {
                 random_monster_def_t* monster = &random_monster_defs[i];
                 defs_by_rmc[monster->category][defs_by_rmc_count[monster->category]++] = monster;
-                rmc_ratios[monster->category] += monster->frequency;
+                rmc_ratios[monster->category] += monster->frequency[hub];
             }
 
             int total = 0;
@@ -758,12 +759,12 @@ void P_LoadThings(int lump)
                         rnd = rand() % rmc_ratios[i];
                         for (int j = 0; j < defs_by_rmc_count[i]; ++j)
                         {
-                            if (rnd < defs_by_rmc[i][j]->frequency)
+                            if (rnd < defs_by_rmc[i][j]->frequency[hub])
                             {
                                 monsters[monster_count++] = defs_by_rmc[i][j];
                                 break;
                             }
-                            rnd -= defs_by_rmc[i][j]->frequency;
+                            rnd -= defs_by_rmc[i][j]->frequency[hub];
                         }
                         break;
                     }
@@ -774,13 +775,14 @@ void P_LoadThings(int lump)
         else if (ap_state.random_monsters == 3) // Random chaotic
         {
             int total = 0;
+	    int hub = P_GetMapCluster(gamemap) - 1;
             for (int i = 0; i < monster_def_count; ++i)
             {
                 random_monster_def_t* monster = &random_monster_defs[i];
                 if (monster->dont_shuffle) continue;
 		if (dont_shuffle_for_map(monster->doom_type))
 		    continue;
-                total += monster->frequency;
+                total += monster->frequency[hub];
             }
 
             while (monster_count < spawn_count)
@@ -792,12 +794,12 @@ void P_LoadThings(int lump)
                     if (monster->dont_shuffle) continue;
 		    if (dont_shuffle_for_map(monster->doom_type))
 		        continue;
-                    if (rnd < monster->frequency)
+                    if (rnd < monster->frequency[hub])
                     {
                         monsters[monster_count++] = monster;
                         break;
                     }
-                    rnd -= monster->frequency;
+                    rnd -= monster->frequency[hub];
                 }
             }
         }
