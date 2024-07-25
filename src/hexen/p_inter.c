@@ -1969,11 +1969,13 @@ void P_DamageMobj
             {
                 if (player->armorpoints[i])
                 {
+		    int oldarmorpoints = player->armorpoints[i];
                     player->armorpoints[i] -=
                         FixedDiv(FixedMul(damage << FRACBITS,
                                           ArmorIncrement[player->class][i]),
                                  300 * FRACUNIT);
-                    if (player->armorpoints[i] < 2 * FRACUNIT)
+		    // [ap] overflow protection for huge dmg - no respawning with lots o' armor
+                    if (player->armorpoints[i] < 2 * FRACUNIT || player->armorpoints[i] > oldarmorpoints)
                     {
                         player->armorpoints[i] = 0;
                     }
