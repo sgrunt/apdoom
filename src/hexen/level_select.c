@@ -424,9 +424,9 @@ void DrawEpisodicLevelSelectStats()
                 V_DrawPatch(x, y, W_CacheLumpName("WILOCK", PU_CACHE));
 
             // Progress
-            print_right_aligned_yellow_digit(x + 30 + text_w - 4, y - 1, checked_count);
-            V_DrawPatch(x + 30 + text_w - 3, y - 1, W_CacheLumpName("STYSLASH", PU_CACHE));
-            print_left_aligned_yellow_digit(x + 30 + text_w + 3, y - 1, total_check_count);
+            print_right_aligned_yellow_digit(x + 40 + text_w - 4, y - 1, checked_count);
+            V_DrawPatch(x + 40 + text_w - 3, y - 1, W_CacheLumpName("STYSLASH", PU_CACHE));
+            print_left_aligned_yellow_digit(x + 40 + text_w + 3, y - 1, total_check_count);
         }
         else
         {
