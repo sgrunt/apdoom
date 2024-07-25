@@ -504,8 +504,11 @@ void DrawLevelSelect()
         V_DrawFilledBox(0, 0, SCREENWIDTH, SCREENHEIGHT, 0);
     }
 
-    V_DrawFullscreenRawOrPatch(W_GetNumForName("INTERPIC"));
+    //V_DrawFullscreenRawOrPatch(W_GetNumForName("INTERPIC"));
     //V_DrawPatch(x_offset, activating_level_select_anim, W_CacheLumpName(lump_name, PU_CACHE));
+    V_DrawScaledBlock(0, activating_level_select_anim,
+                      ORIGWIDTH, ORIGHEIGHT - activating_level_select_anim,
+                      (pixel_t *) W_CacheLumpName("INTERPIC", PU_CACHE));
     if (activating_level_select_anim == 0)
         DrawLevelSelectStats();
 }
