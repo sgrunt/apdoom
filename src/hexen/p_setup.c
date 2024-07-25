@@ -699,6 +699,8 @@ void P_LoadThings(int lump)
         {
             if (!(mt->options & bit))
                 continue;
+            if (mt->tid)
+	        continue;
 
             for (int j = 0; j < monster_def_count; ++j)
             {
