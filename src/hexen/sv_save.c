@@ -834,6 +834,13 @@ static void StreamIn_mobj_t(mobj_t *str)
     i = SV_ReadLong();
     str->state = &states[i];
 
+    if (mobjinfo[str->type].restore_state_on_load)
+    {
+        str->state = &states[mobjinfo[str->type].spawnstate];
+        str->tics = str->state->tics;
+        str->frame = 0;
+    }
+
     // int damage;
     str->damage = SV_ReadLong();
 
