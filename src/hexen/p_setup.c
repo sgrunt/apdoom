@@ -1453,8 +1453,11 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     deathmatch_p = deathmatchstarts;
     P_LoadThings(lumpnum + ML_THINGS);
     PO_Init(lumpnum + ML_THINGS);       // Initialize the polyobjs
+    // [ap] hack: load patched MAP03 script to prevent logic softlock
+    if (map == 3)
+        P_LoadACScripts(W_GetNumForName("MAP03ACS"));
     // [ap] hack: load patched MAP23 script to fix the serpent softlock
-    if (map == 23)
+    else if (map == 23)
         P_LoadACScripts(W_GetNumForName("MAP23ACS"));
     else
         P_LoadACScripts(lumpnum + ML_BEHAVIOR);     // ACS object code
