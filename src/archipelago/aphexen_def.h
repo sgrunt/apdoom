@@ -16,12 +16,11 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
             {219, 391002},
         }},
         {2, {
+            {-7, 391212},
+            {-6, 391211},
+            {-5, 391210},
+            {-4, 391209},
             {-3, 391208},
-            {-3, 391209},
-            {-3, 391210},
-            {-3, 391211},
-            {-3, 391212},
-            {-3, 391218},
             {301, 391003},
             {302, 391004},
             {303, 391005},
@@ -42,18 +41,18 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
         }},
         {4, {
             {-3, 391205},
-            {-3, 391214},
-            {-3, 391216},
+            {-4, 391214},
+            {-5, 391216},
             {74, 391017},
             {105, 391018},
             {106, 391019},
             {107, 391020},
         }},
         {5, {
+            {-6, 391217},
+            {-5, 391215},
+            {-4, 391207},
             {-3, 391206},
-            {-3, 391207},
-            {-3, 391215},
-            {-3, 391217},
             {7, 391021},
             {22, 391022},
             {25, 391023},
@@ -61,6 +60,7 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
             {396, 391025},
         }},
         {6, {
+            {-3, 391218},
             {19, 391026},
             {95, 391027},
             {96, 391028},
@@ -71,9 +71,9 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
     }},
     {2, {
         {1, {
-            {-1, 391237},
+            {-4, 391220},
             {-3, 391219},
-            {-3, 391220},
+            {-1, 391237},
             {115, 391032},
             {209, 391033},
             {254, 391034},
@@ -86,8 +86,8 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
             {263, 391043},
         }},
         {2, {
+            {-4, 391222},
             {-3, 391221},
-            {-3, 391222},
             {115, 391044},
             {116, 391045},
             {131, 391046},
@@ -95,8 +95,8 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
             {209, 391048},
         }},
         {3, {
+            {-4, 391224},
             {-3, 391223},
-            {-3, 391224},
             {73, 391050},
             {150, 391051},
             {151, 391052},
@@ -205,15 +205,15 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
             {345, 391127},
         }},
         {2, {
+            {-5, 391228},
+            {-4, 391227},
             {-3, 391226},
-            {-3, 391227},
-            {-3, 391228},
             {104, 391128},
         }},
         {3, {
+            {-5, 391234},
+            {-4, 391233},
             {-3, 391232},
-            {-3, 391233},
-            {-3, 391234},
             {60, 391129},
             {119, 391130},
             {193, 391131},
@@ -252,9 +252,9 @@ const std::map<int /* ep */, std::map<int /* map */, std::map<int /* index */, i
             {156, 391158},
         }},
         {7, {
+            {-5, 391231},
+            {-4, 391230},
             {-3, 391229},
-            {-3, 391230},
-            {-3, 391231},
             {42, 391159},
             {43, 391160},
             {44, 391161},
@@ -780,7 +780,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 348, 0},
             {9103, 349, 0},
 	}},
-        {"Seven Portals", {false, false, false}, {0, 0, 0}, 7, 712, {
+        {"Seven Portals", {false, false, false}, {0, 0, 0}, 12, 712, {
             {3001, 0, 0},
             {3000, 1, 0},
             {3000, 2, 0},
@@ -1494,7 +1494,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 710, 0},
             {9103, 711, 0},
 	}},
-        {"Guardian of Ice", {false, false, false}, {0, 0, 0}, 7, 399, {
+        {"Guardian of Ice", {false, false, false}, {0, 0, 0}, 8, 399, {
             {1, 0, 0},
             {73, 1, 0},
             {73, 2, 0},
@@ -1895,7 +1895,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 397, 0},
             {9103, 398, 0},
 	}},
-        {"Guardian of Fire", {false, false, false}, {0, 0, 0}, 4, 296, {
+        {"Guardian of Fire", {false, false, false}, {0, 0, 0}, 7, 296, {
             {1, 0, 0},
             {3000, 1, 0},
             {3000, 2, 0},
@@ -2193,7 +2193,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 294, 0},
             {9103, 295, 0},
 	}},
-        {"Guardian of Steel", {false, false, false}, {0, 0, 0}, 5, 495, {
+        {"Guardian of Steel", {false, false, false}, {0, 0, 0}, 9, 495, {
             {1, 0, 0},
             {3002, 1, 0},
             {3002, 2, 0},
@@ -2690,7 +2690,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {11, 493, 0},
             {11, 494, 0},
 	}},
-        {"Bright Crucible", {false, false, false}, {0, 0, 0}, 6, 386, {
+        {"Bright Crucible", {false, false, false}, {0, 0, 0}, 7, 386, {
             {1, 0, 0},
             {118, 1, 0},
             {118, 2, 0},
@@ -3080,7 +3080,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
 	}},
     },
     {
-        {"Darkmere", {false, false, false}, {0, 0, 0}, 10, 593, {
+        {"Darkmere", {false, false, false}, {0, 0, 0}, 12, 593, {
             {1, 0, 0},
             {1402, 1, 0},
             {2, 2, 0},
@@ -3675,7 +3675,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 591, 0},
             {9103, 592, 0},
 	}},
-        {"Caves of Circe", {false, false, false}, {0, 0, 0}, 5, 379, {
+        {"Caves of Circe", {false, false, false}, {0, 0, 0}, 7, 379, {
             {1, 0, 0},
             {3002, 1, 0},
             {3000, 2, 0},
@@ -4056,7 +4056,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 377, 0},
             {9103, 378, 0},
 	}},
-        {"Wastelands", {false, false, false}, {0, 0, 0}, 8, 450, {
+        {"Wastelands", {false, false, false}, {0, 0, 0}, 10, 450, {
             {1, 0, 0},
             {3000, 1, 0},
             {3002, 2, 0},
@@ -4508,7 +4508,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 448, 0},
             {9103, 449, 0},
 	}},
-        {"Sacred Grove", {false, false, false}, {0, 0, 0}, 3, 116, {
+        {"Sacred Grove", {false, false, false}, {0, 0, 0}, 4, 116, {
             {1, 0, 0},
             {9001, 1, 0},
             {9001, 2, 0},
@@ -6286,7 +6286,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 851, 0},
             {9103, 852, 0},
 	}},
-        {"Dragon Chapel", {false, false, false}, {0, 0, 0}, 1, 331, {
+        {"Dragon Chapel", {false, false, false}, {0, 0, 0}, 4, 331, {
             {3002, 0, 0},
             {3002, 1, 0},
             {3002, 2, 0},
@@ -6619,7 +6619,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {11, 329, 0},
             {11, 330, 0},
 	}},
-        {"Griffin Chapel", {false, false, false}, {0, 0, 0}, 5, 300, {
+        {"Griffin Chapel", {false, false, false}, {0, 0, 0}, 8, 300, {
             {3000, 0, 0},
             {3000, 1, 0},
             {3000, 2, 0},
@@ -7769,7 +7769,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
             {9102, 290, 0},
             {9103, 291, 0},
 	}},
-        {"Wolf Chapel", {false, false, false}, {0, 0, 0}, 5, 383, {
+        {"Wolf Chapel", {false, false, false}, {0, 0, 0}, 8, 383, {
             {1, 0, 0},
             {9001, 1, 0},
             {9001, 2, 0},
@@ -8156,7 +8156,7 @@ std::vector<std::vector<ap_level_info_t>> ap_hexen_level_infos =
 	}},
     },
     {
-        {"Forsaken Outpost", {false, false, false}, {0, 0, 0}, 7, 415, {
+        {"Forsaken Outpost", {false, false, false}, {0, 0, 0}, 8, 415, {
             {1, 0, 0},
             {3000, 1, 0},
             {3001, 2, 0},

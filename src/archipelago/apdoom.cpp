@@ -1290,7 +1290,7 @@ void f_locrecv(int64_t loc_id)
 
 	// Make sure we didn't already check it
 	if (is_loc_checked(idx, index)) return;
-	if (index < 0) return;
+	if (index == -1 || index == -2) return;
 
 	auto level_state = ap_get_level_state(idx);
 	level_state->checks[level_state->check_count] = index;
