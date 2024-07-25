@@ -1671,6 +1671,8 @@ void G_DoReborn(int playernum)
     int oldMana[NUMMANA];
     boolean foundSpot;
     int bestWeapon;
+    thinker_t *think;
+    mobj_t *mobj;
 
     // quit demo unless -demoextend
     if (!demoextend && G_CheckDemoStatus())
@@ -1762,6 +1764,22 @@ void G_DoReborn(int playernum)
         }
 
 	leveltimesinceload = MIN(leveltimesinceload, 175);
+	for (think = thinkercap.next; think != &thinkercap;
+             think = think->next)
+        {
+            if (think->function != P_MobjThinker)
+            {
+                continue;
+            }
+            mobj = (mobj_t *) think;
+            if (mobj->type != MT_LVSTEL)
+	    {
+                continue;
+            }
+	    P_SetMobjState(mobj, S_LVST);
+	    mobj->tics = 350 - leveltimesinceload;
+	    break;
+        }
 
         // Restore keys and weapons
         players[playernum].keys = oldKeys;
