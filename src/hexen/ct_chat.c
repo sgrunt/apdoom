@@ -26,6 +26,8 @@
 #include "p_local.h"
 #include "v_video.h"
 
+#include "apdoom.h"
+
 #define NUMKEYS 256
 
 #define QUEUESIZE		128
@@ -154,10 +156,12 @@ boolean CT_Responder(event_t * ev)
 
     int sendto;
 
+#if 0 // [AP] We always enable chat in AP
     if (!netgame)
     {
         return false;
     }
+#endif
     if (ev->data1 == KEY_RALT)
     {
         altdown = (ev->type == ev_keydown);
@@ -330,13 +334,10 @@ void CT_Ticker(void)
                 }
                 else if (i == consoleplayer && (*chat_msg[i]))
                 {
-                    if (numplayers <= 1)
-                    {
-                        P_SetMessage(&players[consoleplayer],
-                                     "THERE ARE NO OTHER PLAYERS IN THE GAME!",
-                                     true);
-                        S_StartSound(NULL, SFX_CHAT);
-                    }
+		    apdoom_send_message(plr_lastmsg[i]);
+                    P_SetMessage(&players[consoleplayer], plr_lastmsg[i],
+                                 true);
+                    S_StartSound(NULL, SFX_CHAT);
                 }
                 CT_ClearChatMessage(i);
             }
