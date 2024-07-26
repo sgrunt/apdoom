@@ -553,12 +553,14 @@ void P_CheckACSStore(void)
     {
         if (store->map == gamemap)
         {
-            P_StartACS(store->script, 0, store->args, NULL, NULL, 0);
-            if (NewScript)
-            {
-                NewScript->delayCount = 35;
-            }
-            store->map = -1;
+            if (P_StartACS(store->script, 0, store->args, NULL, NULL, 0))
+	    {
+                if (NewScript)
+                {
+                    NewScript->delayCount = 35;
+                }
+                store->map = -1;
+	    }
         }
     }
 }
@@ -803,10 +805,13 @@ static boolean AddToACSStore(int map, int number, byte * args)
     index = -1;
     for (i = 0; ACSStore[i].map != 0; i++)
     {
+        // [ap] We do allow duplicates, since we might get multiple checks corresponding to the same script
+#if 0
         if (ACSStore[i].script == number && ACSStore[i].map == map)
         {                       // Don't allow duplicates
             return false;
         }
+#endif
         if (index == -1 && ACSStore[i].map == -1)
         {                       // Remember first empty slot
             index = i;
@@ -944,6 +949,8 @@ void T_InterpretACS(thinker_t *thinker)
         ACSInfo[script->infoIndex].state = ASTE_INACTIVE;
         ScriptFinished(ACScript->number);
         P_RemoveThinker(&ACScript->thinker);
+	// [ap] check ACS store in case of duplicate scripts
+	P_CheckACSStore();
         return;
     }
     if (ACSInfo[script->infoIndex].state != ASTE_RUNNING)
@@ -980,6 +987,8 @@ void T_InterpretACS(thinker_t *thinker)
         ACSInfo[script->infoIndex].state = ASTE_INACTIVE;
         ScriptFinished(ACScript->number);
         P_RemoveThinker(&ACScript->thinker);
+	// [ap] check ACS store in case of duplicate scripts
+	P_CheckACSStore();
     }
 }
 
