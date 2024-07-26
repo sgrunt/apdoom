@@ -3933,6 +3933,7 @@ void A_IceGuyMissileExplode(mobj_t *actor, player_t *player, pspdef_t *psp)
 // Spawn spinning balls above head - actor is sorcerer
 void A_SorcSpinBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
+    thinker_t *think;
     mobj_t *mo;
     fixed_t z;
 
@@ -3942,6 +3943,26 @@ void A_SorcSpinBalls(mobj_t *actor, player_t *player, pspdef_t *psp)
     actor->args[4] = SORCBALL_INITIAL_SPEED;    // Initial orbit speed
     actor->special1.i = ANG1;
     z = actor->z - actor->floorclip + actor->info->height;
+
+    // [ap] clear existing balls if necessary
+        for (think = thinkercap.next; think != &thinkercap;
+             think = think->next)
+        {
+            if (think->function != P_MobjThinker)
+            {
+                continue;
+            }
+            mo = (mobj_t *) think;
+            if (mo->type != MT_SORCBALL1
+	        && mo->type != MT_SORCBALL2
+		&& mo->type != MT_SORCBALL3)
+            {
+                continue;
+            }
+	    if (mo->target != actor)
+	        continue;
+	    P_RemoveMobj(mo);
+        }
 
     mo = P_SpawnMobj(actor->x, actor->y, z, MT_SORCBALL1);
     if (mo)
