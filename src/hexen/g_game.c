@@ -1670,7 +1670,7 @@ void G_DoReborn(int playernum)
     int oldPieces;
     int oldMana[NUMMANA];
     boolean foundSpot;
-    int bestWeapon;
+    int oldReadyWeapon;
     thinker_t *think;
     mobj_t *mobj;
 
@@ -1730,6 +1730,7 @@ void G_DoReborn(int playernum)
 	}
         oldArtifactCount = players[playernum].artifactCount;
 	oldInventorySlotNum = players[playernum].inventorySlotNum;
+	oldReadyWeapon = players[playernum].readyweapon;
 
         foundSpot = false;
         if (G_CheckSpot(playernum, &playerstarts[RebornPosition][playernum]))
@@ -1784,11 +1785,10 @@ void G_DoReborn(int playernum)
         // Restore keys and weapons
         players[playernum].keys = oldKeys;
         players[playernum].pieces = oldPieces;
-        for (bestWeapon = 0, i = 0; i < NUMWEAPONS; i++)
+        for (i = 0; i < NUMWEAPONS; i++)
         {
             if (oldWeaponowned[i])
             {
-                bestWeapon = i;
                 players[playernum].weaponowned[i] = true;
 		// [ap] give ammo too
 		if (i == WP_SECOND || i == WP_FOURTH) {
@@ -1816,10 +1816,7 @@ void G_DoReborn(int playernum)
 	}
         players[playernum].artifactCount = oldArtifactCount;
 	players[playernum].inventorySlotNum = oldInventorySlotNum;
-        if (bestWeapon)
-        {                       // Bring up the best weapon
-            players[playernum].pendingweapon = bestWeapon;
-        }
+        players[playernum].pendingweapon = oldReadyWeapon;
     }
 }
 
