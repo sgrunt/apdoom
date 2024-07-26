@@ -367,6 +367,8 @@ boolean P_SeekerMissile(mobj_t * actor, angle_t thresh, angle_t turnMax)
 #define FRICTION_LOW		0xf900
 #define FRICTION_FLY		0xeb00
 
+extern line_t *bestslideline;
+
 void P_XYMovement(mobj_t * mo)
 {
     fixed_t ptryx, ptryy;
@@ -508,7 +510,7 @@ void P_XYMovement(mobj_t * mo)
                     }
                     else
                     {           // Struck a wall
-                        P_BounceWall(mo);
+                        if (bestslideline) P_BounceWall(mo);
                         switch (mo->type)
                         {
                             case MT_SORCBALL1:
