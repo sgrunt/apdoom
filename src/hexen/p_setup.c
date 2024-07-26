@@ -1404,6 +1404,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     int parm;
     char lumpname[9];
     int lumpnum;
+    int acslumpnum;
     mobj_t *mobj;
 
     for (i = 0; i < maxplayers; i++)
@@ -1453,12 +1454,11 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     deathmatch_p = deathmatchstarts;
     P_LoadThings(lumpnum + ML_THINGS);
     PO_Init(lumpnum + ML_THINGS);       // Initialize the polyobjs
-    // [ap] hack: load patched MAP03 script to prevent logic softlock
-    if (map == 3)
-        P_LoadACScripts(W_GetNumForName("MAP03ACS"));
-    // [ap] hack: load patched MAP23 script to fix the serpent softlock
-    else if (map == 23)
-        P_LoadACScripts(W_GetNumForName("MAP23ACS"));
+    // [ap] hack: load patched scripts to prevent logic softlocks
+    M_snprintf(lumpname, sizeof(lumpname), "MAP%02dACS", map);
+    acslumpnum = W_CheckNumForName(lumpname);
+    if (acslumpnum != -1)
+        P_LoadACScripts(acslumpnum);
     else
         P_LoadACScripts(lumpnum + ML_BEHAVIOR);     // ACS object code
     //
