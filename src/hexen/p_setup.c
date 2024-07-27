@@ -627,15 +627,18 @@ void get_fit_dimensions(fixed_t x, fixed_t y, fixed_t* fit_radius, fixed_t* fit_
 boolean dont_shuffle_for_map(int doom_type) {
     switch (gamemap) {
 	case 11:
-	    return doom_type == MT_DEMON || doom_type == MT_ETTIN;
+	    return doom_type == 31 // Chaos Serpent
+	           || doom_type == 10030; // Ettin
 	case 23:
-	    return doom_type == MT_DEMON;
+	    return doom_type == 31; // Chaos Serpent
 	case 25:
-	    return doom_type == MT_DEMON || doom_type == MT_ETTIN;
+	    return doom_type == 31 // Chaos Serpent
+	           || doom_type == 10030; // Ettin
 	case 35:
-	    return doom_type == MT_WRAITH;
+	    return doom_type == 10011; // Reiver
 	case 40:
-	    return doom_type == MT_CENTAUR || doom_type == MT_ETTIN;
+	    return doom_type == 107 // Centaur
+	           || doom_type == 10030; // Ettin
     }
     return false;
 }
