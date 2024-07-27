@@ -1785,6 +1785,8 @@ void G_DoReborn(int playernum)
         // Restore keys and weapons
         players[playernum].keys = oldKeys;
         players[playernum].pieces = oldPieces;
+        for (i = 0; i < NUMMANA; i++)
+	    players[playernum].mana[i] = oldMana[i];
         for (i = 0; i < NUMWEAPONS; i++)
         {
             if (oldWeaponowned[i])
