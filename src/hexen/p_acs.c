@@ -947,8 +947,8 @@ void T_InterpretACS(thinker_t *thinker)
     if (ACSInfo[script->infoIndex].state == ASTE_TERMINATING)
     {
         ACSInfo[script->infoIndex].state = ASTE_INACTIVE;
-        ScriptFinished(ACScript->number);
-        P_RemoveThinker(&ACScript->thinker);
+        ScriptFinished(script->number);
+        P_RemoveThinker(&script->thinker);
 	// [ap] check ACS store in case of duplicate scripts
 	P_CheckACSStore();
         return;
