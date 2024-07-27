@@ -1176,6 +1176,18 @@ void P_LoadLineDefs(int lump)
 
 	ld->index = i;
 
+	// [ap] Effluvium softlock fix
+	if (gamemap == 24) {
+	    if (i == 560) {
+	        ld->special = 80;
+		ld->arg1 = 10;
+	        ld->flags = ld->flags | ML_REPEAT_SPECIAL;
+	    }
+	    if (i == 598 || i == 1215) {
+	        ld->flags = ld->flags | ML_REPEAT_SPECIAL;
+	    }
+	}
+
 	// [ap] Dark Crucible accessibility changes
 	if (gamemap == 40) {
 	    if (i >= 785 && i <= 791) { // front door - keep it open
