@@ -69,7 +69,7 @@ void A_check_collected(mobj_t *actor, player_t *player, pspdef_t *psp)
 	ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
     for (j = 0, lenj = level_state->check_count; j < lenj; ++j)
     {
-        if (level_state->checks[j] == actor->index)
+        if (actor->special == 0 && level_state->checks[j] == actor->index)
         {
 			P_RemoveMobj(actor);
 			return;

@@ -1026,18 +1026,20 @@ void P_LoadThings(int lump)
                     spawnthing.type = 20001;
                 else
                     spawnthing.type = 20000;
-                int skip = 0;
-                ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
-                for (j = 0; j < level_state->check_count; ++j)
-                {
-                    if (level_state->checks[j] == i)
+		if (spawnthing.special == 0) { // anything that triggers something needs to be kept
+                    int skip = 0;
+                    ap_level_state_t* level_state = ap_get_level_state(ap_make_level_index(gameepisode, gamemap));
+                    for (j = 0; j < level_state->check_count; ++j)
                     {
-                        skip = 1;
-                        break;
+                        if (level_state->checks[j] == i)
+                        {
+                            skip = 1;
+                            break;
+                        }
                     }
-                }
-                if (skip)
-                    continue;
+                    if (skip)
+                        continue;
+		}
             }
         }
 
