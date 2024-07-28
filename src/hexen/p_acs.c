@@ -720,7 +720,7 @@ boolean ap_check_send_special(int number, int map, int line_index) {
 
     if (number == 3 && map == 35) {
         // hack to prevent the vivarium door from closing
-	return;
+	return true;
     }
 
     return false;
