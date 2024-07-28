@@ -171,8 +171,8 @@ static void DrawCrispnessMenu(void);
 static void DrawCrispness1(void);
 static void DrawCrispness2(void);
 void MN_LoadSlotText(void);
-static boolean SCLevelSelect(int option);
-static boolean SCKill(int option);
+static void SCLevelSelect(int option);
+static void SCKill(int option);
 
 // EXTERNAL DATA DECLARATIONS ----------------------------------------------
 
@@ -582,7 +582,7 @@ static void InitFonts(void)
                 ptr = (byte*)q + q->columnofs[col];
                 while (*ptr != 0xFF)
                 {
-                    post = ptr;
+                    post = (post_t*)ptr;
                     ptr += 3;
                     for (int row = 0; row < post->length; ++row, ++ptr)
                     {
@@ -1256,7 +1256,7 @@ static void SCMessages(int option)
 void P_KillMobj_Real(mobj_t* source, mobj_t* target, boolean send_death_link);
 extern boolean killed_from_menu;
 
-static boolean SCKill(int option)
+static void SCKill(int option)
 {
     if (players[consoleplayer].mo)
     {
@@ -1265,11 +1265,8 @@ static boolean SCKill(int option)
             MN_DeactivateMenu();
 //            killed_from_menu = true;
             P_KillMobj_Real(0, players[consoleplayer].mo, false);
-            return true;
         }
     }
-
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1278,7 +1275,7 @@ static boolean SCKill(int option)
 //
 //---------------------------------------------------------------------------
 
-static boolean SCLevelSelect(int option)
+static void SCLevelSelect(int option)
 {
     MenuActive = false;
 
@@ -1292,8 +1289,6 @@ static boolean SCLevelSelect(int option)
     {
         ShowLevelSelect();
     }
-
-    return true;
 }
 
 //===========================================================================
