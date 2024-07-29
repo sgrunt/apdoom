@@ -64,9 +64,11 @@ static level_pos_t level_pos_infos[5] =
 
 
 int selected_level = 0;
+int hub_count = 5;
 int urh_anim = 0;
-int activating_level_select_anim = 0; //200;
+int activating_level_select_anim = 200;
 
+static int hub_for_slot[5] = { 0, 1, 2, 3, 4 };
 static int map_for_level[5] = { 1, 13, 27, 22, 35 };
 
 static const char* YELLOW_DIGIT_LUMP_NAMES[] = {
@@ -161,8 +163,7 @@ void select_map_dir(int dir)
     int bottom_most_idx = -1;
     float best_score = 0.0f;
     
-    int map_count = 5; //ap_get_map_count(selected_ep + 1);
-    for (int i = 0; i < map_count; ++i)
+    for (int i = 0; i < hub_count; ++i)
     {
         if (level_pos_infos[i].y < top_most)
         {
@@ -230,10 +231,10 @@ void select_map_dir(int dir)
 
 static void level_select_nav_enter()
 {
-    if (ap_get_level_state(ap_make_level_index(selected_level + 1, 1))->unlocked)
+    if (ap_get_level_state(ap_make_level_index(hub_for_slot[selected_level] + 1, 1))->unlocked)
     {
         S_StartSound(NULL, SFX_DOOR_METAL_CLOSE);
-        play_level(map_for_level[selected_level]);
+        play_level(map_for_level[hub_for_slot[selected_level]]);
     }
     else
     {
@@ -303,6 +304,8 @@ void G_DoSaveGame(void);
 
 void ShowLevelSelect()
 {
+    int i, j;
+
     HU_ClearAPMessages();
 
     // If in a level, save current level
@@ -329,12 +332,12 @@ void ShowLevelSelect()
     players[consoleplayer].message[0] = '\0';
 
     selected_level = 0;
+    hub_count = 0;
 
-    while (!ap_state.episodes[selected_level])
-    {
-        selected_level = (selected_level + 1) % ap_episode_count;
-        if (selected_level == 0) // oops;
-            break;
+    for (i = 0; i < 5; i++) {
+        if (ap_state.episodes[i]) {
+	    hub_for_slot[hub_count++] = i;
+	}
     }
 }
 
@@ -372,18 +375,18 @@ void DrawEpisodicLevelSelectStats()
     const int key_spacing = 5;
     const int stat_y_offset = 8;
     
-    int map_count = 5; //ap_get_map_count(selected_ep + 1);
-    for (int i = 0; i < map_count; ++i)
+    for (int i = 0; i < hub_count; ++i)
     {
+        int hub = hub_for_slot[i];
     	int checked_count = 0;
 	int total_check_count = 0;
 	int completed = 0;
 	int unlocked = 0;
         level_pos_t* level_pos = &level_pos_infos[i];
 
-	for (int map = 0; map < ap_get_map_count(i + 1); map++) {
-	        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(i + 1, map + 1));
-        	ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(i + 1, map + 1));
+	for (int map = 0; map < ap_get_map_count(hub_for_slot[i] + 1); map++) {
+	        ap_level_info_t* ap_level_info = ap_get_level_info(ap_make_level_index(hub_for_slot[i] + 1, map + 1));
+        	ap_level_state_t* ap_level_state = ap_get_level_state(ap_make_level_index(hub_for_slot[i] + 1, map + 1));
 		if (map == 0) {
 			completed = ap_level_state->completed;
 			unlocked = ap_level_state->unlocked;
@@ -398,7 +401,7 @@ void DrawEpisodicLevelSelectStats()
         if (level_pos->display_as_line)
         {
             // Text
-            const char* level_name = level_names[i];
+            const char* level_name = level_names[hub_for_slot[i]];
 
             // Remove the '- E1M1' at the end
             char name[80];
@@ -461,7 +464,7 @@ void DrawEpisodicLevelSelectStats()
         }
 
         // Level name
-        const char* level_name = level_names[selected_level];
+        const char* level_name = level_names[hub_for_slot[selected_level]];
         int text_x = 160 - MN_TextBWidth(level_name) / 2;
         int text_y = 200 - 20;
         MN_DrTextB(level_name, text_x, text_y);
