@@ -2477,6 +2477,8 @@ static const char *defdemoname;
 
 void G_DeferedPlayDemo(const char *name)
 {
+    return; // [AP] Don't play demo. Picking up items in the demo will break our state!
+
     defdemoname = name;
     gameaction = ga_playdemo;
 }
