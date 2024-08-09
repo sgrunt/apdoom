@@ -926,6 +926,7 @@ void P_LoadThings(int lump)
                     case 19: // Quiver of Ethereal Arrows
                     case 10: // Wand Crystal
                     case 81: // Crystal Vial
+                    case 82: // Quartz Flask
                     {
                         int rnd = rand() % total;
                         if (rnd < ratios[0])
