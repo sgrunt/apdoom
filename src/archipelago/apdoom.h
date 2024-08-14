@@ -27,7 +27,7 @@ extern "C"
 
 
 #define APDOOM_MAJOR 1
-#define APDOOM_MINOR 1
+#define APDOOM_MINOR 2
 #define APDOOM_PATCH 0
 #define APDOOM_STR(x) APDOOM_STR2(x)
 #define APDOOM_STR2(x) #x
