@@ -1,6 +1,7 @@
 # Credits
 
 Daivuk - David St-Louis - Creator of APDOOM
+Kay "Kaito" Sinclaire - Linux binaries/support
 
 ## Extra help
 
