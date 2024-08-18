@@ -16,6 +16,7 @@
 //
 
 #ifdef _WIN32
+#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <io.h>
@@ -217,6 +218,18 @@ void f_episode3(int);
 void f_episode4(int);
 void f_episode5(int);
 void f_two_ways_keydoors(int);
+void f_ammo1start(int);
+void f_ammo2start(int);
+void f_ammo3start(int);
+void f_ammo4start(int);
+void f_ammo5start(int);
+void f_ammo6start(int);
+void f_ammo1add(int);
+void f_ammo2add(int);
+void f_ammo3add(int);
+void f_ammo4add(int);
+void f_ammo5add(int);
+void f_ammo6add(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
@@ -356,7 +369,7 @@ static unsigned long long hash_seed(const char *str)
 }
 
 
-const int* get_max_ammos()
+const int* get_default_max_ammos()
 {
 	switch (ap_game)
 	{
@@ -367,6 +380,16 @@ const int* get_max_ammos()
 	}
 }
 
+void recalc_max_ammo()
+{
+	for (int i = 0; i < ap_ammo_count; ++i)
+	{
+		const int recalc_max = ap_state.max_ammo_start[i]
+		    + (ap_state.max_ammo_add[i] * ap_state.player_state.capacity_upgrades[i]);
+
+		ap_state.player_state.max_ammo[i] = (recalc_max > 999) ? 999 : recalc_max;
+	}
+}
 
 int validate_doom_location(ap_level_index_t idx, int index)
 {
@@ -454,9 +477,21 @@ int apdoom_init(ap_settings_t* settings)
 	ap_state.player_state.weapon_owned[0] = 1; // Fist
 	ap_state.player_state.weapon_owned[1] = 1; // Pistol
 	ap_state.player_state.ammo[0] = 50; // Clip
-	auto max_ammos = get_max_ammos();
+
+	// Ammo capacity management
+	ap_state.max_ammo_start = new int[ap_ammo_count];
+	ap_state.max_ammo_add = new int[ap_ammo_count];
+	ap_state.player_state.capacity_upgrades = new int[ap_ammo_count];
+
+	// default to regular max ammos for games without custom max ammo set
+	auto max_ammos = get_default_max_ammos();
 	for (int i = 0; i < ap_ammo_count; ++i)
-		ap_state.player_state.max_ammo[i] = max_ammos[i];
+	{
+		ap_state.max_ammo_start[i] = max_ammos[i];
+		ap_state.max_ammo_add[i] = max_ammos[i];
+	}
+	memset(ap_state.player_state.capacity_upgrades, 0, sizeof(int) * ap_ammo_count);
+
 	for (int ep = 0; ep < ap_episode_count; ++ep)
 	{
 		int map_count = ap_get_map_count(ep + 1);
@@ -518,6 +553,18 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("hub3", f_episode3);
 	AP_RegisterSlotDataIntCallback("hub4", f_episode4);
 	AP_RegisterSlotDataIntCallback("hub5", f_episode5);
+	AP_RegisterSlotDataIntCallback("ammo1start", f_ammo1start);
+	AP_RegisterSlotDataIntCallback("ammo2start", f_ammo2start);
+	AP_RegisterSlotDataIntCallback("ammo3start", f_ammo3start);
+	AP_RegisterSlotDataIntCallback("ammo4start", f_ammo4start);
+	AP_RegisterSlotDataIntCallback("ammo5start", f_ammo5start);
+	AP_RegisterSlotDataIntCallback("ammo6start", f_ammo6start);
+	AP_RegisterSlotDataIntCallback("ammo1add", f_ammo1add);
+	AP_RegisterSlotDataIntCallback("ammo2add", f_ammo2add);
+	AP_RegisterSlotDataIntCallback("ammo3add", f_ammo3add);
+	AP_RegisterSlotDataIntCallback("ammo4add", f_ammo4add);
+	AP_RegisterSlotDataIntCallback("ammo5add", f_ammo5add);
+	AP_RegisterSlotDataIntCallback("ammo6add", f_ammo6add);
 	AP_RegisterSlotDataIntCallback("two_ways_keydoors", f_two_ways_keydoors);
     AP_Start();
 
@@ -560,6 +607,9 @@ int apdoom_init(ap_settings_t* settings)
 					printf("  Doesn't exist, creating...\n");
 					AP_MakeDirectory(ap_save_dir_name.c_str());
 				}
+
+				// Make sure that ammo starts at correct base values no matter what
+				recalc_max_ammo();
 
 				load_state();
 				should_break = true;
@@ -816,7 +866,7 @@ const char* get_ammo_name(int weapon)
 
 void load_state()
 {
-	printf("APDOOM: Load sate\n");
+	printf("APDOOM: Load state\n");
 
 	std::string filename = ap_save_dir_name + "/apstate.json";
 	std::ifstream f(filename);
@@ -833,7 +883,6 @@ void load_state()
 	json_get_int(json["player"]["health"], ap_state.player_state.health);
 	json_get_int(json["player"]["armor_points"], ap_state.player_state.armor_points);
 	json_get_int(json["player"]["armor_type"], ap_state.player_state.armor_type);
-	json_get_int(json["player"]["backpack"], ap_state.player_state.backpack);
 	json_get_int(json["player"]["ready_weapon"], ap_state.player_state.ready_weapon);
 	json_get_int(json["player"]["kill_count"], ap_state.player_state.kill_count);
 	json_get_int(json["player"]["item_count"], ap_state.player_state.item_count);
@@ -843,26 +892,24 @@ void load_state()
 	for (int i = 0; i < ap_weapon_count; ++i)
 		json_get_bool_or(json["player"]["weapon_owned"][i], ap_state.player_state.weapon_owned[i]);
 	for (int i = 0; i < ap_ammo_count; ++i)
+	{
 		json_get_int(json["player"]["ammo"][i], ap_state.player_state.ammo[i]);
+
+		// This will get overwritten later,
+		// but it must be saved if the player is in game before all their items have been re-received.
+		json_get_int(json["player"]["max_ammo"][i], ap_state.player_state.max_ammo[i]);		
+	}
 	for (int i = 0; i < ap_inventory_count; ++i)
 	{
 		const auto& inventory_slot = json["player"]["inventory"][i];
 		json_get_int(inventory_slot["type"], ap_state.player_state.inventory[i].type);
 		json_get_int(inventory_slot["count"], ap_state.player_state.inventory[i].count);
 	}
-	
-	if (ap_state.player_state.backpack)
-	{
-		auto max_ammos = get_max_ammos();
-		for (int i = 0; i < ap_ammo_count; ++i)
-			ap_state.player_state.max_ammo[i] = max_ammos[i] * (ap_state.player_state.backpack ? 2 : 1);
-	}
 
 	printf("  Player State:\n");
 	printf("    Health %i:\n", ap_state.player_state.health);
 	printf("    Armor points %i:\n", ap_state.player_state.armor_points);
 	printf("    Armor type %i:\n", ap_state.player_state.armor_type);
-	printf("    Backpack %s:\n", ap_state.player_state.backpack ? "true" : "false");
 	printf("    Ready weapon: %s\n", get_weapon_name(ap_state.player_state.ready_weapon));
 	printf("    Kill count %i:\n", ap_state.player_state.kill_count);
 	printf("    Item count %i:\n", ap_state.player_state.item_count);
@@ -877,7 +924,9 @@ void load_state()
 			printf("      %s\n", get_weapon_name(i));
 	printf("    Ammo:\n");
 	for (int i = 0; i < ap_ammo_count; ++i)
-		printf("      %s = %i\n", get_ammo_name(i), ap_state.player_state.ammo[i]);
+		printf("      %s = %i / %i\n", get_ammo_name(i),
+			ap_state.player_state.ammo[i],
+			ap_state.player_state.max_ammo[i]);
 
 	// Level states
 	for (int i = 0; i < ap_episode_count; ++i)
@@ -1001,7 +1050,6 @@ void save_state()
 	json_player["health"] = ap_state.player_state.health;
 	json_player["armor_points"] = ap_state.player_state.armor_points;
 	json_player["armor_type"] = ap_state.player_state.armor_type;
-	json_player["backpack"] = ap_state.player_state.backpack;
 	json_player["ready_weapon"] = ap_state.player_state.ready_weapon;
 	json_player["kill_count"] = ap_state.player_state.kill_count;
 	json_player["item_count"] = ap_state.player_state.item_count;
@@ -1021,6 +1069,11 @@ void save_state()
 	for (int i = 0; i < ap_ammo_count; ++i)
 		json_ammo.append(ap_state.player_state.ammo[i]);
 	json_player["ammo"] = json_ammo;
+
+	Json::Value json_max_ammo(Json::arrayValue);
+	for (int i = 0; i < ap_ammo_count; ++i)
+		json_max_ammo.append(ap_state.player_state.max_ammo[i]);
+	json_player["max_ammo"] = json_max_ammo;
 
 	Json::Value json_inventory(Json::arrayValue);
 	for (int i = 0; i < ap_inventory_count; ++i)
@@ -1079,7 +1132,10 @@ void save_state()
 
 void f_itemclr()
 {
-	// Not sure what use this would have here.
+	// This gets called when (re)connecting to the server.
+	// Any items that we need to keep track of, that can be collected multiple times,
+	// need to be cleared out here; otherwise, we will double count them on reconnect.
+	memset(ap_state.player_state.capacity_upgrades, 0, sizeof(int) * ap_ammo_count);
 }
 
 
@@ -1151,73 +1207,28 @@ std::string get_exmx_name(const std::string& name)
 }
 
 
-void f_itemrecv(int64_t item_id, int player_id, bool notify_player)
+// Split from f_itemrecv so that the item queue can call it without side-effects
+// This handles everything that requires us be in game, notification icons included
+static void process_received_item(int64_t item_id)
 {
 	const auto& item_type_table = get_item_type_table();
 	auto it = item_type_table.find(item_id);
 	if (it == item_type_table.end())
-		return; // Skip
-	ap_item_t item = it->second;
-	ap_level_index_t idx = {item.ep - 1, item.map - 1};
-	ap_level_info_t* level_info = ap_get_level_info(idx);
+		return; // Skip -- This is probably redundant, but whatever
 
+	ap_item_t item = it->second;
 	std::string notif_text;
 
-	auto level_state = ap_get_level_state(idx);
-
-	// Key?
-	const auto& keys_map = get_keys_map();
-	auto key_it = keys_map.find(item.doom_type);
-	if (key_it != keys_map.end())
+	// If the item has an associated episode/map, note that
+	if (item.ep != -1)
 	{
-		level_state->keys[key_it->second] = 1;
+		ap_level_index_t idx = {item.ep - 1, item.map - 1};
+		ap_level_info_t* level_info = ap_get_level_info(idx);
+
 		notif_text = get_exmx_name(level_info->name);
 	}
 
-	// Map?
-	if (item.doom_type == get_map_doom_type())
-	{
-		level_state->has_map = 1;
-		notif_text = get_exmx_name(level_info->name);
-	}
-
-	// Backpack?
-	if (item.doom_type == 8)
-	{
-		ap_state.player_state.backpack = 1;
-		auto max_ammos = get_max_ammos();
-		for (int i = 0; i < ap_ammo_count; ++i)
-			ap_state.player_state.max_ammo[i] = max_ammos[i] * 2;
-	}
-
-	// Weapon?
-	const auto& weapons_map = get_weapons_map();
-	auto weapon_it = weapons_map.find(item.doom_type);
-	if (weapon_it != weapons_map.end())
-		ap_state.player_state.weapon_owned[weapon_it->second] = 1;
-
-	// Ignore inventory items, the game will add them up
-
-	// Is it a level?
-	if (item.doom_type == -1)
-	{
-		level_state->unlocked = 1;
-		notif_text = get_exmx_name(level_info->name);
-	}
-
-	// Level complete?
-	if (item.doom_type == -2)
-		level_state->completed = 1;
-
-	if (!notify_player) return;
-
-	if (!ap_is_in_game)
-	{
-		ap_item_queue.push_back(item_id);
-		return;
-	}
-
-	// Give item to player
+	// Give item to in-game player
 	ap_settings.give_item_callback(item.doom_type == -3 ? item_id : item.doom_type, item.ep, item.map);
 
 	// Add notification icon
@@ -1242,6 +1253,68 @@ void f_itemrecv(int64_t item_id, int player_id, bool notify_player)
 		notif.y = (int)notif.yf;
 		ap_notification_icons.push_back(notif);
 	}
+}
+
+void f_itemrecv(int64_t item_id, int player_id, bool notify_player)
+{
+	const auto& item_type_table = get_item_type_table();
+	auto it = item_type_table.find(item_id);
+	if (it == item_type_table.end())
+		return; // Skip
+	ap_item_t item = it->second;
+
+	ap_level_index_t idx = {item.ep - 1, item.map - 1};
+	auto level_state = ap_get_level_state(idx);
+
+	// Backpack?
+	if (item.doom_type == 8)
+	{
+		for (int i = 0; i < ap_ammo_count; ++i)
+			++ap_state.player_state.capacity_upgrades[i];
+		recalc_max_ammo();
+	}
+
+	// Single ammo capacity upgrade?
+	if (item.doom_type >= 65001 && item.doom_type <= 65006)
+	{
+		int ammo_num = item.doom_type - 65001;
+		if (ammo_num < ap_ammo_count)
+			++ap_state.player_state.capacity_upgrades[ammo_num];
+		recalc_max_ammo();
+	}
+
+	// Key?
+	const auto& keys_map = get_keys_map();
+	auto key_it = keys_map.find(item.doom_type);
+	if (key_it != keys_map.end())
+		level_state->keys[key_it->second] = 1;
+
+	// Weapon?
+	const auto& weapons_map = get_weapons_map();
+	auto weapon_it = weapons_map.find(item.doom_type);
+	if (weapon_it != weapons_map.end())
+		ap_state.player_state.weapon_owned[weapon_it->second] = 1;
+
+	// Map?
+	if (item.doom_type == get_map_doom_type())
+		level_state->has_map = 1;
+
+	// Level unlock?
+	if (item.doom_type == -1)
+		level_state->unlocked = 1;
+
+	// Level complete?
+	if (item.doom_type == -2)
+		level_state->completed = 1;
+
+	// Ignore inventory items, the game will add them up
+
+	if (!notify_player) return;
+
+	if (!ap_is_in_game)
+		ap_item_queue.push_back(item_id);
+	else
+		process_received_item(item_id);
 }
 
 
@@ -1413,6 +1486,90 @@ void f_episode5(int ep)
 void f_two_ways_keydoors(int two_ways_keydoors)
 {
 	ap_state.two_ways_keydoors = two_ways_keydoors;
+}
+
+
+void f_ammo1start(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[0] = ammo_amt;
+}
+
+
+void f_ammo2start(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[1] = ammo_amt;
+}
+
+
+void f_ammo3start(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[2] = ammo_amt;
+}
+
+
+void f_ammo4start(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[3] = ammo_amt;
+}
+
+
+void f_ammo5start(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[4] = ammo_amt;
+}
+
+
+void f_ammo6start(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_start[5] = ammo_amt;
+}
+
+
+void f_ammo1add(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[0] = ammo_amt;
+}
+
+
+void f_ammo2add(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[1] = ammo_amt;
+}
+
+
+void f_ammo3add(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[2] = ammo_amt;
+}
+
+
+void f_ammo4add(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[3] = ammo_amt;
+}
+
+
+void f_ammo5add(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[4] = ammo_amt;
+}
+
+
+void f_ammo6add(int ammo_amt)
+{
+	if (ammo_amt > 0)
+		ap_state.max_ammo_add[5] = ammo_amt;
 }
 
 
@@ -1837,7 +1994,7 @@ void apdoom_update()
 		{
 			auto item_id = ap_item_queue.front();
 			ap_item_queue.erase(ap_item_queue.begin());
-			f_itemrecv(item_id, 0, true);
+			process_received_item(item_id);
 		}
 	}
 

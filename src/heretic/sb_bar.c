@@ -993,6 +993,10 @@ void DrawMainBar(void)
             V_DrawPatch(111, 172,
                         W_CacheLumpName(DEH_String(ammopic[CPlayer->readyweapon - 1]),
                                         PU_CACHE));
+
+            // [AP] draw maximum ammo, for quality of life with non-default max ammos
+            V_DrawPatch(120, 182, W_CacheLumpName("STYSLASH", PU_CACHE));
+            DrSmallNumber(CPlayer->maxammo[wpnlev1info[CPlayer->readyweapon].ammo], 130, 182);
         }
         oldammo = temp;
         oldweapon = CPlayer->readyweapon;
@@ -1523,14 +1527,15 @@ static void CheatAddRemoveWpnFunc(player_t *player, Cheat_t *cheat)
     if (w == -1)
     {
         // remove backpack if the player has it
-        if (player->backpack)
-        {
-            player->backpack = false;
-            for (i = 0; i < NUMAMMO; i++)
-            {
-                player->maxammo[i] /= 2;
-            }
-        }
+        // [AP] don't remove backpack state with cheats
+        //if (player->backpack)
+        //{
+        //    player->backpack = false;
+        //    for (i = 0; i < NUMAMMO; i++)
+        //    {
+        //        player->maxammo[i] /= 2;
+        //    }
+        //}
 
         // remove Tome of Power if active
         player->powers[pw_weaponlevel2] = 0;
@@ -1757,4 +1762,36 @@ static void CheatNoTargetFunc(player_t *player, Cheat_t *cheat)
     {
         P_SetMessage(player, DEH_String(TXT_CHEATNOTARGETOFF), false);
     }
+}
+
+//--------------------------------------------------------------------------
+// [AP] used for level select, to avoid re-tagging static graphics (causing later memory issues)
+
+void SB_RightAlignedSmallNum(int x, int y, int digit)
+{
+    x -= 4;
+
+    do
+    {
+        int i = digit % 10;
+        V_DrawPatch(x, y, PatchSmNumbers[i]);
+        x -= 4;
+        digit /= 10;
+    }
+    while (digit);
+}
+
+void SB_LeftAlignedSmallNum(int x, int y, int digit)
+{
+    int len = 0;
+    int i = digit;
+
+    do
+    {
+        len += 4;
+        i /= 10;
+    }
+    while (i);
+
+    SB_RightAlignedSmallNum(x + len, y, digit);
 }

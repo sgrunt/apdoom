@@ -1243,7 +1243,6 @@ void set_ap_player_states()
     p->neghealth /* ? */ = p->health = ap_state.player_state.health;
     p->armorpoints = ap_state.player_state.armor_points;
     p->armortype = ap_state.player_state.armor_type;
-    p->backpack = ap_state.player_state.backpack ? true : false;
     if (!was_in_level)
         p->readyweapon = p->pendingweapon = (weapontype_t)ap_state.player_state.ready_weapon;
     //p->pendingweapon = wp_nochange;
@@ -1257,6 +1256,8 @@ void set_ap_player_states()
         p->weaponowned[i] = ap_state.player_state.weapon_owned[i];
     for (int i = 0; i < NUMAMMO; ++i)
         p->ammo[i] = ap_state.player_state.ammo[i];
+
+    p->backpack = true; // prevent other things adjusting max ammo
     for (int i = 0; i < NUMAMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 
@@ -1271,7 +1272,11 @@ void set_ap_player_states()
     p->cards[3] = level_state->keys[0] && level_info->use_skull[0];
     p->cards[4] = level_state->keys[1] && level_info->use_skull[1];
     p->cards[5] = level_state->keys[2] && level_info->use_skull[2];
-    
+
+    // respawn would-be zombies, if ap health somehow becomes zero
+    if (p->playerstate == PST_LIVE && p->health == 0)
+        p->health = 100;
+
     // mo
     if (p->mo)
     {
@@ -1630,7 +1635,7 @@ void G_PlayerReborn (int player)
 	p->maxammo[i] = maxammo[i]; 
 	
     // Re-apply some AP states that we want to be persistent even after death
-    p->backpack = ap_state.player_state.backpack ? true : false;
+    p->backpack = true; // prevent other things adjusting max ammo
     for (int i = 0; i < NUMAMMO; ++i)
         p->maxammo[i] = ap_state.player_state.max_ammo[i];
 }
@@ -2035,7 +2040,6 @@ void cache_ap_player_state(void)
     ap_state.player_state.health = p->health;
     ap_state.player_state.armor_points = p->armorpoints;
     ap_state.player_state.armor_type = p->armortype;
-    ap_state.player_state.backpack = p->backpack;
     ap_state.player_state.ready_weapon = p->readyweapon;
     ap_state.player_state.kill_count = p->killcount;
     ap_state.player_state.item_count = p->itemcount;
@@ -2046,8 +2050,6 @@ void cache_ap_player_state(void)
         ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
     for (int i = 0; i < NUMAMMO; ++i)
         ap_state.player_state.ammo[i] = p->ammo[i];
-    for (int i = 0; i < NUMAMMO; ++i)
-        ap_state.player_state.max_ammo[i] = p->maxammo[i];
 }
  
 void G_DoCompleted (void) 
