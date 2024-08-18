@@ -770,6 +770,9 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
     }
     if (*statePtr != ASTE_INACTIVE)
     {                           // Script is already executing
+    	// [ap] queue it up in case we're trying to run the same script
+	// multiple times on item receipt on that level
+        AddToACSStore(map, number, args);
         return false;
     }
     script = Z_Malloc(sizeof(acs_t), PU_LEVSPEC, 0);
