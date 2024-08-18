@@ -193,7 +193,6 @@ void cache_ap_player_state(void)
     ap_state.player_state.health = p->health;
     ap_state.player_state.armor_points = p->armorpoints[0];
     ap_state.player_state.armor_type = p->armorpoints[1];
-    ap_state.player_state.backpack = p->armorpoints[2];
     ap_state.player_state.ready_weapon = p->readyweapon;
     ap_state.player_state.kill_count = p->killcount;
     ap_state.player_state.item_count = p->itemcount;
@@ -204,8 +203,8 @@ void cache_ap_player_state(void)
         ap_state.player_state.weapon_owned[i] = p->weaponowned[i];
     for (int i = 0; i < NUMMANA; ++i)
         ap_state.player_state.ammo[i] = p->mana[i];
-    ap_state.player_state.max_ammo[0] = p->armorpoints[3];
-    ap_state.player_state.max_ammo[1] = 0;
+    ap_state.player_state.max_ammo[0] = p->armorpoints[2];
+    ap_state.player_state.max_ammo[1] = p->armorpoints[3];
     int inv_slot = 0;
     memset(ap_state.player_state.inventory, 0, sizeof(ap_inventory_slot_t) * NUMINVENTORYSLOTS);
     for (int i = 0; i < NUMINVENTORYSLOTS; ++i)
