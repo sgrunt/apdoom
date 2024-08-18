@@ -1178,6 +1178,24 @@ void P_LoadLineDefs(int lump)
 
 	ld->index = i;
 
+	// [ap] Shadow Wood softlock fixes
+	if (gamemap == 13) {
+	    if (i == 1692) { // back of the Wasteland exit 
+	        ld->special = 11;
+		ld->flags |= 0x1000; // push action
+		ld->arg1 = 85;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	    if (i == 1762) { // Caves elevator door
+	        ld->special = 11;
+		ld->flags |= 0x1000; // push action
+		ld->arg1 = 82;
+		ld->arg2 = 16;
+		ld->arg3 = 0;
+	    }
+	}
+
 	// [ap] Effluvium softlock fix
 	if (gamemap == 24) {
 	    if (i == 560) {
