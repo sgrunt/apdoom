@@ -543,16 +543,19 @@ int apdoom_init(ap_settings_t* settings)
 	AP_RegisterSlotDataIntCallback("flip_levels", f_flip_levels);
 	AP_RegisterSlotDataIntCallback("check_sanity", f_check_sanity);
 	AP_RegisterSlotDataIntCallback("reset_level_on_death", f_reset_level_on_death);
-	AP_RegisterSlotDataIntCallback("episode1", f_episode1);
-	AP_RegisterSlotDataIntCallback("episode2", f_episode2);
-	AP_RegisterSlotDataIntCallback("episode3", f_episode3);
-	AP_RegisterSlotDataIntCallback("episode4", f_episode4);
-	AP_RegisterSlotDataIntCallback("episode5", f_episode5);
-	AP_RegisterSlotDataIntCallback("hub1", f_episode1);
-	AP_RegisterSlotDataIntCallback("hub2", f_episode2);
-	AP_RegisterSlotDataIntCallback("hub3", f_episode3);
-	AP_RegisterSlotDataIntCallback("hub4", f_episode4);
-	AP_RegisterSlotDataIntCallback("hub5", f_episode5);
+	if (ap_game == ap_game_t::hexen) {
+	    AP_RegisterSlotDataIntCallback("hub1", f_episode1);
+	    AP_RegisterSlotDataIntCallback("hub2", f_episode2);
+	    AP_RegisterSlotDataIntCallback("hub3", f_episode3);
+	    AP_RegisterSlotDataIntCallback("hub4", f_episode4);
+	    AP_RegisterSlotDataIntCallback("hub5", f_episode5);
+	} else {
+	    AP_RegisterSlotDataIntCallback("episode1", f_episode1);
+	    AP_RegisterSlotDataIntCallback("episode2", f_episode2);
+	    AP_RegisterSlotDataIntCallback("episode3", f_episode3);
+	    AP_RegisterSlotDataIntCallback("episode4", f_episode4);
+	    AP_RegisterSlotDataIntCallback("episode5", f_episode5);
+	}
 	AP_RegisterSlotDataIntCallback("ammo1start", f_ammo1start);
 	AP_RegisterSlotDataIntCallback("ammo2start", f_ammo2start);
 	AP_RegisterSlotDataIntCallback("ammo3start", f_ammo3start);
