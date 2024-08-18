@@ -178,7 +178,6 @@ void on_ap_give_acs(int check) {
     int script3_num = 0;
     int world_var_increment = -1;
     player_t* player = &players[consoleplayer];
-    char error_message[80];
     byte script_args[3];
     script_args[0] = script_args[1] = script_args[2] = 0;
 
@@ -321,20 +320,17 @@ void on_ap_give_acs(int check) {
 
     if (script_map >= 0) {
         if (!P_StartACS(script_num, script_map, script_args, player->mo, NULL, 0)) {
-	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
-            HU_AddAPMessage(error_message);
+	    printf("Script %d map %d activation failed!", script_num, script_map);
 	}
     }
     if (script2_map >= 0) {
         if (!P_StartACS(script2_num, script2_map, script_args, player->mo, NULL, 0)) {
-	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
-            HU_AddAPMessage(error_message);
+	    printf("Script %d map %d activation failed!", script_num, script_map);
 	}
     }
     if (script3_map >= 0) {
         if (!P_StartACS(script3_num, script3_map, script_args, player->mo, NULL, 0)) {
-	    snprintf(error_message, 80, "Script %d map %d activation failed!", script_num, script_map);
-            HU_AddAPMessage(error_message);
+	    printf("Script %d map %d activation failed!", script_num, script_map);
 	}
     }
 }
