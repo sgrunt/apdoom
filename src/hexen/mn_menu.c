@@ -2094,6 +2094,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_save)           // F2 (save game)
         {
+#if 0 // [AP] Disable manual saves in AP
             if (gamestate == GS_LEVEL && !demoplayback)
             {
                 MenuActive = true;
@@ -2108,10 +2109,12 @@ boolean MN_Responder(event_t * event)
                 S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                 slottextloaded = false;     //reload the slot text, when needed
             }
+#endif
             return true;
         }
         else if (key == key_menu_load)           // F3 (load game)
         {
+#if 0 // [AP] Disable manual saves in AP
             if (SCNetCheck(2))
             {
                 MenuActive = true;
@@ -2126,6 +2129,7 @@ boolean MN_Responder(event_t * event)
                 S_StartSound(NULL, SFX_DOOR_LIGHT_CLOSE);
                 slottextloaded = false;     //reload the slot text, when needed
             }
+#endif
             return true;
         }
         else if (key == key_menu_volume)         // F4 (volume)
@@ -2152,6 +2156,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_qsave)          // F6 (quicksave)
         {
+#if 0 // [AP] Disable manual saves in AP
             if (gamestate == GS_LEVEL && !demoplayback)
             {
                 if (!quicksave || quicksave == -1)
@@ -2182,6 +2187,7 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, SFX_CHAT);
                 }
             }
+#endif
             return true;
         }
         else if (key == key_menu_endgame)        // F7 (end game)
@@ -2203,6 +2209,7 @@ boolean MN_Responder(event_t * event)
         }
         else if (key == key_menu_qload)          // F9 (quickload)
         {
+#if 0 // [AP] Disable manual saves in AP
             if (SCNetCheck(2))
             {
                 if (!quickload || quickload == -1)
@@ -2233,6 +2240,7 @@ boolean MN_Responder(event_t * event)
                     S_StartSound(NULL, SFX_CHAT);
                 }
             }
+#endif
             return true;
         }
         else if (key == key_menu_quit)           // F10 (quit)
