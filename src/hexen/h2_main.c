@@ -168,6 +168,7 @@ void on_ap_victory()
 }
 
 extern int WorldVars[MAX_ACS_WORLD_VARS];
+boolean AddToACSStore(int map, int number, byte * args);
 
 void on_ap_give_acs(int check) {
     int script_map = -1;
@@ -320,17 +321,23 @@ void on_ap_give_acs(int check) {
 
     if (script_map >= 0) {
         if (!P_StartACS(script_num, script_map, script_args, player->mo, NULL, 0)) {
-	    printf("Script %d map %d activation failed!", script_num, script_map);
+            // script already running - queue it instead
+	    printf("Script %d map %d activation failed - queueing", script_num, script_map);
+	    AddToACSStore(script_map, script_num, script_args);
 	}
     }
     if (script2_map >= 0) {
         if (!P_StartACS(script2_num, script2_map, script_args, player->mo, NULL, 0)) {
-	    printf("Script %d map %d activation failed!", script_num, script_map);
+            // script already running - queue it instead
+	    printf("Script %d map %d activation failed - queueing", script_num, script_map);
+	    AddToACSStore(script2_map, script2_num, script_args);
 	}
     }
     if (script3_map >= 0) {
         if (!P_StartACS(script3_num, script3_map, script_args, player->mo, NULL, 0)) {
-	    printf("Script %d map %d activation failed!", script_num, script_map);
+            // script already running - queue it instead
+	    printf("Script %d map %d activation failed - queueing", script_num, script_map);
+	    AddToACSStore(script3_map, script3_num, script_args);
 	}
     }
 }

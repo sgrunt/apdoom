@@ -58,7 +58,7 @@ typedef PACKED_STRUCT (
 static void StartOpenACS(int number, int infoIndex, int offset);
 static void ScriptFinished(int number);
 static boolean TagBusy(int tag);
-static boolean AddToACSStore(int map, int number, byte * args);
+boolean AddToACSStore(int map, int number, byte * args);
 static int GetACSIndex(int number);
 static void Push(int value);
 static int Pop(void);
@@ -770,9 +770,6 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
     }
     if (*statePtr != ASTE_INACTIVE)
     {                           // Script is already executing
-    	// [ap] queue it up in case we're trying to run the same script
-	// multiple times on item receipt on that level
-        AddToACSStore(map, number, args);
         return false;
     }
     script = Z_Malloc(sizeof(acs_t), PU_LEVSPEC, 0);
@@ -800,7 +797,7 @@ boolean P_StartACS(int number, int map, byte * args, mobj_t * activator,
 //
 //==========================================================================
 
-static boolean AddToACSStore(int map, int number, byte * args)
+boolean AddToACSStore(int map, int number, byte * args)
 {
     int i;
     int index;
