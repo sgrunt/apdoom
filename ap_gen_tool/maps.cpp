@@ -536,7 +536,7 @@ void init_wad(const char* filename, game_t& game)
     fseek(f, header.directory_offset, SEEK_SET);
     fread(directory.data(), sizeof(map_directory_t), header.num_lumps, f);
 
-    bool is_doom2 = game.codename == "doom2";
+    bool is_doom2 = (game.codename == "doom2" || game.codename == "tnt" || game.codename == "plutonia");
 
     // loop directory and find levels, then load them all. YOLO
     for (int i = 0, len = (int)directory.size(); i < len; ++i)

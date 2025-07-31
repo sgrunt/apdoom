@@ -35,7 +35,7 @@
         [
             "Nirvana (MAP21)",
             "The Catacombs (MAP22)",
-            "Barrels o Fun (MAP23)",
+            "Barrels o' Fun (MAP23)",
             "The Chasm (MAP24)",
             "Bloodfalls (MAP25)",
             "The Abandoned Mines (MAP26)",
@@ -45,8 +45,8 @@
             "Icon of Sin (MAP30)"
         ],
         [
-            "Wolfenstein2 (MAP31)",
-            "Grosse2 (MAP32)"
+            "Wolfenstein (MAP31)",
+            "Grosse (MAP32)"
         ]
     ],
     "location_doom_types": {

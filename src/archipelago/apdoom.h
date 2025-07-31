@@ -195,6 +195,7 @@ const ap_notification_icon_t* ap_get_notification_icons(int* count);
 int ap_get_highest_episode();
 int ap_validate_doom_location(ap_level_index_t idx, int doom_type, int index);
 int ap_get_map_count(int ep);
+int ap_total_check_count(ap_level_info_t *level_info);
 
 // Deathlink stuff
 void apdoom_on_death();
@@ -204,6 +205,9 @@ int apdoom_should_die();
 ap_level_index_t ap_make_level_index(int ep /* 1-based */, int map /* 1-based */);
 int ap_index_to_ep(ap_level_index_t idx);
 int ap_index_to_map(ap_level_index_t idx);
+
+// Remote data storage (global, or just for our slot if per_slot)
+void ap_remote_set(const char *key, int per_slot, int value);
 
 #ifdef __cplusplus
 }

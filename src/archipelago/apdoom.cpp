@@ -196,40 +196,44 @@ static bool ap_initialized = false;
 static std::vector<std::string> ap_cached_messages;
 static std::string ap_save_dir_name;
 static std::vector<ap_notification_icon_t> ap_notification_icons;
-static bool ap_check_sanity = false;
 
+#define SLOT_DATA_CALLBACK(func_name, output, condition) void func_name (int result) { if (condition) output = result; }
+
+SLOT_DATA_CALLBACK(f_goal, ap_state.goal, true);
+SLOT_DATA_CALLBACK(f_player_class, ap_state.player_class, true);
+SLOT_DATA_CALLBACK(f_difficulty, ap_state.difficulty, (!ap_settings.override_skill) );
+SLOT_DATA_CALLBACK(f_random_monsters, ap_state.random_monsters, (!ap_settings.override_monster_rando) );
+SLOT_DATA_CALLBACK(f_random_items, ap_state.random_items, (!ap_settings.override_item_rando) );
+SLOT_DATA_CALLBACK(f_random_music, ap_state.random_music, (!ap_settings.override_music_rando) );
+SLOT_DATA_CALLBACK(f_flip_levels, ap_state.flip_levels, (!ap_settings.override_flip_levels) );
+SLOT_DATA_CALLBACK(f_check_sanity, ap_state.check_sanity, true);
+SLOT_DATA_CALLBACK(f_reset_level_on_death, ap_state.reset_level_on_death, (!ap_settings.override_reset_level_on_death) );
+SLOT_DATA_CALLBACK(f_two_ways_keydoors, ap_state.two_ways_keydoors, true);
+
+// Even if the element we're looking for isn't in slot data, these callback functions are still called.
+// Thus it's important to have conditions on all of these to avoid out-of-bounds writes.
+SLOT_DATA_CALLBACK(f_episode1, ap_state.episodes[0], (ap_episode_count > 0) );
+SLOT_DATA_CALLBACK(f_episode2, ap_state.episodes[1], (ap_episode_count > 1) );
+SLOT_DATA_CALLBACK(f_episode3, ap_state.episodes[2], (ap_episode_count > 2) );
+SLOT_DATA_CALLBACK(f_episode4, ap_state.episodes[3], (ap_episode_count > 3) );
+SLOT_DATA_CALLBACK(f_episode5, ap_state.episodes[4], (ap_episode_count > 4) );
+SLOT_DATA_CALLBACK(f_ammo1start, ap_state.max_ammo_start[0], (ap_ammo_count > 0 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo2start, ap_state.max_ammo_start[1], (ap_ammo_count > 1 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo3start, ap_state.max_ammo_start[2], (ap_ammo_count > 2 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo4start, ap_state.max_ammo_start[3], (ap_ammo_count > 3 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo5start, ap_state.max_ammo_start[4], (ap_ammo_count > 4 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo6start, ap_state.max_ammo_start[5], (ap_ammo_count > 5 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo1add, ap_state.max_ammo_add[0], (ap_ammo_count > 0 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo2add, ap_state.max_ammo_add[1], (ap_ammo_count > 1 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo3add, ap_state.max_ammo_add[2], (ap_ammo_count > 2 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo4add, ap_state.max_ammo_add[3], (ap_ammo_count > 3 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo5add, ap_state.max_ammo_add[4], (ap_ammo_count > 4 && result > 0) );
+SLOT_DATA_CALLBACK(f_ammo6add, ap_state.max_ammo_add[5], (ap_ammo_count > 5 && result > 0) );
 
 void f_itemclr();
 void f_itemrecv(int64_t item_id, int player_id, bool notify_player);
 void f_locrecv(int64_t loc_id);
 void f_locinfo(std::vector<AP_NetworkItem> loc_infos);
-void f_goal(int);
-void f_player_class(int);
-void f_difficulty(int);
-void f_random_monsters(int);
-void f_random_items(int);
-void f_random_music(int);
-void f_flip_levels(int);
-void f_check_sanity(int);
-void f_reset_level_on_death(int);
-void f_episode1(int);
-void f_episode2(int);
-void f_episode3(int);
-void f_episode4(int);
-void f_episode5(int);
-void f_two_ways_keydoors(int);
-void f_ammo1start(int);
-void f_ammo2start(int);
-void f_ammo3start(int);
-void f_ammo4start(int);
-void f_ammo5start(int);
-void f_ammo6start(int);
-void f_ammo1add(int);
-void f_ammo2add(int);
-void f_ammo3add(int);
-void f_ammo4add(int);
-void f_ammo5add(int);
-void f_ammo6add(int);
 void load_state();
 void save_state();
 void APSend(std::string msg);
@@ -277,6 +281,7 @@ static std::vector<std::vector<ap_level_info_t>>& get_level_info_table()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return ap_doom_level_infos;
 		case ap_game_t::doom2: return ap_doom2_level_infos;
 		case ap_game_t::heretic: return ap_heretic_level_infos;
@@ -291,6 +296,12 @@ int ap_get_map_count(int ep)
 	auto& level_info_table = get_level_info_table();
 	if (ep < 0 || ep >= (int)level_info_table.size()) return -1;
 	return (int)level_info_table[ep].size();
+}
+
+
+int ap_total_check_count(ap_level_info_t *level_info)
+{
+	return level_info->check_count - (ap_state.check_sanity ? 0 : level_info->sanity_check_count);
 }
 
 
@@ -313,6 +324,7 @@ static const std::map<int64_t, ap_item_t>& get_item_type_table()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return ap_doom_item_table;
 		case ap_game_t::doom2: return ap_doom2_item_table;
 		case ap_game_t::heretic: return ap_heretic_item_table;
@@ -325,6 +337,7 @@ static const std::map<int /* ep */, std::map<int /* map */, std::map<int /* inde
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return ap_doom_location_table;
 		case ap_game_t::doom2: return ap_doom2_location_table;
 		case ap_game_t::heretic: return ap_heretic_location_table;
@@ -362,7 +375,7 @@ static unsigned long long hash_seed(const char *str)
     unsigned long long hash = 5381;
     int c;
 
-    while (c = *str++)
+    while ((c = *str++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
     return hash;
@@ -373,6 +386,7 @@ const int* get_default_max_ammos()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return doom_max_ammos;
 		case ap_game_t::doom2: return doom2_max_ammos;
 		case ap_game_t::heretic: return heretic_max_ammos;
@@ -526,7 +540,7 @@ int apdoom_init(ap_settings_t* settings)
 	if (ap_settings.override_reset_level_on_death)
 		ap_state.reset_level_on_death = ap_settings.reset_level_on_death;
 
-	AP_NetworkVersion version = {0, 4, 1};
+	AP_NetworkVersion version = {0, 5, 0};
 	AP_SetClientVersion(&version);
     AP_Init(ap_settings.ip, ap_settings.game, ap_settings.player_name, ap_settings.passwd);
 	AP_SetDeathLinkSupported(ap_settings.force_deathlink_off ? false : true);
@@ -621,6 +635,8 @@ int apdoom_init(ap_settings_t* settings)
 			case AP_ConnectionStatus::ConnectionRefused:
 				printf("APDOOM: Failed to connect, connection refused\n");
 				return 0;
+			default: // Explicitly do not handle
+				break;
 		}
 		if (should_break) break;
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -741,11 +757,13 @@ int apdoom_init(ap_settings_t* settings)
 				for (const auto& kv3 : kv2.second)
 				{
 					if (kv3.first == -1) continue;
+#if 0 // Was this used to debug something in the past? Either way, it does nothing anymore
 					if (kv3.second == 371349)
 					{
 						int tmp;
 						tmp = 5;
 					}
+#endif
 					if (validate_doom_location({kv1.first - 1, kv2.first - 1}, kv3.first))
 					{
 						location_scouts.push_back(kv3.second);
@@ -966,12 +984,12 @@ void load_state()
 	int first = 1;
 	for (int i = 0; i < ap_episode_count; ++i)
 	{
-		json_get_int(json["enabled_episodes"][i++], ap_state.episodes[i]);
+		json_get_int(json["enabled_episodes"][i], ap_state.episodes[i]);
 		if (ap_state.episodes[i])
 		{
 			if (!first) printf(", ");
 			first = 0;
-			printf("%i", i);
+			printf("%i", i + 1);
 		}
 	}
 	printf("\n");
@@ -1116,7 +1134,7 @@ void save_state()
 
 	json["ep"] = ap_state.ep;
 	for (int i = 0; i < ap_episode_count; ++i)
-		json["enabled_episodes"][i++] = ap_state.episodes[i] ? true : false;
+		json["enabled_episodes"][i] = ap_state.episodes[i] ? true : false;
 	json["map"] = ap_state.map;
 
 	// Progression items (So we don't scout everytime we connect)
@@ -1152,6 +1170,7 @@ const std::map<int, int>& get_keys_map()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return doom_keys_map;
 		case ap_game_t::doom2: return doom2_keys_map;
 		case ap_game_t::heretic: return heretic_keys_map;
@@ -1164,6 +1183,7 @@ int get_map_doom_type()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return 2026;
 		case ap_game_t::doom2: return 2026;
 		case ap_game_t::heretic: return 35;
@@ -1182,6 +1202,7 @@ const std::map<int, int>& get_weapons_map()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return doom_weapons_map;
 		case ap_game_t::doom2: return doom2_weapons_map;
 		case ap_game_t::heretic: return heretic_weapons_map;
@@ -1194,6 +1215,7 @@ const std::map<int, std::string>& get_sprites()
 {
 	switch (ap_game)
 	{
+		default: // Indeterminate state? Default to Doom 1
 		case ap_game_t::doom: return ap_doom_type_sprites;
 		case ap_game_t::doom2: return ap_doom2_type_sprites;
 		case ap_game_t::heretic: return ap_heretic_type_sprites;
@@ -1383,199 +1405,6 @@ void f_locinfo(std::vector<AP_NetworkItem> loc_infos)
 	}
 }
 
-
-void f_goal(int goal)
-{
-	ap_state.goal = goal;
-}
-
-
-void f_player_class(int player_class)
-{
-	ap_state.player_class = player_class;
-}
-
-
-void f_difficulty(int difficulty)
-{
-	if (ap_settings.override_skill)
-		return;
-
-	ap_state.difficulty = difficulty;
-}
-
-
-void f_random_monsters(int random_monsters)
-{
-	if (ap_settings.override_monster_rando)
-		return;
-
-	ap_state.random_monsters = random_monsters;
-}
-
-
-void f_random_items(int random_items)
-{
-	if (ap_settings.override_item_rando)
-		return;
-
-	ap_state.random_items = random_items;
-}
-
-
-void f_random_music(int random_music)
-{
-	if (ap_settings.override_music_rando)
-		return;
-
-	ap_state.random_music = random_music;
-}
-
-
-void f_flip_levels(int flip_levels)
-{
-	if (ap_settings.override_flip_levels)
-		return;
-
-	ap_state.flip_levels = flip_levels;
-}
-
-
-void f_check_sanity(int check_sanity)
-{
-	ap_state.check_sanity = check_sanity;
-}
-
-
-void f_reset_level_on_death(int reset_level_on_death)
-{
-	if (ap_settings.override_reset_level_on_death)
-		return;
-
-	ap_state.reset_level_on_death = reset_level_on_death;
-}
-
-
-void f_episode1(int ep)
-{
-	ap_state.episodes[0] = ep;
-}
-
-
-void f_episode2(int ep)
-{
-	ap_state.episodes[1] = ep;
-}
-
-
-void f_episode3(int ep)
-{
-	ap_state.episodes[2] = ep;
-}
-
-
-void f_episode4(int ep)
-{
-	ap_state.episodes[3] = ep;
-}
-
-
-void f_episode5(int ep)
-{
-	ap_state.episodes[4] = ep;
-}
-
-
-void f_two_ways_keydoors(int two_ways_keydoors)
-{
-	ap_state.two_ways_keydoors = two_ways_keydoors;
-}
-
-
-void f_ammo1start(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_start[0] = ammo_amt;
-}
-
-
-void f_ammo2start(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_start[1] = ammo_amt;
-}
-
-
-void f_ammo3start(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_start[2] = ammo_amt;
-}
-
-
-void f_ammo4start(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_start[3] = ammo_amt;
-}
-
-
-void f_ammo5start(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_start[4] = ammo_amt;
-}
-
-
-void f_ammo6start(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_start[5] = ammo_amt;
-}
-
-
-void f_ammo1add(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_add[0] = ammo_amt;
-}
-
-
-void f_ammo2add(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_add[1] = ammo_amt;
-}
-
-
-void f_ammo3add(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_add[2] = ammo_amt;
-}
-
-
-void f_ammo4add(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_add[3] = ammo_amt;
-}
-
-
-void f_ammo5add(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_add[4] = ammo_amt;
-}
-
-
-void f_ammo6add(int ammo_amt)
-{
-	if (ammo_amt > 0)
-		ap_state.max_ammo_add[5] = ammo_amt;
-}
-
-
 const char* apdoom_get_seed()
 {
 	return ap_save_dir_name.c_str();
@@ -1709,7 +1538,12 @@ int ap_index_to_map(ap_level_index_t idx)
 
 void apdoom_check_victory()
 {
-	if (ap_state.victory) return;
+	if (ap_state.victory)
+	{
+		// Silently resend victory state, just in case connection got dropped as we actually won
+		AP_StoryComplete();
+		return;
+	}
 
         if (ap_game == ap_game_t::hexen) {
 	    if (ap_state.goal == 1) { // defeat Korax
@@ -2052,4 +1886,19 @@ void apdoom_update()
 
 		++it;
 	}
+}
+
+// Remote data per slot
+void ap_remote_set(const char *key, int per_slot, int value)
+{
+	AP_SetServerDataRequest rq;
+	if (per_slot)
+		rq.key += "<Slot" + std::to_string(AP_GetPlayerID()) + ">";
+	rq.key += key;
+	rq.operations = { {"replace", &value} };
+	rq.default_value = 0;
+	rq.type = AP_DataType::Int;
+	rq.want_reply = false;
+
+	AP_SetServerData(&rq);
 }

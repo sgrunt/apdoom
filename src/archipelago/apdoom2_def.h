@@ -6523,7 +6523,7 @@ std::vector<std::vector<ap_level_info_t>> ap_doom2_level_infos =
             {2018, 119, 0, 0},
             {17, 120, 0, 1},
         }},
-        {"Barrels o Fun (MAP23)", {false, true, false}, {0, 1, 0}, 11, 431, {
+        {"Barrels o' Fun (MAP23)", {false, true, false}, {0, 1, 0}, 11, 431, {
             {1, 0, 0, 1},
             {2, 1, 0, 1},
             {3, 2, 0, 1},
@@ -9035,7 +9035,7 @@ std::vector<std::vector<ap_level_info_t>> ap_doom2_level_infos =
         }},
     },
     {
-        {"Wolfenstein2 (MAP31)", {false, false, false}, {0, 0, 0}, 14, 317, {
+        {"Wolfenstein (MAP31)", {false, false, false}, {0, 0, 0}, 14, 317, {
             {15, 0, 0, 1},
             {12, 1, 0, 1},
             {10, 2, 0, 1},
@@ -9354,7 +9354,7 @@ std::vector<std::vector<ap_level_info_t>> ap_doom2_level_infos =
             {2006, 315, 0, 0},
             {2004, 316, 0, 0},
         }},
-        {"Grosse2 (MAP32)", {false, false, false}, {0, 0, 0}, 10, 111, {
+        {"Grosse (MAP32)", {false, false, false}, {0, 0, 0}, 10, 111, {
             {54, 0, 0, 1},
             {54, 1, 0, 1},
             {44, 2, 0, 1},
@@ -9479,7 +9479,6 @@ const std::map<int, std::string> ap_doom2_type_sprites = {
     {2002, "MGUNA0"},
     {2006, "BFUGA0"},
     {82, "SGN2A0"},
-    {8, "BPAKA0"},
     {2018, "ARM1A0"},
     {2019, "ARM2A0"},
     {2023, "PSTRA0"},
@@ -9493,6 +9492,7 @@ const std::map<int, std::string> ap_doom2_type_sprites = {
     {2049, "SBOXA0"},
     {17, "CELPA0"},
     {2026, "PMAPA0"},
+    {8, "BPAKA0"},
     {65001, "BPAKA0"},
     {65002, "BPAKA0"},
     {65003, "BPAKA0"},
