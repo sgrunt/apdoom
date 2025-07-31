@@ -110,7 +110,6 @@ endif()
 
 # Do not build games we don't support by default.
 # (You're allowed to build them manually, but they won't be built by default.)
-set_target_properties(hexen crispy-hexen PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 set_target_properties(strife crispy-strife PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 set_target_properties(crispy-server PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 set_target_properties(midiread PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
